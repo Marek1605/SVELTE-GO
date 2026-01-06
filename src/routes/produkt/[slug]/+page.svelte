@@ -12,11 +12,57 @@
     let lightboxOpen = false;
     let isWishlisted = false;
     let isCompared = false;
+    let activeTab = 'offers';
+    let offersFilter = 'all';
     
     $: mainImage = images[currentImageIndex] || product?.image_url || '';
-    $: lowestPrice = product?.price_min || 0;
+    $: lowestPrice = product?.price_min || product?.price || 0;
     $: freeShipping = lowestPrice >= 49;
     $: offerCount = product?.offer_count || 1;
+    
+    // Mock offers for display
+    $: offers = [
+        {
+            id: 1,
+            vendor_name: 'MegaPrice.sk',
+            vendor_initials: 'MP',
+            rating: 4.8,
+            reviews: 1250,
+            stock: 'instock',
+            delivery: '1-2',
+            price: lowestPrice,
+            shipping: freeShipping ? 0 : 2.99,
+            is_megabuy: true
+        },
+        {
+            id: 2,
+            vendor_name: 'MegaBuy',
+            vendor_initials: 'me',
+            rating: 4.5,
+            reviews: 218,
+            stock: 'instock',
+            delivery: '2-3',
+            price: lowestPrice * 1.02,
+            shipping: 0,
+            is_megabuy: false
+        },
+        {
+            id: 3,
+            vendor_name: 'TopShop',
+            vendor_initials: 'to',
+            rating: 4.5,
+            reviews: 409,
+            stock: 'instock',
+            delivery: '2-3',
+            price: lowestPrice * 1.05,
+            shipping: 0,
+            is_megabuy: false
+        }
+    ];
+    
+    $: filteredOffers = offersFilter === 'instock' 
+        ? offers.filter(o => o.stock === 'instock') 
+        : offers;
     
     function selectImage(i) { currentImageIndex = i; }
     function openLightbox() { lightboxOpen = true; document.body.style.overflow = 'hidden'; }
@@ -59,241 +105,243 @@
 
 <svelte:head>
     <title>{product?.title || 'Produkt'} | MegaPrice.sk</title>
-    <meta name="description" content="Porovnajte ceny {product?.title}. {offerCount} ponúk od {formatPrice(lowestPrice)}">
 </svelte:head>
 
-<div class="mp-single">
-    <div class="mp-container">
+<div class="mp-product">
+    <div class="mp-product__container">
+        
         <!-- Breadcrumb -->
         <nav class="mp-breadcrumb">
             <a href="/">Domov</a>
-            <span class="mp-breadcrumb__sep">/</span>
+            <span>›</span>
             <span>{product?.title}</span>
         </nav>
         
         {#if product}
-            <!-- Mobile Price Bar -->
-            <div class="mp-mobile-price-bar">
-                <div class="mp-mobile-price">{formatPrice(lowestPrice)}</div>
-                {#if freeShipping}
-                    <div class="mp-mobile-shipping">✓ Doprava zdarma</div>
+        <!-- Product Top Section -->
+        <div class="mp-product__top">
+            
+            <!-- Gallery -->
+            <div class="mp-gallery">
+                <div class="mp-gallery__thumbs">
+                    {#each images.slice(0, 5) as img, i}
+                        <button 
+                            class="mp-gallery__thumb" 
+                            class:active={i === currentImageIndex}
+                            on:click={() => selectImage(i)}
+                        >
+                            <img src={img} alt="">
+                        </button>
+                    {/each}
+                </div>
+                <div class="mp-gallery__main" on:click={openLightbox}>
+                    {#if mainImage}
+                        <img src={mainImage} alt={product.title}>
+                    {:else}
+                        <div class="mp-gallery__placeholder">📷</div>
+                    {/if}
+                </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="mp-info">
+                <h1 class="mp-info__title">{product.title}</h1>
+                
+                {#if product.description}
+                    <p class="mp-info__desc">
+                        {product.description.replace(/<[^>]*>/g, '').slice(0, 200)}...
+                        <a href="#popis" class="mp-info__more">Zobraziť viac →</a>
+                    </p>
                 {/if}
-            </div>
-            
-            <!-- Main Layout -->
-            <div class="mp-product-top">
-                <!-- Gallery -->
-                <div class="mp-gallery-wrapper">
-                    <div class="mp-gallery">
-                        <div class="mp-main-img">
-                            <div class="mp-main-img__wrap" on:click={openLightbox}>
-                                {#if mainImage}
-                                    <img src={mainImage} alt={product.title} class="mp-main-img__img">
-                                {:else}
-                                    <div class="mp-main-img__placeholder">📷</div>
-                                {/if}
-                                <div class="mp-main-img__zoom">🔍</div>
-                            </div>
-                        </div>
-                        
-                        {#if images.length > 1}
-                            <div class="mp-thumbs">
-                                {#each images as img, i}
-                                    <button class="mp-thumb" class:active={i === currentImageIndex} on:click={() => selectImage(i)}>
-                                        <img src={img} alt="">
-                                    </button>
-                                {/each}
-                            </div>
-                        {/if}
-                    </div>
+                
+                <!-- Action Buttons -->
+                <div class="mp-info__actions">
+                    <button class="mp-info__action" class:active={isWishlisted} on:click={toggleWishlist}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill={isWishlisted ? "currentColor" : "none"} stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        Pridať do obľúbených
+                    </button>
+                    <button class="mp-info__action" class:active={isCompared} on:click={toggleCompare}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                        Porovnať
+                    </button>
                 </div>
                 
-                <!-- Content -->
-                <div class="mp-content">
-                    {#if product.brand}
-                        <div class="mp-brand">{product.brand}</div>
-                    {/if}
-                    
-                    <h1 class="mp-title">{product.title}</h1>
-                    
-                    <div class="mp-meta">
-                        {#if product.ean}
-                            <span>EAN: {product.ean}</span>
-                        {/if}
-                        <span>{offerCount} {offerCount === 1 ? 'ponuka' : 'ponúk'}</span>
+                <!-- AI Assistant Box -->
+                <div class="mp-ai-box">
+                    <div class="mp-ai-box__header">
+                        <span class="mp-ai-box__icon">🤖</span>
+                        <span>AI Asistent</span>
                     </div>
-                    
-                    <!-- Actions -->
-                    <div class="mp-actions">
-                        <button class="mp-action-btn" class:active={isWishlisted} on:click={toggleWishlist}>
-                            <svg viewBox="0 0 24 24" fill={isWishlisted ? "currentColor" : "none"} stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                            <span>{isWishlisted ? 'V obľúbených' : 'Obľúbené'}</span>
-                        </button>
-                        <button class="mp-action-btn" class:active={isCompared} on:click={toggleCompare}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-                            </svg>
-                            <span>{isCompared ? 'V porovnaní' : 'Porovnať'}</span>
-                        </button>
-                    </div>
-                    
-                    <!-- Short Description -->
-                    {#if product.description}
-                        <div class="mp-short-desc">
-                            <p>{@html product.description.slice(0, 300)}{product.description.length > 300 ? '...' : ''}</p>
-                        </div>
-                    {/if}
-                    
-                    <!-- Quick Attributes -->
-                    {#if attributes.length > 0}
-                        <div class="mp-quick-attrs">
-                            {#each attributes.slice(0, 6) as attr}
-                                <div class="mp-quick-attr">
-                                    <span class="mp-quick-attr__name">{attr.name}:</span>
-                                    <span class="mp-quick-attr__value">{attr.value}</span>
-                                </div>
-                            {/each}
-                        </div>
-                    {/if}
-                </div>
-                
-                <!-- Buy Box -->
-                <div class="mp-buybox">
-                    <div class="mp-buybox__inner">
-                        <div class="mp-winner">
-                            <span class="mp-winner__icon">🏆</span>
-                            <span class="mp-winner__text">Najlepšia cena</span>
-                        </div>
-                        
-                        <div class="mp-buybox__header">
-                            <div class="mp-buybox__logo">MP</div>
-                            <div class="mp-buybox__vendor">
-                                <div class="mp-buybox__name">MegaPrice.sk</div>
-                                <div class="mp-buybox__rating">
-                                    <svg viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <span>4.8 (1250)</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mp-buybox__badges">
-                            <span class="mp-buybox__badge mp-buybox__badge--stock">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                                Skladom
-                            </span>
-                            <span class="mp-buybox__badge">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                                1-2 dni
-                            </span>
-                        </div>
-                        
-                        <div class="mp-buybox__price-row">
-                            <span class="mp-buybox__price">{formatPrice(lowestPrice)}</span>
-                            <span class="mp-buybox__shipping" class:paid={!freeShipping}>
-                                {freeShipping ? '✓ Doprava zdarma' : '+ 2,99 € doprava'}
-                            </span>
-                        </div>
-                        
-                        <button class="mp-cta">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                            <span>Do košíka</span>
-                        </button>
-                        <div class="mp-megabuy-label">Predaj cez MegaBuy</div>
-                        
-                        {#if offerCount > 1}
-                            <a href="#ponuky" class="mp-more-offers">Zobraziť všetky ponuky ({offerCount}) →</a>
-                        {/if}
+                    <div class="mp-ai-box__actions">
+                        <button class="mp-ai-box__btn">💬 Opýtať sa</button>
+                        <button class="mp-ai-box__btn">📊 Porovnať</button>
+                        <button class="mp-ai-box__btn">🔄 Alternatívy</button>
+                        <button class="mp-ai-box__btn">⭐ Recenzie</button>
                     </div>
                 </div>
             </div>
             
-            <!-- Tabs Navigation -->
-            <div class="mp-nav">
-                <a href="#ponuky" class="mp-nav__btn active">📊 Porovnanie cien</a>
-                <a href="#popis" class="mp-nav__btn">📄 Popis</a>
-                <a href="#parametre" class="mp-nav__btn">📋 Parametre</a>
+            <!-- Buy Box -->
+            <div class="mp-buybox">
+                <div class="mp-buybox__badge">
+                    <span>☆</span> Najlepšia ponuka
+                </div>
+                
+                <div class="mp-buybox__header">
+                    <div class="mp-buybox__logo">MP</div>
+                    <div class="mp-buybox__vendor">
+                        <div class="mp-buybox__name">MegaPrice.sk</div>
+                        <div class="mp-buybox__rating">
+                            <svg viewBox="0 0 24 24" fill="#fbbf24" width="14" height="14"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            4.8 (1250)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mp-buybox__meta">
+                    <span class="mp-buybox__stock">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+                        Skladom
+                    </span>
+                    <span class="mp-buybox__delivery">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                        Doručenie zajtra
+                    </span>
+                </div>
+                
+                <div class="mp-buybox__price-row">
+                    <span class="mp-buybox__price">{formatPrice(lowestPrice)}</span>
+                    <span class="mp-buybox__shipping" class:free={freeShipping}>
+                        {freeShipping ? '✓ Doprava zdarma' : '+ 2,99 € doprava'}
+                    </span>
+                </div>
+                
+                <button class="mp-buybox__cta">
+                    Do obchodu
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </button>
+                
+                <a href="#ponuky" class="mp-buybox__more">Zobraziť všetky ponuky →</a>
             </div>
+        </div>
+        
+        <!-- Tabs Navigation -->
+        <div class="mp-tabs">
+            <button class="mp-tabs__btn" class:active={activeTab === 'offers'} on:click={() => activeTab = 'offers'}>Kde kúpiť</button>
+            <button class="mp-tabs__btn" class:active={activeTab === 'desc'} on:click={() => activeTab = 'desc'}>Popis</button>
+            <button class="mp-tabs__btn" class:active={activeTab === 'params'} on:click={() => activeTab = 'params'}>Parametre</button>
+        </div>
+        
+        <!-- Tab Content -->
+        <div class="mp-tab-content">
             
             <!-- Offers Section -->
-            <section id="ponuky" class="mp-section">
-                <div class="mp-offers">
-                    <div class="mp-offers__header">
-                        <h2>Porovnanie ponúk</h2>
-                        <span class="mp-offers__count">{offerCount} predajcov</span>
+            {#if activeTab === 'offers'}
+            <section id="ponuky" class="mp-offers">
+                <div class="mp-offers__header">
+                    <div class="mp-offers__title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                        Porovnanie cien
+                        <span class="mp-offers__count">{offers.length} {offers.length === 1 ? 'ponuka' : 'ponuky'}</span>
                     </div>
-                    
-                    <div class="mp-offer mp-offer--best">
-                        <div class="mp-offer__vendor">
-                            <div class="mp-offer__logo">MP</div>
-                            <div class="mp-offer__info">
-                                <div class="mp-offer__name">MegaPrice.sk</div>
-                                <div class="mp-offer__rating">
-                                    <svg viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    4.8 (1250)
+                    <div class="mp-offers__filters">
+                        <button class="mp-offers__filter" class:active={offersFilter === 'all'} on:click={() => offersFilter = 'all'}>Všetky</button>
+                        <button class="mp-offers__filter" class:active={offersFilter === 'instock'} on:click={() => offersFilter = 'instock'}>Skladom</button>
+                    </div>
+                </div>
+                
+                <div class="mp-offers__list">
+                    {#each filteredOffers as offer}
+                        <div class="mp-offers__row">
+                            <div class="mp-offers__vendor">
+                                <div class="mp-offers__logo">{offer.vendor_initials}</div>
+                                <div class="mp-offers__vendor-info">
+                                    <div class="mp-offers__vendor-name">{offer.vendor_name}</div>
+                                    <div class="mp-offers__vendor-rating">
+                                        <svg viewBox="0 0 24 24" fill="#fbbf24" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                        {offer.rating} ({offer.reviews})
+                                    </div>
                                 </div>
                             </div>
+                            
+                            <div class="mp-offers__stock" class:in={offer.stock === 'instock'}>
+                                {#if offer.stock === 'instock'}
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+                                {/if}
+                                {offer.stock === 'instock' ? 'Skladom' : 'Na obj.'}
+                            </div>
+                            
+                            <div class="mp-offers__delivery">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                {offer.delivery} dni
+                            </div>
+                            
+                            <div class="mp-offers__price-col">
+                                <div class="mp-offers__price">{formatPrice(offer.price)}</div>
+                                <div class="mp-offers__shipping">{offer.shipping === 0 ? 'Doprava zdarma' : `+ ${formatPrice(offer.shipping)} doprava`}</div>
+                            </div>
+                            
+                            <div class="mp-offers__cta-col">
+                                {#if offer.is_megabuy}
+                                    <button class="mp-offers__cta cart">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                                        Do košíka
+                                    </button>
+                                {:else}
+                                    <a href="#" class="mp-offers__cta affiliate">
+                                        Do obchodu
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                    </a>
+                                {/if}
+                            </div>
                         </div>
-                        <div class="mp-offer__stock in">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Skladom
-                        </div>
-                        <div class="mp-offer__delivery">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                            1-2 dni
-                        </div>
-                        <div class="mp-offer__price-col">
-                            <div class="mp-offer__price">{formatPrice(lowestPrice)}</div>
-                            <div class="mp-offer__shipping">{freeShipping ? 'Doprava zdarma' : '+ 2,99 € doprava'}</div>
-                        </div>
-                        <div class="mp-offer__cta-col">
-                            <button class="mp-offer__cta">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                                Do košíka
-                            </button>
-                            <span class="mp-offer__megabuy">Predaj cez MegaBuy</span>
-                        </div>
+                    {/each}
+                </div>
+            </section>
+            {/if}
+            
+            <!-- Description -->
+            {#if activeTab === 'desc'}
+            <section id="popis" class="mp-desc">
+                <h2>Popis produktu</h2>
+                {#if product.description}
+                    <div class="mp-desc__content">{@html product.description}</div>
+                {:else}
+                    <p class="mp-desc__empty">Popis nie je k dispozícii.</p>
+                {/if}
+            </section>
+            {/if}
+            
+            <!-- Parameters -->
+            {#if activeTab === 'params'}
+            <section id="parametre" class="mp-params">
+                <h2>Parametre</h2>
+                {#if attributes.length > 0}
+                    <div class="mp-params__grid">
+                        {#each attributes as attr}
+                            <div class="mp-params__row">
+                                <span class="mp-params__name">{attr.name}</span>
+                                <span class="mp-params__value">{attr.value}</span>
+                            </div>
+                        {/each}
                     </div>
-                </div>
+                {:else}
+                    <p class="mp-params__empty">Parametre nie sú k dispozícii.</p>
+                {/if}
             </section>
+            {/if}
             
-            <!-- Description Section -->
-            <section id="popis" class="mp-section">
-                <div class="mp-card">
-                    <h2 class="mp-section__title">📄 Popis produktu</h2>
-                    {#if product.description}
-                        <div class="mp-desc">{@html product.description}</div>
-                    {:else}
-                        <p class="mp-empty-text">Popis nie je k dispozícii.</p>
-                    {/if}
-                </div>
-            </section>
-            
-            <!-- Parameters Section -->
-            <section id="parametre" class="mp-section">
-                <div class="mp-card">
-                    <h2 class="mp-section__title">📋 Parametre</h2>
-                    {#if attributes.length > 0}
-                        <div class="mp-params">
-                            {#each attributes as attr}
-                                <div class="mp-param">
-                                    <span class="mp-param__name">{attr.name}</span>
-                                    <span class="mp-param__value">{attr.value}</span>
-                                </div>
-                            {/each}
-                        </div>
-                    {:else}
-                        <p class="mp-empty-text">Parametre nie sú k dispozícii.</p>
-                    {/if}
-                </div>
-            </section>
+        </div>
+        
         {:else}
-            <div class="mp-empty">
-                <div class="mp-empty__icon">🔍</div>
-                <h1>Produkt nenájdený</h1>
-                <a href="/" class="mp-btn">Späť na hlavnú</a>
-            </div>
+        <div class="mp-empty">
+            <h1>Produkt nenájdený</h1>
+            <a href="/" class="mp-btn">Späť na hlavnú</a>
+        </div>
         {/if}
     </div>
 </div>
@@ -302,172 +350,681 @@
 {#if lightboxOpen}
     <div class="mp-lightbox" on:click={closeLightbox}>
         <button class="mp-lightbox__close">✕</button>
-        <button class="mp-lightbox__nav mp-lightbox__nav--prev" on:click|stopPropagation={prevImage}>‹</button>
-        <img src={mainImage} alt={product?.title} class="mp-lightbox__img" on:click|stopPropagation>
-        <button class="mp-lightbox__nav mp-lightbox__nav--next" on:click|stopPropagation={nextImage}>›</button>
+        <button class="mp-lightbox__nav prev" on:click|stopPropagation={prevImage}>‹</button>
+        <img src={mainImage} alt="" class="mp-lightbox__img" on:click|stopPropagation>
+        <button class="mp-lightbox__nav next" on:click|stopPropagation={nextImage}>›</button>
         <div class="mp-lightbox__counter">{currentImageIndex + 1} / {images.length}</div>
     </div>
 {/if}
 
 <style>
-:root {
-    --mp-primary: #ff6b35;
-    --mp-primary-dark: #e55a2b;
-    --mp-success: #16a34a;
-    --mp-text: #1f2937;
-    --mp-text-light: #6b7280;
-    --mp-border: #e5e7eb;
-    --mp-bg: #f9fafb;
+/* =============================================
+   PRODUCT PAGE - MEGAPRICE.SK EXACT COPY
+   ============================================= */
+
+.mp-product {
+    background: #fff;
+    padding: 20px 0 60px;
 }
 
-.mp-single { padding: 16px 0 60px; background: #fff; }
-.mp-container { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+.mp-product__container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
 
 /* Breadcrumb */
-.mp-breadcrumb { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--mp-text-light); margin-bottom: 16px; }
-.mp-breadcrumb a { color: var(--mp-text-light); text-decoration: none; }
-.mp-breadcrumb a:hover { color: var(--mp-primary); }
-.mp-breadcrumb__sep { color: #d1d5db; }
+.mp-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+.mp-breadcrumb a { color: #6b7280; }
+.mp-breadcrumb a:hover { color: #c4956a; }
+.mp-breadcrumb span:last-child { color: #1f2937; }
 
-/* Mobile Price */
-.mp-mobile-price-bar { display: none; }
+/* Product Top Layout */
+.mp-product__top {
+    display: grid;
+    grid-template-columns: auto 1fr 340px;
+    gap: 32px;
+    margin-bottom: 32px;
+}
 
-/* Layout */
-.mp-product-top { display: grid; grid-template-columns: 380px 1fr 380px; gap: 24px; margin-bottom: 32px; align-items: start; }
+/* =============================================
+   GALLERY
+   ============================================= */
+.mp-gallery {
+    display: flex;
+    gap: 12px;
+}
 
-/* Gallery */
-.mp-gallery-wrapper { position: sticky; top: 20px; }
-.mp-main-img__wrap { background: var(--mp-bg); border-radius: 16px; padding: 20px; cursor: zoom-in; position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
-.mp-main-img__img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.mp-main-img__placeholder { font-size: 5rem; opacity: 0.3; }
-.mp-main-img__zoom { position: absolute; bottom: 12px; right: 12px; background: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.mp-thumbs { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; }
-.mp-thumb { width: 64px; height: 64px; border: 2px solid transparent; border-radius: 10px; padding: 4px; cursor: pointer; background: var(--mp-bg); }
-.mp-thumb.active { border-color: var(--mp-primary); }
-.mp-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.mp-gallery__thumbs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
-/* Content */
-.mp-brand { font-size: 12px; font-weight: 600; color: var(--mp-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.mp-title { font-size: 24px; font-weight: 700; color: var(--mp-text); line-height: 1.3; margin-bottom: 12px; }
-.mp-meta { display: flex; gap: 16px; font-size: 13px; color: var(--mp-text-light); margin-bottom: 20px; }
-.mp-actions { display: flex; gap: 12px; margin-bottom: 20px; }
-.mp-action-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid var(--mp-border); border-radius: 10px; background: white; color: var(--mp-text-light); font-size: 13px; cursor: pointer; transition: all 0.2s; }
-.mp-action-btn svg { width: 18px; height: 18px; }
-.mp-action-btn:hover, .mp-action-btn.active { border-color: var(--mp-primary); color: var(--mp-primary); }
-.mp-short-desc { font-size: 14px; color: var(--mp-text-light); line-height: 1.7; margin-bottom: 20px; }
-.mp-quick-attrs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.mp-quick-attr { font-size: 13px; padding: 10px 12px; background: var(--mp-bg); border-radius: 8px; }
-.mp-quick-attr__name { color: var(--mp-text-light); }
-.mp-quick-attr__value { color: var(--mp-text); font-weight: 500; margin-left: 4px; }
+.mp-gallery__thumb {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 4px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.mp-gallery__thumb.active { border-color: #c4956a; }
+.mp-gallery__thumb img { width: 100%; height: 100%; object-fit: contain; }
 
-/* Buy Box */
-.mp-buybox { position: sticky; top: 20px; }
-.mp-buybox__inner { background: #fff; border-radius: 20px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 10px 30px rgba(0,0,0,0.1); }
-.mp-winner { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--mp-border); }
-.mp-winner__icon { font-size: 24px; }
-.mp-winner__text { font-size: 14px; font-weight: 600; color: var(--mp-success); }
-.mp-buybox__header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-.mp-buybox__logo { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #ff6b35, #e55a2b); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
-.mp-buybox__name { font-size: 16px; font-weight: 600; color: var(--mp-text); }
-.mp-buybox__rating { font-size: 13px; color: var(--mp-text-light); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
-.mp-buybox__rating svg { width: 14px; height: 14px; }
-.mp-buybox__badges { display: flex; gap: 16px; margin-bottom: 16px; font-size: 13px; }
-.mp-buybox__badge { display: flex; align-items: center; gap: 6px; color: var(--mp-text-light); }
-.mp-buybox__badge--stock { color: var(--mp-success); font-weight: 500; }
-.mp-buybox__badge svg { width: 16px; height: 16px; }
-.mp-buybox__price-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
-.mp-buybox__price { font-size: 32px; font-weight: 800; color: #111; }
-.mp-buybox__shipping { font-size: 13px; color: var(--mp-success); }
-.mp-buybox__shipping.paid { color: var(--mp-text-light); }
-.mp-cta { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 28px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #ff6b35, #e55a2b); color: #fff; box-shadow: 0 4px 16px rgba(255,107,53,0.4); transition: all 0.2s; }
-.mp-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(255,107,53,0.5); }
-.mp-cta svg { width: 20px; height: 20px; }
-.mp-megabuy-label { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 8px; }
-.mp-more-offers { display: block; text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--mp-border); font-size: 14px; color: var(--mp-primary); text-decoration: none; font-weight: 500; }
-.mp-more-offers:hover { text-decoration: underline; }
+.mp-gallery__main {
+    width: 400px;
+    height: 400px;
+    background: #f9fafb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-in;
+}
+.mp-gallery__main img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.mp-gallery__placeholder { font-size: 5rem; opacity: 0.3; }
 
-/* Navigation */
-.mp-nav { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--mp-border); }
-.mp-nav__btn { padding: 14px 24px; font-size: 15px; font-weight: 600; color: var(--mp-text-light); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
-.mp-nav__btn:hover, .mp-nav__btn.active { color: var(--mp-primary); border-bottom-color: var(--mp-primary); }
+/* =============================================
+   PRODUCT INFO
+   ============================================= */
+.mp-info {
+    padding-top: 8px;
+}
 
-/* Sections */
-.mp-section { margin-bottom: 32px; }
-.mp-section__title { font-size: 20px; font-weight: 700; color: var(--mp-text); margin-bottom: 20px; }
-.mp-card { background: white; border-radius: 20px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.mp-info__title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.4;
+    margin-bottom: 16px;
+}
 
-/* Offers */
-.mp-offers { background: white; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: hidden; }
-.mp-offers__header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--mp-border); }
-.mp-offers__header h2 { font-size: 18px; font-weight: 700; margin: 0; }
-.mp-offers__count { font-size: 13px; color: var(--mp-text-light); }
-.mp-offer { display: grid; grid-template-columns: 220px 100px 120px 160px 160px; align-items: center; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--mp-border); }
-.mp-offer--best { background: rgba(255,107,53,0.03); }
-.mp-offer__vendor { display: flex; align-items: center; gap: 14px; }
-.mp-offer__logo { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #ff6b35, #e55a2b); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
-.mp-offer__name { font-size: 15px; font-weight: 600; color: var(--mp-text); }
-.mp-offer__rating { font-size: 12px; color: var(--mp-text-light); display: flex; align-items: center; gap: 4px; }
-.mp-offer__rating svg { width: 12px; height: 12px; }
-.mp-offer__stock { font-size: 13px; color: var(--mp-text-light); display: flex; align-items: center; gap: 6px; }
-.mp-offer__stock.in { color: var(--mp-success); font-weight: 500; }
-.mp-offer__stock svg { width: 16px; height: 16px; }
-.mp-offer__delivery { font-size: 13px; color: var(--mp-text-light); display: flex; align-items: center; gap: 6px; }
-.mp-offer__delivery svg { width: 16px; height: 16px; }
-.mp-offer__price-col { text-align: right; }
-.mp-offer__price { font-size: 20px; font-weight: 700; color: var(--mp-text); }
-.mp-offer__shipping { font-size: 12px; color: var(--mp-success); }
-.mp-offer__cta-col { text-align: right; }
-.mp-offer__cta { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; background: linear-gradient(135deg, #ff6b35, #e55a2b); color: white; transition: all 0.2s; }
-.mp-offer__cta:hover { transform: translateY(-1px); }
-.mp-offer__cta svg { width: 16px; height: 16px; }
-.mp-offer__megabuy { display: block; font-size: 11px; color: #9ca3af; margin-top: 6px; }
+.mp-info__desc {
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+.mp-info__more { color: #c4956a; margin-left: 4px; }
 
-/* Description & Params */
-.mp-desc { font-size: 15px; line-height: 1.8; color: var(--mp-text); }
-.mp-params { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-.mp-param { display: flex; justify-content: space-between; padding: 12px 16px; background: var(--mp-bg); border-radius: 10px; font-size: 14px; }
-.mp-param__name { color: var(--mp-text-light); }
-.mp-param__value { color: var(--mp-text); font-weight: 500; }
-.mp-empty-text { color: var(--mp-text-light); font-style: italic; }
+.mp-info__actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
 
-/* Lightbox */
-.mp-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-.mp-lightbox__close { position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; color: white; font-size: 24px; cursor: pointer; }
-.mp-lightbox__nav { position: absolute; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; color: white; font-size: 28px; cursor: pointer; }
-.mp-lightbox__nav--prev { left: 20px; }
-.mp-lightbox__nav--next { right: 20px; }
+.mp-info__action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.mp-info__action:hover { border-color: #c4956a; color: #c4956a; }
+.mp-info__action.active { border-color: #c4956a; color: #c4956a; background: #faf7f4; }
+
+/* AI Assistant Box */
+.mp-ai-box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.mp-ai-box__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 12px;
+}
+.mp-ai-box__icon { font-size: 18px; }
+
+.mp-ai-box__actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.mp-ai-box__btn {
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 12px;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.mp-ai-box__btn:hover { border-color: #c4956a; color: #c4956a; }
+
+/* =============================================
+   BUY BOX - EXACT MEGAPRICE.SK STYLE
+   ============================================= */
+.mp-buybox {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 10px 24px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 100px;
+}
+
+.mp-buybox__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #92400e;
+    margin-bottom: 16px;
+}
+
+.mp-buybox__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.mp-buybox__logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #c4956a, #b8875c);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.mp-buybox__name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.mp-buybox__rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.mp-buybox__meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.mp-buybox__stock {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #16a34a;
+}
+
+.mp-buybox__delivery {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.mp-buybox__price-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.mp-buybox__price {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.mp-buybox__shipping {
+    font-size: 13px;
+    color: #6b7280;
+}
+.mp-buybox__shipping.free { color: #16a34a; }
+
+.mp-buybox__cta {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    background: linear-gradient(135deg, #c4956a, #b8875c);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(196, 149, 106, 0.35);
+    transition: all 0.2s;
+}
+.mp-buybox__cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(196, 149, 106, 0.45);
+}
+
+.mp-buybox__more {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #c4956a;
+    font-weight: 500;
+}
+.mp-buybox__more:hover { text-decoration: underline; }
+
+/* =============================================
+   TABS
+   ============================================= */
+.mp-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+}
+
+.mp-tabs__btn {
+    padding: 14px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.mp-tabs__btn:hover { color: #1f2937; }
+.mp-tabs__btn.active {
+    color: #c4956a;
+    border-bottom-color: #c4956a;
+    background: linear-gradient(180deg, transparent, rgba(196,149,106,0.06));
+}
+
+/* =============================================
+   OFFERS SECTION - EXACT MEGAPRICE.SK STYLE
+   ============================================= */
+.mp-offers {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 10px 24px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.mp-offers__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.mp-offers__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+}
+.mp-offers__title svg { color: #c4956a; }
+
+.mp-offers__count {
+    font-size: 13px;
+    font-weight: 400;
+    color: #6b7280;
+    margin-left: 4px;
+}
+
+.mp-offers__filters {
+    display: flex;
+    gap: 6px;
+}
+
+.mp-offers__filter {
+    padding: 6px 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.mp-offers__filter:hover { border-color: #c4956a; color: #c4956a; }
+.mp-offers__filter.active { background: #c4956a; border-color: #c4956a; color: #fff; }
+
+.mp-offers__list {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mp-offers__row {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) 90px 90px 110px 140px;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+.mp-offers__row:hover { border-color: #d1d5db; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+.mp-offers__vendor {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.mp-offers__logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #9ca3af;
+    flex-shrink: 0;
+}
+
+.mp-offers__vendor-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.mp-offers__vendor-rating {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.mp-offers__stock {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #d97706;
+}
+.mp-offers__stock.in { color: #16a34a; }
+
+.mp-offers__delivery {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.mp-offers__price-col {
+    text-align: right;
+}
+
+.mp-offers__price {
+    font-size: 17px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.mp-offers__shipping {
+    font-size: 11px;
+    color: #16a34a;
+    margin-top: 1px;
+}
+
+.mp-offers__cta-col {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mp-offers__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: none;
+    white-space: nowrap;
+}
+
+.mp-offers__cta.affiliate {
+    background: #c4956a;
+    color: #fff;
+}
+.mp-offers__cta.affiliate:hover {
+    background: #b8875c;
+    box-shadow: 0 2px 8px rgba(196,149,106,0.3);
+}
+
+.mp-offers__cta.cart {
+    background: #c4956a;
+    color: #fff;
+}
+.mp-offers__cta.cart:hover {
+    background: #b8875c;
+    box-shadow: 0 2px 8px rgba(196,149,106,0.3);
+}
+
+/* =============================================
+   DESCRIPTION & PARAMETERS
+   ============================================= */
+.mp-desc, .mp-params {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.mp-desc h2, .mp-params h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #1f2937;
+}
+
+.mp-desc__content {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #4b5563;
+}
+
+.mp-params__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.mp-params__row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.mp-params__name { color: #6b7280; font-size: 14px; }
+.mp-params__value { color: #1f2937; font-weight: 500; font-size: 14px; }
+
+.mp-desc__empty, .mp-params__empty {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* =============================================
+   LIGHTBOX
+   ============================================= */
+.mp-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mp-lightbox__close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.mp-lightbox__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+}
+.mp-lightbox__nav.prev { left: 20px; }
+.mp-lightbox__nav.next { right: 20px; }
+
 .mp-lightbox__img { max-width: 90%; max-height: 90%; object-fit: contain; }
-.mp-lightbox__counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: white; font-size: 14px; }
 
-/* Empty */
+.mp-lightbox__counter {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 14px;
+}
+
+/* =============================================
+   EMPTY & BUTTON
+   ============================================= */
 .mp-empty { text-align: center; padding: 60px 20px; }
-.mp-empty__icon { font-size: 4rem; margin-bottom: 20px; }
-.mp-btn { display: inline-block; padding: 14px 28px; background: var(--mp-primary); color: white; border-radius: 10px; text-decoration: none; font-weight: 600; }
+.mp-btn {
+    display: inline-block;
+    padding: 14px 28px;
+    background: #c4956a;
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-top: 20px;
+}
 
-/* Responsive */
-@media (max-width: 1200px) {
-    .mp-product-top { grid-template-columns: 320px 1fr 340px; gap: 20px; }
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 1100px) {
+    .mp-product__top {
+        grid-template-columns: 1fr 300px;
+    }
+    .mp-gallery { order: 1; grid-column: 1 / -1; justify-content: center; }
+    .mp-info { order: 2; }
+    .mp-buybox { order: 3; }
 }
-@media (max-width: 1000px) {
-    .mp-product-top { grid-template-columns: 280px 1fr 300px; gap: 16px; }
-    .mp-offer { grid-template-columns: 1fr 80px 100px 120px 140px; }
-}
+
 @media (max-width: 900px) {
-    .mp-product-top { grid-template-columns: 1fr; }
-    .mp-mobile-price-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .mp-mobile-price { font-size: 24px; font-weight: 800; color: #111; }
-    .mp-mobile-shipping { font-size: 12px; color: var(--mp-success); font-weight: 500; }
-    .mp-gallery-wrapper { position: relative; top: auto; }
-    .mp-buybox { position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.15); background: white; }
-    .mp-buybox__inner { padding: 16px 20px; }
-    .mp-winner, .mp-buybox__header, .mp-buybox__badges, .mp-more-offers { display: none; }
+    .mp-product__top {
+        grid-template-columns: 1fr;
+    }
+    .mp-gallery__main { width: 100%; max-width: 400px; }
+    .mp-buybox {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+    }
+    .mp-buybox__badge, .mp-buybox__header, .mp-buybox__meta, .mp-buybox__more { display: none; }
     .mp-buybox__price-row { margin-bottom: 12px; }
-    .mp-single { padding-bottom: 140px; }
-    .mp-offer { grid-template-columns: 1fr; gap: 12px; }
-    .mp-offer__price-col, .mp-offer__cta-col { text-align: left; }
+    .mp-product { padding-bottom: 140px; }
+    
+    .mp-offers__row {
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+    }
+    .mp-offers__vendor { grid-column: 1; grid-row: 1; }
+    .mp-offers__price-col { grid-column: 2; grid-row: 1; }
+    .mp-offers__stock { grid-column: 1; grid-row: 2; }
+    .mp-offers__delivery { display: none; }
+    .mp-offers__cta-col { grid-column: 2; grid-row: 2; }
 }
+
 @media (max-width: 600px) {
-    .mp-params { grid-template-columns: 1fr; }
-    .mp-quick-attrs { grid-template-columns: 1fr; }
+    .mp-gallery__thumbs { flex-direction: row; order: 2; }
+    .mp-gallery { flex-direction: column; }
+    .mp-params__grid { grid-template-columns: 1fr; }
+    .mp-ai-box__actions { grid-template-columns: 1fr; }
 }
 </style>
