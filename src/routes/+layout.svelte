@@ -3,8 +3,6 @@
     import { onMount } from 'svelte';
     import '../app.css';
     
-    export let data;
-    
     let searchQuery = '';
     let isScrolled = false;
     let wishlistCount = 0;

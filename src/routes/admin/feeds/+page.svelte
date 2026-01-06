@@ -41,7 +41,6 @@
         importing[feedId] = true;
         try {
             await api.startImport(feedId);
-            // Poll for progress
             pollProgress(feedId);
         } catch (err) {
             console.error('Error starting import:', err);
@@ -61,6 +60,10 @@
         } catch (err) {
             importing[feedId] = false;
         }
+    }
+    
+    function closeModal() {
+        showAddModal = false;
     }
     
     onMount(() => {
@@ -127,28 +130,28 @@
 
 <!-- Add Feed Modal -->
 {#if showAddModal}
-    <div class="modal-overlay" on:click={() => showAddModal = false}>
-        <div class="modal" on:click|stopPropagation>
-            <h2>Pridať nový feed</h2>
+    <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal">
+            <h2 id="modal-title">Pridať nový feed</h2>
             <form on:submit|preventDefault={addFeed}>
                 <div class="form-group">
-                    <label>Názov</label>
-                    <input type="text" bind:value={newFeed.name} placeholder="Názov feedu" required>
+                    <label for="feed-name">Názov</label>
+                    <input id="feed-name" type="text" bind:value={newFeed.name} placeholder="Názov feedu" required>
                 </div>
                 <div class="form-group">
-                    <label>URL</label>
-                    <input type="url" bind:value={newFeed.url} placeholder="https://..." required>
+                    <label for="feed-url">URL</label>
+                    <input id="feed-url" type="url" bind:value={newFeed.url} placeholder="https://..." required>
                 </div>
                 <div class="form-group">
-                    <label>Typ</label>
-                    <select bind:value={newFeed.type}>
+                    <label for="feed-type">Typ</label>
+                    <select id="feed-type" bind:value={newFeed.type}>
                         <option value="xml">XML</option>
                         <option value="csv">CSV</option>
                         <option value="json">JSON</option>
                     </select>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn" on:click={() => showAddModal = false}>Zrušiť</button>
+                    <button type="button" class="btn" on:click={closeModal}>Zrušiť</button>
                     <button type="submit" class="btn btn--primary">Pridať</button>
                 </div>
             </form>
@@ -192,7 +195,6 @@
     margin-bottom: 12px;
 }
 
-/* Feed Card */
 .feeds-list {
     padding: 20px;
     display: flex;
@@ -231,7 +233,6 @@
     color: #94a3b8;
 }
 
-/* Button */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -257,7 +258,6 @@
 
 .btn--loading { opacity: 0.7; cursor: wait; }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     inset: 0;

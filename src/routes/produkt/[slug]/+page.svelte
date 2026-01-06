@@ -134,13 +134,13 @@
                         </button>
                     {/each}
                 </div>
-                <div class="mp-gallery__main" on:click={openLightbox}>
+                <button type="button" class="mp-gallery__main" on:click={openLightbox}>
                     {#if mainImage}
                         <img src={mainImage} alt={product.title}>
                     {:else}
                         <div class="mp-gallery__placeholder">📷</div>
                     {/if}
-                </div>
+                </button>
             </div>
             
             <!-- Product Info -->
@@ -292,7 +292,7 @@
                                         Do košíka
                                     </button>
                                 {:else}
-                                    <a href="#" class="mp-offers__cta affiliate">
+                                    <a href={offer.url || '/produkt/' + product?.slug} class="mp-offers__cta affiliate" target="_blank" rel="noopener">
                                         Do obchodu
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                                     </a>
@@ -348,10 +348,12 @@
 
 <!-- Lightbox -->
 {#if lightboxOpen}
-    <div class="mp-lightbox" on:click={closeLightbox}>
-        <button class="mp-lightbox__close">✕</button>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div class="mp-lightbox" on:click={closeLightbox} role="dialog" aria-modal="true">
+        <button class="mp-lightbox__close" on:click={closeLightbox}>✕</button>
         <button class="mp-lightbox__nav prev" on:click|stopPropagation={prevImage}>‹</button>
-        <img src={mainImage} alt="" class="mp-lightbox__img" on:click|stopPropagation>
+        <img src={mainImage} alt="Zväčšený obrázok" class="mp-lightbox__img">
         <button class="mp-lightbox__nav next" on:click|stopPropagation={nextImage}>›</button>
         <div class="mp-lightbox__counter">{currentImageIndex + 1} / {images.length}</div>
     </div>
