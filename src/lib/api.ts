@@ -77,3 +77,7 @@ export const api = {
 export function formatPrice(price: number): string {
 	return price.toFixed(2) + " €";
 }
+
+	// Missing methods
+	bulkDeleteProducts: (ids: string[]) => fetchApi('/admin/products/bulk', { method: 'DELETE', body: JSON.stringify({ ids }) }),
+	deleteProduct: (id: string) => fetchApi(`/admin/products/${id}`, { method: 'DELETE' }),
