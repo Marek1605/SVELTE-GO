@@ -1,20 +1,27 @@
 import { api } from '$lib/api';
 
 export async function load({ url }) {
-	const params = new URLSearchParams();
-	params.set('page', url.searchParams.get('page') || '1');
-	params.set('limit', url.searchParams.get('limit') || '20');
-	if (url.searchParams.get('search')) params.set('search', url.searchParams.get('search')!);
+	const page = parseInt(url.searchParams.get('page') || '1');
+	const search = url.searchParams.get('search') || '';
+	
+	const params = `page=${page}&limit=20${search ? '&search=' + encodeURIComponent(search) : ''}`;
 	
 	try {
-		const res = await api.getAdminProducts(params);
-		return {
-			products: res.success ? res.data?.items || [] : [],
-			total: res.success ? res.data?.total || 0 : 0,
-			page: parseInt(url.searchParams.get('page') || '1'),
-			limit: 20
-		};
+		const res = await api.adminGetProducts(params);
+		if (res.success) {
+			return {
+				products: res.data.items || [],
+				total: res.data.total || 0,
+				page: res.data.page || 1
+			};
+		}
 	} catch (e) {
-		return { products: [], total: 0, page: 1, limit: 20 };
+		console.error('Admin products load error:', e);
 	}
+	
+	return {
+		products: [],
+		total: 0,
+		page: 1
+	};
 }
