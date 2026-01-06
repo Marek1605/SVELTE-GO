@@ -20,26 +20,27 @@ export async function load({ params, url }) {
                 if (maxPrice) queryParams.set('max_price', maxPrice);
                 if (brand) queryParams.set('brand', brand);
 
-                // Use getCategory which returns products with filters
                 const categoryData = await api.getCategory(slug, queryParams.toString());
 
                 if (!categoryData?.success) {
                         throw error(404, 'Kategória nenájdená');
                 }
 
-                const data = categoryData.data || categoryData;
+                const data = categoryData.data;
 
                 return {
-                        category: data.category || { name: data.name, slug: data.slug, id: data.id },
+                        category: data.category,
                         ancestors: data.ancestors || [],
                         children: data.children || [],
-                        products: data.products?.items || data.products || [],
-                        total: data.products?.total || data.total || 0,
+                        products: data.products?.items || [],
+                        total: data.products?.total || 0,
                         page: data.products?.page || page,
                         limit: data.products?.limit || limit,
-                        total_pages: data.products?.pages || Math.ceil((data.products?.total || data.total || 0) / limit),
-                        brands: data.brands || [],
-                        filters: data.filters || []
+                        total_pages: data.products?.pages || 1,
+                        // FILTRE - správne parsovanie!
+                        attributes: data.filters?.attributes || [],
+                        brands: data.filters?.brands || [],
+                        priceRange: data.filters?.price_range || { min: 0, max: 1000 }
                 };
         } catch (err) {
                 if (err?.status === 404) {
