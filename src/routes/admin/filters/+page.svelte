@@ -8,8 +8,8 @@
         let saving = false;
         let message = '';
         
-        // Sort by value count
-        $: sortedAttributes = [...attributes].sort((a, b) => b.total_values - a.total_values);
+        // Sort by product count
+        $: sortedAttributes = [...attributes].sort((a, b) => (b.product_count || 0) - (a.product_count || 0));
         
         function toggleFilter(name: string) {
                 if (enabledFilters.includes(name)) {
@@ -63,7 +63,7 @@
 <div class="admin-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div>
-                        <h2 style="margin: 0; font-size: 1.1rem;">Dostupné atribúty</h2>
+                        <h2 style="margin: 0; font-size: 1.1rem;">Dostupné atribúty ({attributes.length})</h2>
                         <p style="margin: 4px 0 0; color: var(--mp-text-light); font-size: 0.875rem;">
                                 Vyberte atribúty, ktoré sa zobrazia ako filtre v kategóriách
                         </p>
@@ -95,12 +95,12 @@
                                         <div>
                                                 <div class="admin-filter-item__name">{attr.name}</div>
                                                 <div class="admin-filter-item__values">
-                                                        {attr.values?.slice(0, 5).map(v => v.value).join(', ')}{attr.values?.length > 5 ? '...' : ''}
+                                                        Použité v {attr.product_count || 0} produktoch
                                                 </div>
                                         </div>
                                 </div>
                                 <div class="admin-filter-item__count">
-                                        {attr.total_values} hodnôt
+                                        {attr.value_count || 0} hodnôt
                                 </div>
                         </div>
                 {/each}
