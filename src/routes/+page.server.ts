@@ -2,18 +2,21 @@ import { api } from '$lib/api';
 
 export async function load({ fetch }) {
 	try {
-		const [statsRes, categoriesRes, productsRes] = await Promise.all([
-			api.getStats().catch(() => ({ success: false })),
-			api.getCategoriesTree().catch(() => ({ success: false })),
-			api.getFeaturedProducts().catch(() => ({ success: false }))
+		const [categoriesRes, productsRes] = await Promise.all([
+			api.getCategories().catch(() => ({ success: false })),
+			api.getProducts('limit=8').catch(() => ({ success: false }))
 		]);
 
 		return {
-			stats: statsRes.success ? statsRes.data : null,
+			stats: {
+				products: productsRes.success ? productsRes.data?.total || 0 : 0,
+				categories: categoriesRes.success ? categoriesRes.data?.length || 0 : 0
+			},
 			categories: categoriesRes.success ? categoriesRes.data : [],
-			products: productsRes.success ? productsRes.data : []
+			products: productsRes.success ? productsRes.data?.items || [] : []
 		};
 	} catch (e) {
+		console.error('Homepage load error:', e);
 		return {
 			stats: null,
 			categories: [],
