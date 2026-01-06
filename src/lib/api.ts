@@ -9,14 +9,31 @@ async function fetchApi(endpoint, options = {}) {
             headers: { 'Content-Type': 'application/json', ...options.headers },
             ...options 
         });
+        
+        const data = await response.json().catch(() => null);
+        
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || 'API request failed: ' + response.status);
+            console.error('API Error:', endpoint, response.status, data);
+            return { 
+                success: false, 
+                error: data?.error || 'API request failed: ' + response.status,
+                status: response.status
+            };
         }
-        return await response.json();
+        
+        // Wrap in success format if not already
+        if (data && typeof data === 'object' && !('success' in data)) {
+            return { success: true, data: data };
+        }
+        
+        return data;
     } catch (error) {
-        console.error('API Error:', endpoint, error);
-        throw error;
+        console.error('API Fetch Error:', endpoint, error.message);
+        return { 
+            success: false, 
+            error: error.message || 'Network error',
+            status: 0
+        };
     }
 }
 
@@ -41,7 +58,7 @@ export const api = {
 
 export function formatPrice(price) {
     if (price === null || price === undefined) return '0,00 €';
-    return price.toFixed(2).replace('.', ',') + ' €';
+    return Number(price).toFixed(2).replace('.', ',') + ' €';
 }
 
 export default api;

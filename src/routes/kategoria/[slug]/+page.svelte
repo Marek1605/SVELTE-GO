@@ -15,6 +15,7 @@
     $: totalProducts = data.total || 0;
     $: currentPage = data.page || 1;
     $: totalPages = data.total_pages || 1;
+    $: errorMessage = data.error || null;
 
     let minPrice = '';
     let maxPrice = '';
@@ -39,7 +40,7 @@
         if (sort !== 'newest') params.set('sort', sort);
 
         const queryString = params.toString();
-        goto(`/kategoria/${category.slug}${queryString ? '?' + queryString : ''}`, { replaceState: true });
+        goto(`/kategoria/${category?.slug || ''}${queryString ? '?' + queryString : ''}`, { replaceState: true });
     }
 
     function clearFilters() {
@@ -48,7 +49,9 @@
         selectedBrand = '';
         selectedFilters = {};
         sort = 'newest';
-        goto(`/kategoria/${category.slug}`, { replaceState: true });
+        if (category?.slug) {
+            goto(`/kategoria/${category.slug}`, { replaceState: true });
+        }
     }
 
     function selectAttribute(name, value) {
@@ -63,6 +66,7 @@
 
     function changePage(newPage) {
         if (newPage < 1 || newPage > totalPages) return;
+        if (!category?.slug) return;
         const params = new URLSearchParams($page.url.searchParams);
         params.set('page', newPage.toString());
         goto(`/kategoria/${category.slug}?${params.toString()}`);
@@ -89,6 +93,12 @@
             <span class="mp-breadcrumb__sep">/</span>
             <span>{category?.name}</span>
         </nav>
+
+        {#if errorMessage}
+            <div class="mp-error-banner">
+                <span>⚠️</span> {errorMessage}
+            </div>
+        {/if}
 
         {#if category}
             <div class="mp-category-header">
@@ -346,6 +356,20 @@
 .mp-empty__icon { font-size: 4rem; margin-bottom: 16px; }
 .mp-empty__title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
 .mp-empty__text { color: #6b7280; margin-bottom: 20px; }
+
+/* Error Banner */
+.mp-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 10px;
+    color: #92400e;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
 
 /* Responsive */
 @media (max-width: 900px) {
