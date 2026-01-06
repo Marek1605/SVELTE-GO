@@ -73,3 +73,7 @@ export const api = {
 	startImport: (id: string) => fetchApi(`/admin/feeds/${id}/import`, { method: 'POST' }),
 	getImportProgress: (id: string) => fetchApi(`/admin/feeds/${id}/progress`),
 };
+
+export function formatPrice(price: number): string {
+	return price.toFixed(2) + " €";
+}
