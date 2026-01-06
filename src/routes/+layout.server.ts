@@ -1,7 +1,4 @@
-import { api } from '$lib/api';
-
 export async function load() {
-	// Top kategórie s najväčším počtom produktov
 	const topCategories = [
 		{ slug: 'mokre-krmivo', name: 'Mokré krmivo', icon: '🐕' },
 		{ slug: 'suche-krmivo', name: 'Suché krmivo', icon: '🐈' },
