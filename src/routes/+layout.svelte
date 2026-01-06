@@ -2,22 +2,24 @@
 	import '../app.css';
 	import { page } from '$app/stores';
 	
+	export let data;
+	
 	let searchQuery = '';
 	
-	const categories = [
-		{ name: 'Elektronika', slug: 'elektronika', icon: '📱' },
-		{ name: 'Móda', slug: 'moda', icon: '👗' },
-		{ name: 'Dom a záhrada', slug: 'dom-zahrada', icon: '🏠' },
-		{ name: 'Šport', slug: 'sport', icon: '⚽' },
-		{ name: 'Auto-moto', slug: 'auto-moto', icon: '🚗' },
-		{ name: 'Zdravie', slug: 'zdravie', icon: '💊' },
-		{ name: 'Detský svet', slug: 'detsky-svet', icon: '🧸' },
-		{ name: 'Hobby', slug: 'hobby', icon: '🎨' },
+	$: categories = data?.categories || [
+		{ name: 'Mokré krmivo', slug: 'mokre-krmivo', icon: '🐕' },
+		{ name: 'Suché krmivo', slug: 'suche-krmivo', icon: '🐈' },
+		{ name: 'Flash disky', slug: 'flash-disk', icon: '💾' },
+		{ name: 'Myši', slug: 'mysi', icon: '🖱️' },
+		{ name: 'SSD disky', slug: 'ssd-disky', icon: '💿' },
+		{ name: 'Routery', slug: 'routery', icon: '📡' },
+		{ name: 'HDMI káble', slug: 'hdmi-kable', icon: '🔌' },
+		{ name: 'Lego', slug: 'lego', icon: '🧱' },
 	];
-	
+
 	// Check if current page is admin
 	$: isAdmin = $page.url.pathname.startsWith('/admin');
-	
+
 	function handleSearch(e: Event) {
 		e.preventDefault();
 		if (searchQuery.trim()) {
