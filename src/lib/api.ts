@@ -72,12 +72,10 @@ export const api = {
 	previewFeed: (data: any) => fetchApi('/admin/feeds/preview', { method: 'POST', body: JSON.stringify(data) }),
 	startImport: (id: string) => fetchApi(`/admin/feeds/${id}/import`, { method: 'POST' }),
 	getImportProgress: (id: string) => fetchApi(`/admin/feeds/${id}/progress`),
+	bulkDeleteProducts: (ids: string[]) => fetchApi("/admin/products/bulk", { method: "DELETE", body: JSON.stringify({ ids }) }),
+	deleteProduct: (id: string) => fetchApi(`/admin/products/${id}`, { method: "DELETE" }),
 };
 
 export function formatPrice(price: number): string {
 	return price.toFixed(2) + " €";
 }
-
-	// Missing methods
-	bulkDeleteProducts: (ids: string[]) => fetchApi('/admin/products/bulk', { method: 'DELETE', body: JSON.stringify({ ids }) }),
-	deleteProduct: (id: string) => fetchApi(`/admin/products/${id}`, { method: 'DELETE' }),
