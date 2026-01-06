@@ -1,21 +1,16 @@
 import { api } from '$lib/api';
 
 export async function load() {
-	try {
-		const res = await api.getCategories();
-		// Vyber len top kategórie s ikonou
-		const topCategories = [
-			{ slug: 'elektronika', name: 'Elektronika', icon: '📱' },
-			{ slug: 'moda', name: 'Móda', icon: '👗' },
-			{ slug: 'dom-zahrada', name: 'Dom a záhrada', icon: '🏠' },
-			{ slug: 'sport', name: 'Šport', icon: '⚽' },
-			{ slug: 'auto-moto', name: 'Auto-moto', icon: '🚗' },
-			{ slug: 'zdravie', name: 'Zdravie', icon: '💊' },
-			{ slug: 'detsky-svet', name: 'Detský svet', icon: '🧸' },
-			{ slug: 'hobby', name: 'Hobby', icon: '🎨' }
-		];
-		return { categories: topCategories };
-	} catch (e) {
-		return { categories: [] };
-	}
+	// Top kategórie s najväčším počtom produktov
+	const topCategories = [
+		{ slug: 'mokre-krmivo', name: 'Mokré krmivo', icon: '🐕' },
+		{ slug: 'suche-krmivo', name: 'Suché krmivo', icon: '🐈' },
+		{ slug: 'flash-disk', name: 'Flash disky', icon: '💾' },
+		{ slug: 'mysi', name: 'Myši', icon: '🖱️' },
+		{ slug: 'ssd-disky', name: 'SSD disky', icon: '💿' },
+		{ slug: 'routery', name: 'Routery', icon: '📡' },
+		{ slug: 'hdmi-kable', name: 'HDMI káble', icon: '🔌' },
+		{ slug: 'lego', name: 'Lego', icon: '🧱' }
+	];
+	return { categories: topCategories };
 }
