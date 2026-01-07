@@ -62,3 +62,7 @@ export function formatPrice(price) {
 }
 
 export default api;
+
+// Admin delete functions
+api.deleteAllCategories = () => fetchApi('/admin/categories/all', { method: 'DELETE' });
+api.deleteAllProducts = () => fetchApi('/admin/products/all', { method: 'DELETE' });
