@@ -1,263 +1,684 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { api } from '$lib/api';
-    
+    import { PUBLIC_API_URL } from '$env/static/public';
+
+    const API_BASE = PUBLIC_API_URL || '';
+
     let feeds = [];
     let loading = true;
     let showAddModal = false;
-    let newFeed = { name: '', url: '', type: 'xml' };
-    let importing = {};
-    
-    async function loadFeeds() {
-        loading = true;
-        try {
-            const result = await api.getFeeds();
-            if (result?.success && result?.data) {
-                feeds = result.data || [];
-            } else if (Array.isArray(result)) {
-                feeds = result;
-            }
-        } catch (err) {
-            console.error('Error loading feeds:', err);
-        }
-        loading = false;
-    }
-    
-    async function addFeed() {
-        if (!newFeed.name || !newFeed.url) return;
-        try {
-            const result = await api.createFeed(newFeed);
-            if (result?.success) {
-                showAddModal = false;
-                newFeed = { name: '', url: '', type: 'xml' };
-                loadFeeds();
-            }
-        } catch (err) {
-            console.error('Error creating feed:', err);
-        }
-    }
-    
-    async function startImport(feedId) {
-        importing[feedId] = true;
-        try {
-            await api.startImport(feedId);
-            pollProgress(feedId);
-        } catch (err) {
-            console.error('Error starting import:', err);
-            importing[feedId] = false;
-        }
-    }
-    
-    async function pollProgress(feedId) {
-        try {
-            const result = await api.getImportProgress(feedId);
-            if (result?.data?.status === 'running') {
-                setTimeout(() => pollProgress(feedId), 2000);
-            } else {
-                importing[feedId] = false;
-                loadFeeds();
-            }
-        } catch (err) {
-            importing[feedId] = false;
-        }
-    }
-    
-    function closeModal() {
-        showAddModal = false;
-    }
-    
+    let showImportModal = false;
+    let selectedFeed = null;
+    let importProgress = null;
+    let progressInterval = null;
+
+    // New feed form
+    let newFeed = {
+        name: '',
+        url: '',
+        type: 'xml',
+        schedule: 'daily',
+        is_active: true,
+        xml_item_path: 'SHOPITEM',
+        field_mapping: {}
+    };
+
+    let previewLoading = false;
+    let feedPreview = null;
+    let previewError = '';
+    let activePreviewTab = 'fields';
+
+    const targetFields = [
+        { value: '', label: '-- Ignorovat --' },
+        { value: 'title', label: 'N·zov produktu' },
+        { value: 'description', label: 'Popis' },
+        { value: 'price', label: 'Cena' },
+        { value: 'ean', label: 'EAN' },
+        { value: 'brand', label: 'Znacka' },
+        { value: 'image_url', label: 'Obr·zok' },
+        { value: 'url', label: 'URL produktu' },
+        { value: 'category', label: 'KategÛria' },
+    ];
+
     onMount(() => {
         loadFeeds();
     });
+
+    onDestroy(() => {
+        if (progressInterval) clearInterval(progressInterval);
+    });
+
+    async function loadFeeds() {
+        loading = true;
+        try {
+            const res = await fetch(API_BASE + '/admin/feeds');
+            const data = await res.json();
+            feeds = data.success ? (data.data || []) : [];
+        } catch (err) {
+            console.error('Error loading feeds:', err);
+            feeds = [];
+        }
+        loading = false;
+    }
+
+    async function previewFeed() {
+        if (!newFeed.url) {
+            previewError = 'Zadajte URL feedu';
+            return;
+        }
+
+        previewLoading = true;
+        previewError = '';
+        feedPreview = null;
+
+        try {
+            const res = await fetch(API_BASE + '/admin/feeds/preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: newFeed.url,
+                    type: newFeed.type,
+                    xml_item_path: newFeed.xml_item_path
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                feedPreview = data.data;
+                // Auto-map common fields
+                autoMapFields();
+            } else {
+                previewError = data.error || 'Nepodarilo sa nacÌtat feed';
+            }
+        } catch (err) {
+            previewError = 'Chyba pri nacÌtavanÌ feedu: ' + err.message;
+        }
+
+        previewLoading = false;
+    }
+
+    function autoMapFields() {
+        if (!feedPreview?.fields) return;
+        
+        const mapping = {};
+        const fieldMap = {
+            'PRODUCTNAME': 'title',
+            'PRODUCT': 'title',
+            'NAME': 'title',
+            'DESCRIPTION': 'description',
+            'PRICE_VAT': 'price',
+            'PRICE': 'price',
+            'EAN': 'ean',
+            'MANUFACTURER': 'brand',
+            'BRAND': 'brand',
+            'IMGURL': 'image_url',
+            'IMAGE': 'image_url',
+            'URL': 'url',
+            'CATEGORYTEXT': 'category',
+            'CATEGORY': 'category'
+        };
+
+        feedPreview.fields.forEach(field => {
+            const upper = field.toUpperCase();
+            if (fieldMap[upper]) {
+                mapping[field] = fieldMap[upper];
+            }
+        });
+
+        newFeed.field_mapping = mapping;
+    }
+
+    async function saveFeed() {
+        if (!newFeed.name || !newFeed.url) {
+            alert('Vyplnte n·zov a URL feedu');
+            return;
+        }
+
+        try {
+            const res = await fetch(API_BASE + '/admin/feeds', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newFeed)
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                showAddModal = false;
+                resetForm();
+                loadFeeds();
+            } else {
+                alert(data.error || 'Chyba pri ukladanÌ');
+            }
+        } catch (err) {
+            alert('Chyba: ' + err.message);
+        }
+    }
+
+    async function deleteFeed(id, name) {
+        if (!confirm(`Vymazat feed "${name}"?`)) return;
+
+        try {
+            await fetch(API_BASE + '/admin/feeds/' + id, { method: 'DELETE' });
+            loadFeeds();
+        } catch (err) {
+            alert('Chyba pri mazanÌ');
+        }
+    }
+
+    async function startImport(feed) {
+        selectedFeed = feed;
+        showImportModal = true;
+        importProgress = {
+            status: 'downloading',
+            message: 'Stahujem feed...',
+            total: 0,
+            processed: 0,
+            created: 0,
+            updated: 0,
+            errors: 0,
+            percent: 0,
+            logs: ['Sp˙ötam import...']
+        };
+
+        try {
+            await fetch(API_BASE + '/admin/feeds/' + feed.id + '/import', { method: 'POST' });
+
+            // Poll for progress
+            progressInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(API_BASE + '/admin/feeds/' + feed.id + '/progress');
+                    const data = await res.json();
+                    
+                    if (data.success && data.data) {
+                        importProgress = data.data;
+                        
+                        if (data.data.status === 'completed' || data.data.status === 'error') {
+                            clearInterval(progressInterval);
+                            progressInterval = null;
+                            loadFeeds();
+                        }
+                    }
+                } catch (err) {
+                    console.error('Progress error:', err);
+                }
+            }, 1000);
+        } catch (err) {
+            importProgress = { ...importProgress, status: 'error', message: err.message };
+        }
+    }
+
+    function resetForm() {
+        newFeed = {
+            name: '',
+            url: '',
+            type: 'xml',
+            schedule: 'daily',
+            is_active: true,
+            xml_item_path: 'SHOPITEM',
+            field_mapping: {}
+        };
+        feedPreview = null;
+        previewError = '';
+    }
+
+    function closeImportModal() {
+        showImportModal = false;
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        return new Date(dateStr).toLocaleString('sk-SK');
+    }
 </script>
 
-<svelte:head>
-    <title>Feed Import | Admin | MegaPrice</title>
-</svelte:head>
-
-<div class="admin-page">
-    <div class="admin-header">
-        <h1 class="admin-title">Feed Import</h1>
-        <button class="btn btn--primary" on:click={() => showAddModal = true}>
-            + Prida≈• feed
+<div class="feeds-page">
+    <div class="page-header">
+        <div>
+            <h1>Feed Import</h1>
+            <p class="subtitle">Import produktov z XML/CSV feedov</p>
+        </div>
+        <button class="btn btn-primary" on:click={() => showAddModal = true}>
+            ? Pridat feed
         </button>
     </div>
-    
-    <div class="admin-card">
-        {#if loading}
-            <div class="admin-loading">Naƒç√≠tavam feedy...</div>
-        {:else if feeds.length === 0}
-            <div class="admin-empty">
-                <span class="admin-empty__icon">üì•</span>
-                <p>≈Ωiadne feed zdroje</p>
-                <button class="btn btn--primary" on:click={() => showAddModal = true}>
-                    Prida≈• prv√Ω feed
-                </button>
-            </div>
-        {:else}
-            <div class="feeds-list">
-                {#each feeds as feed}
-                    <div class="feed-card">
-                        <div class="feed-card__info">
-                            <h3 class="feed-card__name">{feed.name}</h3>
-                            <p class="feed-card__url">{feed.url}</p>
-                            <div class="feed-card__meta">
-                                <span>Typ: {feed.type}</span>
-                                {#if feed.last_import}
-                                    <span>Posledn√Ω import: {new Date(feed.last_import).toLocaleString('sk')}</span>
-                                {/if}
-                                {#if feed.product_count}
-                                    <span>Produktov: {feed.product_count}</span>
-                                {/if}
-                            </div>
+
+    {#if loading}
+        <div class="loading">NacÌtavam...</div>
+    {:else if feeds.length === 0}
+        <div class="empty-state">
+            <div class="empty-icon">??</div>
+            <h3>éiadne feedy</h3>
+            <p>Pridajte svoj prv˝ XML/CSV feed pre import produktov</p>
+            <button class="btn btn-primary" on:click={() => showAddModal = true}>
+                ? Pridat feed
+            </button>
+        </div>
+    {:else}
+        <div class="feeds-grid">
+            {#each feeds as feed}
+                <div class="feed-card">
+                    <div class="feed-header">
+                        <div class="feed-icon">
+                            {#if feed.type === 'xml'}??{:else if feed.type === 'csv'}??{:else}??{/if}
                         </div>
-                        <div class="feed-card__actions">
-                            <button 
-                                class="btn" 
-                                class:btn--loading={importing[feed.id]}
-                                disabled={importing[feed.id]}
-                                on:click={() => startImport(feed.id)}
-                            >
-                                {importing[feed.id] ? '‚è≥ Importujem...' : '‚ñ∂Ô∏è Spusti≈• import'}
-                            </button>
+                        <div class="feed-info">
+                            <h3>{feed.name}</h3>
+                            <span class="feed-type">{feed.type.toUpperCase()}</span>
+                        </div>
+                        <div class="feed-status" class:active={feed.is_active}>
+                            {feed.is_active ? '??' : '?'}
                         </div>
                     </div>
-                {/each}
-            </div>
-        {/if}
-    </div>
+
+                    <div class="feed-url">{feed.url}</div>
+
+                    <div class="feed-stats">
+                        <div class="stat">
+                            <span class="stat-value">{feed.product_count || 0}</span>
+                            <span class="stat-label">produktov</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">{feed.schedule || 'manual'}</span>
+                            <span class="stat-label">pl·n</span>
+                        </div>
+                    </div>
+
+                    {#if feed.last_import}
+                        <div class="feed-last-import">
+                            Posledn˝ import: {formatDate(feed.last_import)}
+                        </div>
+                    {/if}
+
+                    <div class="feed-actions">
+                        <button class="btn btn-success" on:click={() => startImport(feed)}>
+                            ?? Importovat
+                        </button>
+                        <button class="btn btn-danger" on:click={() => deleteFeed(feed.id, feed.name)}>
+                            ???
+                        </button>
+                    </div>
+                </div>
+            {/each}
+        </div>
+    {/if}
 </div>
 
 <!-- Add Feed Modal -->
 {#if showAddModal}
-    <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-overlay" on:click={() => { showAddModal = false; resetForm(); }}>
+        <div class="modal modal-lg" on:click|stopPropagation>
+            <div class="modal-header">
+                <h2>Pridat nov˝ feed</h2>
+                <button class="modal-close" on:click={() => { showAddModal = false; resetForm(); }}>?</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>N·zov feedu</label>
+                        <input type="text" bind:value={newFeed.name} placeholder="Napr. Heureka XML">
+                    </div>
+                    <div class="form-group">
+                        <label>Typ</label>
+                        <select bind:value={newFeed.type}>
+                            <option value="xml">XML</option>
+                            <option value="csv">CSV</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>URL feedu</label>
+                    <div class="input-with-button">
+                        <input type="url" bind:value={newFeed.url} placeholder="https://example.com/feed.xml">
+                        <button class="btn" on:click={previewFeed} disabled={previewLoading}>
+                            {previewLoading ? '?' : '??'} NacÌtat
+                        </button>
+                    </div>
+                </div>
+
+                {#if newFeed.type === 'xml'}
+                    <div class="form-group">
+                        <label>XML element produktu</label>
+                        <input type="text" bind:value={newFeed.xml_item_path} placeholder="SHOPITEM">
+                        <small>ätandardne SHOPITEM pre Heureka feedy</small>
+                    </div>
+                {/if}
+
+                {#if previewError}
+                    <div class="alert alert-error">{previewError}</div>
+                {/if}
+
+                {#if feedPreview}
+                    <div class="preview-section">
+                        <div class="preview-tabs">
+                            <button 
+                                class="preview-tab" 
+                                class:active={activePreviewTab === 'fields'}
+                                on:click={() => activePreviewTab = 'fields'}
+                            >
+                                ?? Polia ({feedPreview.fields?.length || 0})
+                            </button>
+                            <button 
+                                class="preview-tab"
+                                class:active={activePreviewTab === 'attributes'}
+                                on:click={() => activePreviewTab = 'attributes'}
+                            >
+                                ??? Atrib˙ty ({feedPreview.attributes?.length || 0})
+                            </button>
+                            <button 
+                                class="preview-tab"
+                                class:active={activePreviewTab === 'sample'}
+                                on:click={() => activePreviewTab = 'sample'}
+                            >
+                                ??? Uk·ûka
+                            </button>
+                            <span class="preview-count">
+                                ? {feedPreview.total_items || 0} poloûiek
+                            </span>
+                        </div>
+
+                        <div class="preview-content">
+                            {#if activePreviewTab === 'fields'}
+                                <table class="mapping-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Pole z feedu</th>
+                                            <th>Uk·ûka</th>
+                                            <th>Mapovat na</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {#each (feedPreview.fields || []).filter(f => !f.startsWith('_')) as field}
+                                            <tr>
+                                                <td><strong>{field}</strong></td>
+                                                <td class="sample-cell">
+                                                    {String(feedPreview.sample?.[0]?.[field] || '-').substring(0, 80)}
+                                                </td>
+                                                <td>
+                                                    <select 
+                                                        bind:value={newFeed.field_mapping[field]}
+                                                        class="mapping-select"
+                                                    >
+                                                        {#each targetFields as tf}
+                                                            <option value={tf.value}>{tf.label}</option>
+                                                        {/each}
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        {/each}
+                                    </tbody>
+                                </table>
+                            {:else if activePreviewTab === 'attributes'}
+                                {#if feedPreview.attributes?.length > 0}
+                                    <p class="info-text">PARAM atrib˙ty n·jdenÈ vo feede (bud˙ automaticky importovanÈ):</p>
+                                    <div class="attr-grid">
+                                        {#each feedPreview.attributes.sort((a, b) => b.count - a.count) as attr}
+                                            <div class="attr-item">
+                                                <span class="attr-name">{attr.name}</span>
+                                                <span class="attr-count">{attr.count}◊</span>
+                                            </div>
+                                        {/each}
+                                    </div>
+                                {:else}
+                                    <div class="empty-preview">éiadne PARAM atrib˙ty</div>
+                                {/if}
+                            {:else if activePreviewTab === 'sample'}
+                                <div class="sample-data">
+                                    <pre>{JSON.stringify(feedPreview.sample?.[0] || {}, null, 2)}</pre>
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
+                {/if}
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn" on:click={() => { showAddModal = false; resetForm(); }}>Zruöit</button>
+                <button class="btn btn-primary" on:click={saveFeed}>?? Uloûit feed</button>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<!-- Import Progress Modal -->
+{#if showImportModal && importProgress}
+    <div class="modal-overlay">
         <div class="modal">
-            <h2 id="modal-title">Prida≈• nov√Ω feed</h2>
-            <form on:submit|preventDefault={addFeed}>
-                <div class="form-group">
-                    <label for="feed-name">N√°zov</label>
-                    <input id="feed-name" type="text" bind:value={newFeed.name} placeholder="N√°zov feedu" required>
+            <div class="modal-header">
+                <h2>
+                    {#if importProgress.status === 'completed'}
+                        ? Import dokoncen˝
+                    {:else if importProgress.status === 'error'}
+                        ? Import zlyhal
+                    {:else}
+                        ?? Import prebieha...
+                    {/if}
+                </h2>
+            </div>
+
+            <div class="modal-body">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {importProgress.percent}%">
+                        {importProgress.percent}%
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="feed-url">URL</label>
-                    <input id="feed-url" type="url" bind:value={newFeed.url} placeholder="https://..." required>
+
+                <p class="progress-message">{importProgress.message}</p>
+
+                <div class="progress-stats">
+                    <div class="progress-stat">
+                        <div class="stat-value">{importProgress.total}</div>
+                        <div class="stat-label">Celkom</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="stat-value text-green">{importProgress.created}</div>
+                        <div class="stat-label">VytvorenÈ</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="stat-value text-blue">{importProgress.updated}</div>
+                        <div class="stat-label">AktualizovanÈ</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="stat-value text-red">{importProgress.errors}</div>
+                        <div class="stat-label">Chyby</div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="feed-type">Typ</label>
-                    <select id="feed-type" bind:value={newFeed.type}>
-                        <option value="xml">XML</option>
-                        <option value="csv">CSV</option>
-                        <option value="json">JSON</option>
-                    </select>
+
+                <div class="progress-logs">
+                    {#each (importProgress.logs || []).slice(-15) as log}
+                        <div class="log-line">{log}</div>
+                    {/each}
                 </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn" on:click={closeModal}>Zru≈°i≈•</button>
-                    <button type="submit" class="btn btn--primary">Prida≈•</button>
-                </div>
-            </form>
+            </div>
+
+            <div class="modal-footer">
+                {#if importProgress.status === 'completed' || importProgress.status === 'error'}
+                    <button class="btn btn-primary" on:click={closeImportModal}>Zavriet</button>
+                {/if}
+            </div>
         </div>
     </div>
 {/if}
 
 <style>
-.admin-page { max-width: 1200px; }
+.feeds-page {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
 
-.admin-header {
+.page-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 24px;
 }
 
-.admin-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1e293b;
+.page-header h1 {
     margin: 0;
+    font-size: 28px;
+    color: #1e293b;
 }
 
-.admin-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    overflow: hidden;
+.subtitle {
+    margin: 4px 0 0;
+    color: #64748b;
 }
 
-.admin-loading, .admin-empty {
+.loading, .empty-state {
     text-align: center;
     padding: 60px 20px;
     color: #64748b;
 }
 
-.admin-empty__icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: 12px;
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
 }
 
-.feeds-list {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.empty-state h3 {
+    margin: 0 0 8px;
+    color: #1e293b;
+}
+
+.feeds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
 }
 
 .feed-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    background: white;
+    border-radius: 12px;
     padding: 20px;
-    background: #f8fafc;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.feed-card__name {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1e293b;
-    margin: 0 0 4px 0;
-}
-
-.feed-card__url {
-    font-size: 13px;
-    color: #64748b;
-    margin: 0 0 8px 0;
-    word-break: break-all;
-}
-
-.feed-card__meta {
+.feed-header {
     display: flex;
-    gap: 16px;
-    font-size: 12px;
-    color: #94a3b8;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
-.btn {
-    display: inline-flex;
-    align-items: center;
+.feed-icon {
+    font-size: 32px;
+}
+
+.feed-info h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.feed-type {
+    font-size: 11px;
+    background: #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.feed-status {
+    margin-left: auto;
+}
+
+.feed-url {
+    font-size: 12px;
+    color: #64748b;
+    word-break: break-all;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.feed-stats {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 12px;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.feed-last-import {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.feed-actions {
+    display: flex;
     gap: 8px;
-    padding: 10px 18px;
-    background: #f1f5f9;
+}
+
+/* Buttons */
+.btn {
+    padding: 10px 16px;
     border: none;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
+    background: #f1f5f9;
+    color: #334155;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.btn:hover { background: #e2e8f0; }
-
-.btn--primary {
-    background: #c4956a;
-    color: #fff;
+.btn:hover {
+    background: #e2e8f0;
 }
 
-.btn--primary:hover { background: #b8875c; }
+.btn-primary {
+    background: #b8860b;
+    color: white;
+}
 
-.btn--loading { opacity: 0.7; cursor: wait; }
+.btn-primary:hover {
+    background: #996f0a;
+}
 
+.btn-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.btn-success:hover {
+    background: #bbf7d0;
+}
+
+.btn-danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.btn-danger:hover {
+    background: #fecaca;
+}
+
+/* Modal */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -266,52 +687,308 @@
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    padding: 20px;
 }
 
 .modal {
-    background: #fff;
+    background: white;
     border-radius: 16px;
-    padding: 32px;
     width: 100%;
-    max-width: 480px;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
-.modal h2 {
+.modal-lg {
+    max-width: 900px;
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
     font-size: 20px;
-    margin: 0 0 24px 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Form */
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .form-group label {
     display: block;
-    font-size: 14px;
-    font-weight: 500;
     margin-bottom: 6px;
+    font-weight: 500;
     color: #374151;
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
-    padding: 12px 14px;
-    border: 2px solid #e5e7eb;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 14px;
-    outline: none;
 }
 
-.form-group input:focus,
-.form-group select:focus {
-    border-color: #c4956a;
+.form-group small {
+    display: block;
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
 }
 
-.modal-actions {
+.input-with-button {
     display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-top: 24px;
+    gap: 8px;
+}
+
+.input-with-button input {
+    flex: 1;
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Preview */
+.preview-section {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 16px;
+}
+
+.preview-tabs {
+    display: flex;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.preview-tab {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.preview-tab.active {
+    background: white;
+    color: #1e293b;
+    font-weight: 600;
+    border-bottom: 2px solid #b8860b;
+}
+
+.preview-count {
+    margin-left: auto;
+    padding: 12px 20px;
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.preview-content {
+    padding: 16px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.mapping-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.mapping-table th {
+    text-align: left;
+    padding: 10px;
+    background: #f8fafc;
+    font-weight: 600;
+}
+
+.mapping-table td {
+    padding: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.sample-cell {
+    color: #64748b;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mapping-select {
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 100%;
+}
+
+.info-text {
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.attr-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.attr-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.attr-name {
+    font-weight: 500;
+}
+
+.attr-count {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.empty-preview {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+}
+
+.sample-data {
+    background: #1e293b;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.sample-data pre {
+    margin: 0;
+    color: #e2e8f0;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+
+/* Progress */
+.progress-bar {
+    height: 24px;
+    background: #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #b8860b, #d4a017);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    transition: width 0.3s;
+}
+
+.progress-message {
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+.progress-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.progress-stat {
+    text-align: center;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.progress-stat .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.progress-stat .stat-label {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.text-green { color: #16a34a; }
+.text-blue { color: #2563eb; }
+.text-red { color: #dc2626; }
+
+.progress-logs {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.log-line {
+    font-family: monospace;
+    font-size: 12px;
+    color: #94a3b8;
+    padding: 2px 0;
 }
 </style>
