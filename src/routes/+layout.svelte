@@ -10,8 +10,8 @@
     
     const navCategories = [
         { name: 'Uncategorized', slug: 'uncategorized', icon: '📦' },
-        { name: 'Dom a záhrada', slug: 'dom-a-zahrada', icon: '🏠' },
-        { name: 'Domáce spotrebiče', slug: 'domace-spotrebice', icon: '🔌' },
+        { name: 'Dom a záhrada', slug: 'dom-zahrada', icon: '🏠' },
+        { name: 'Domáce spotrebiče', slug: 'elektronika', icon: '🔌' },
         { name: 'Elektronika', slug: 'elektronika', icon: '📱' },
         { name: 'Hračky', slug: 'hracky', icon: '🎮' },
         { name: 'Hračky pre najmenších', slug: 'hracky-pre-najmensich', icon: '🧸' },
