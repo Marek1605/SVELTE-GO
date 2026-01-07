@@ -1,7 +1,10 @@
 <script>
     import { onMount } from 'svelte';
     import { api } from '$lib/api';
+    import { PUBLIC_API_URL } from '$env/static/public';
 
+    const API_BASE = PUBLIC_API_URL || '';
+    
     let categories = [];
     let loading = true;
     let searchQuery = '';
@@ -11,10 +14,7 @@
         loading = true;
         try {
             const result = await api.getCategoriesTree();
-            console.log('API result:', result);
-            
             if (result?.success && result?.data) {
-                // data môže byť {data: [...]} alebo priamo [...]
                 categories = Array.isArray(result.data) ? result.data : 
                              (result.data?.data ? result.data.data : []);
             } else if (Array.isArray(result)) {
@@ -22,9 +22,8 @@
             } else {
                 categories = [];
             }
-            console.log('Categories loaded:', categories.length);
         } catch (err) {
-            console.error('Error loading categories:', err);
+            console.error('Error:', err);
             categories = [];
         }
         loading = false;
@@ -32,12 +31,13 @@
 
     async function deleteAllCategories() {
         if (!confirm('Naozaj chcete vymazať VŠETKY kategórie?')) return;
+        if (!confirm('Ste si istý? Toto sa nedá vrátiť!')) return;
         
         deleting = true;
         try {
-            const res = await fetch('/api/v1/admin/categories/all', { method: 'DELETE' });
+            const res = await fetch(API_BASE + '/admin/categories/all', { method: 'DELETE' });
             const result = await res.json();
-            alert(result.success ? `Vymazaných ${result.deleted} kategórií` : 'Chyba: ' + result.error);
+            alert(result.success ? `Vymazaných ${result.deleted} kategórií` : 'Chyba: ' + (result.error || 'Neznáma'));
             await loadCategories();
         } catch (err) {
             alert('Chyba: ' + err.message);
@@ -47,12 +47,13 @@
 
     async function deleteAllProducts() {
         if (!confirm('Naozaj chcete vymazať VŠETKY produkty?')) return;
+        if (!confirm('Ste si istý? Toto sa nedá vrátiť!')) return;
         
         deleting = true;
         try {
-            const res = await fetch('/api/v1/admin/products/all', { method: 'DELETE' });
+            const res = await fetch(API_BASE + '/admin/products/all', { method: 'DELETE' });
             const result = await res.json();
-            alert(result.success ? `Vymazaných ${result.deleted} produktov` : 'Chyba: ' + result.error);
+            alert(result.success ? `Vymazaných ${result.deleted} produktov` : 'Chyba: ' + (result.error || 'Neznáma'));
         } catch (err) {
             alert('Chyba: ' + err.message);
         }
