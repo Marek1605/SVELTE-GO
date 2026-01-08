@@ -15,7 +15,7 @@
     async function loadCategories() {
         loading = true;
         try {
-            const res = await fetch(API_BASE + '/categories/tree');
+            const res = await fetch('/api/v1/admin/categories');
             const data = await res.json();
             
             if (data.success && data.data) {
