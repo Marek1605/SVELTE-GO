@@ -1,8 +1,7 @@
 <script>
     import { onMount } from 'svelte';
-    import { PUBLIC_API_URL } from '$env/static/public';
-
-    const API_BASE = PUBLIC_API_URL || '';
+    
+    const GO_API = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io';
 
     let categories = [];
     let loading = true;
@@ -15,7 +14,7 @@
     async function loadCategories() {
         loading = true;
         try {
-            const res = await fetch('/api/v1/admin/categories');
+            const res = await fetch(GO_API + '/api/v1/admin/categories');
             const data = await res.json();
             
             if (data.success && data.data) {
@@ -39,11 +38,11 @@
         
         deleting = true;
         try {
-            const res = await fetch('/api/v1/admin/categories/all', { method: 'DELETE' });
+            const res = await fetch(GO_API + '/api/v1/admin/categories/all', { method: 'DELETE' });
             const result = await res.json();
             
             if (result.success) {
-                alert('Vymazaných ' + result.deleted + ' kategórií');
+                alert('Kategórie vymazané!');
                 await loadCategories();
             } else {
                 alert('Chyba: ' + (result.error || 'Neznáma chyba'));
@@ -60,7 +59,7 @@
         
         deleting = true;
         try {
-            const res = await fetch('/api/v1/admin/products/all', { method: 'DELETE' });
+            const res = await fetch(GO_API + '/api/v1/admin/products/all', { method: 'DELETE' });
             const result = await res.json();
             
             if (result.success) {
