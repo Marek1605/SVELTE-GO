@@ -21,7 +21,10 @@
         schedule: 'daily',
         is_active: true,
         xml_item_path: 'SHOPITEM',
-        field_mapping: {}
+        field_mapping: {},
+        category_separator: '|',
+        import_params: true,
+        import_alt_images: true
     };
 
     let previewLoading = false;
@@ -38,9 +41,13 @@
         { value: 'price', label: 'Cena' },
         { value: 'ean', label: 'EAN' },
         { value: 'brand', label: 'Značka' },
-        { value: 'image_url', label: 'Obrázok' },
+        { value: 'image_url', label: 'Hlavný obrázok' },
+        { value: 'alt_images', label: 'Alternatívne obrázky' },
         { value: 'url', label: 'URL produktu' },
         { value: 'category', label: 'Kategória' },
+        { value: 'external_id', label: 'Externé ID' },
+        { value: 'delivery_date', label: 'Dodacia lehota' },
+        { value: 'stock', label: 'Sklad' },
     ];
 
     onMount(() => {
@@ -220,7 +227,10 @@
             schedule: 'daily',
             is_active: true,
             xml_item_path: 'SHOPITEM',
-            field_mapping: {}
+            field_mapping: {},
+            category_separator: '|',
+            import_params: true,
+            import_alt_images: true
         };
         feedPreview = null;
         previewError = '';
@@ -238,7 +248,10 @@
             schedule: feed.schedule || 'daily',
             is_active: feed.is_active,
             xml_item_path: feed.xml_item_path || 'SHOPITEM',
-            field_mapping: feed.field_mapping || {}
+            field_mapping: feed.field_mapping || {},
+            category_separator: feed.category_separator || '|',
+            import_params: feed.import_params !== false,
+            import_alt_images: feed.import_alt_images !== false
         };
         showAddModal = true;
     }
@@ -427,6 +440,33 @@
                             <input type="checkbox" bind:checked={newFeed.is_active}>
                             <span>Aktívny feed</span>
                         </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>Nastavenia importu</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Oddeľovač kategórií</label>
+                            <select bind:value={newFeed.category_separator}>
+                                <option value="|">| (pipe)</option>
+                                <option value=">">> (väčší)</option>
+                                <option value="/">/  (lomka)</option>
+                                <option value="-">- (pomlčka)</option>
+                            </select>
+                            <small>Napr. "Elektronika | Mobily | iPhone"</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Automatický import</label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" bind:checked={newFeed.import_alt_images}>
+                                <span>Alternatívne obrázky (IMGURL_ALTERNATIVE)</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" bind:checked={newFeed.import_params}>
+                                <span>PARAM atribúty</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -909,6 +949,19 @@
     height: 18px;
 }
 
+.settings-section {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 8px;
+}
+
+.settings-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #374151;
+}
+
 .input-with-button {
     display: flex;
     gap: 8px;
@@ -1010,6 +1063,19 @@
     color: #64748b;
     font-size: 13px;
     margin-bottom: 12px;
+}
+
+.auto-info {
+    background: #dcfce7;
+    color: #166534;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.auto-info strong {
+    color: #14532d;
 }
 
 .attr-grid {
