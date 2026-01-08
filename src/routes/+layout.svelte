@@ -7,7 +7,7 @@
     let isScrolled = false;
     let wishlistCount = 0;
     let compareCount = 0;
-    ];
+    const navCategories = [];
     
     function handleSearch(e) {
         e.preventDefault();
