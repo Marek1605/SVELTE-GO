@@ -7,18 +7,22 @@
     let isScrolled = false;
     let wishlistCount = 0;
     let compareCount = 0;
-    const navCategories = [];
+    let navCategories = [];
     
-    function handleSearch(e) {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`;
+    onMount(async () => {
+        // Load categories from API
+        try {
+            const res = await fetch('/api/v1/categories');
+            const data = await res.json();
+            if (data.data) {
+                // Get only root categories (no parent)
+                navCategories = data.data.filter(c => !c.parent_id).slice(0, 10);
+            }
+        } catch (e) {
+            console.error('Failed to load categories:', e);
         }
-    }
-    
-    onMount(() => {
+        
         const updateCounts = () => {
-            wishlistCount = JSON.parse(localStorage.getItem('mp_wishlist') || '[]').length;
             compareCount = JSON.parse(localStorage.getItem('mp_compare') || '[]').length;
         };
         updateCounts();
