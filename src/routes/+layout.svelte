@@ -48,6 +48,10 @@
     });
 </script>
 
+{#if $page.url.pathname.startsWith('/admin')}
+    <!-- Admin has its own layout, just render slot -->
+    <slot />
+{:else}
 <div class="mp-site">
     <!-- ========== HEADER ========== -->
     <header class="mp-header-wrap" class:is-scrolled={isScrolled}>
@@ -222,6 +226,7 @@
         </div>
     </footer>
 </div>
+{/if}
 
 <style>
 /* =============================================

@@ -2,17 +2,20 @@
     import { page } from '$app/stores';
     
     const menuItems = [
-        { href: '/admin', label: 'Dashboard' },
-        { href: '/admin/products', label: 'Produkty' },
-        { href: '/admin/feeds', label: 'Feed Import' },
-        { href: '/admin/categories', label: 'Kategórie' },
-        { href: '/admin/filters', label: 'Filtre' },
+        { href: '/admin', label: 'Dashboard', icon: '📊' },
+        { href: '/admin/products', label: 'Produkty', icon: '📦' },
+        { href: '/admin/feeds', label: 'Feed Import', icon: '📥' },
+        { href: '/admin/categories', label: 'Kategórie', icon: '📁' },
+        { href: '/admin/filters', label: 'Filtre', icon: '🎛️' },
     ];
 </script>
 
 <svelte:head>
     <title>Admin | MegaPrice</title>
+    <meta name="robots" content="noindex">
 </svelte:head>
+
+<!-- This resets ALL parent layouts because of @ in filename -->
 
 <div class="admin-wrapper">
     <aside class="sidebar">
