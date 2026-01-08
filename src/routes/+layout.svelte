@@ -7,7 +7,6 @@
     let isScrolled = false;
     let wishlistCount = 0;
     let compareCount = 0;
-    
     const navCategories = [];
     ];
     
