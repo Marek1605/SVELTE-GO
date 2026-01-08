@@ -23,6 +23,7 @@
         }
         
         const updateCounts = () => {
+            wishlistCount = JSON.parse(localStorage.getItem('mp_wishlist') || '[]').length;
             compareCount = JSON.parse(localStorage.getItem('mp_compare') || '[]').length;
         };
         updateCounts();
