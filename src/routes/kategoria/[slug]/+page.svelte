@@ -20,7 +20,6 @@
     let maxPrice = '';
     let selectedBrand = '';
     let sort = 'newest';
-    let showFilters = true;
 
     $: {
         const params = $page.url.searchParams;
@@ -100,166 +99,159 @@
                 <span class="product-count">{totalProducts} produktov</span>
             </div>
 
-            <!-- FILTERS BAR - VŽDY HORE -->
-            <div class="filters-bar">
-                <div class="filters-bar__toggle">
-                    <button class="toggle-btn" on:click={() => showFilters = !showFilters}>
-                        🎛️ Filtre
+            <!-- Main Layout: Sidebar + Content -->
+            <div class="main-layout">
+                <!-- LEFT SIDEBAR - FILTERS -->
+                <aside class="sidebar">
+                    <div class="sidebar-header">
+                        <h3>🎛️ Filtre</h3>
                         {#if hasActiveFilters}
-                            <span class="active-badge">!</span>
+                            <button class="clear-btn" on:click={clearFilters}>Zrušiť</button>
                         {/if}
-                        <span class="arrow" class:open={showFilters}>▼</span>
-                    </button>
-                    
-                    {#if hasActiveFilters}
-                        <button class="clear-btn" on:click={clearFilters}>✕ Zrušiť filtre</button>
-                    {/if}
-                </div>
+                    </div>
 
-                {#if showFilters}
-                    <div class="filters-content">
-                        <!-- Price Filter -->
-                        <div class="filter-group">
-                            <label class="filter-label">💰 Cena</label>
-                            <div class="price-inputs">
-                                <input 
-                                    type="number" 
-                                    placeholder="Od" 
-                                    bind:value={minPrice} 
-                                    on:change={applyFilters}
-                                >
-                                <span>–</span>
-                                <input 
-                                    type="number" 
-                                    placeholder="Do" 
-                                    bind:value={maxPrice} 
-                                    on:change={applyFilters}
-                                >
-                                <span>€</span>
-                            </div>
-                            {#if priceRange.max > 0}
-                                <div class="price-hint">
-                                    {formatPrice(priceRange.min)} - {formatPrice(priceRange.max)}
-                                </div>
-                            {/if}
+                    <!-- Price Filter -->
+                    <div class="filter-section">
+                        <h4>💰 Cena</h4>
+                        <div class="price-inputs">
+                            <input 
+                                type="number" 
+                                placeholder="Od" 
+                                bind:value={minPrice} 
+                                on:change={applyFilters}
+                            >
+                            <span>–</span>
+                            <input 
+                                type="number" 
+                                placeholder="Do" 
+                                bind:value={maxPrice} 
+                                on:change={applyFilters}
+                            >
+                            <span>€</span>
                         </div>
+                        {#if priceRange.max > 0}
+                            <div class="price-hint">
+                                {formatPrice(priceRange.min)} - {formatPrice(priceRange.max)}
+                            </div>
+                        {/if}
+                    </div>
 
-                        <!-- Brand Filter -->
-                        {#if brands.length > 0}
-                            <div class="filter-group filter-group--brands">
-                                <label class="filter-label">🏷️ Značka</label>
-                                <div class="brand-chips">
-                                    {#each brands.slice(0, 12) as brand}
-                                        <button 
-                                            class="brand-chip" 
-                                            class:active={selectedBrand === brand.name}
-                                            on:click={() => selectBrand(brand.name)}
+                    <!-- Brand Filter -->
+                    {#if brands.length > 0}
+                        <div class="filter-section">
+                            <h4>🏷️ Značka</h4>
+                            <div class="brand-list">
+                                {#each brands.slice(0, 15) as brand}
+                                    <label class="brand-item" class:active={selectedBrand === brand.name}>
+                                        <input 
+                                            type="radio" 
+                                            name="brand"
+                                            checked={selectedBrand === brand.name}
+                                            on:change={() => selectBrand(brand.name)}
                                         >
-                                            {brand.name}
-                                            <span class="count">({brand.count})</span>
-                                        </button>
+                                        <span class="brand-name">{brand.name}</span>
+                                        <span class="brand-count">({brand.count})</span>
+                                    </label>
+                                {/each}
+                                {#if brands.length > 15}
+                                    <div class="more-brands">+{brands.length - 15} ďalších</div>
+                                {/if}
+                            </div>
+                        </div>
+                    {/if}
+
+                    <!-- Sort -->
+                    <div class="filter-section">
+                        <h4>📊 Zoradiť</h4>
+                        <select bind:value={sort} on:change={applyFilters}>
+                            <option value="newest">Najnovšie</option>
+                            <option value="price_asc">Najlacnejšie</option>
+                            <option value="price_desc">Najdrahšie</option>
+                            <option value="name_asc">A-Z</option>
+                            <option value="name_desc">Z-A</option>
+                        </select>
+                    </div>
+                </aside>
+
+                <!-- RIGHT CONTENT -->
+                <div class="content">
+                    <!-- Subcategories -->
+                    {#if children.length > 0}
+                        <div class="subcategories">
+                            <h2 class="section-title">Podkategórie</h2>
+                            <div class="subcategories-grid">
+                                {#each children as child}
+                                    <a href="/kategoria/{child.slug}" class="subcat-card">
+                                        <span class="subcat-icon">📦</span>
+                                        <span class="subcat-name">{child.name}</span>
+                                        <span class="subcat-count">{child.product_count || 0} produktov</span>
+                                    </a>
+                                {/each}
+                            </div>
+                        </div>
+                    {/if}
+
+                    <!-- Products -->
+                    <div class="products-section">
+                        <div class="products-header">
+                            <span class="results-count">Zobrazených {products.length} z {totalProducts}</span>
+                        </div>
+
+                        {#if products.length > 0}
+                            <div class="products-grid">
+                                {#each products as product}
+                                    <article class="product-card">
+                                        <a href="/produkt/{product.slug}" class="product-image">
+                                            {#if product.image_url}
+                                                <img src={product.image_url} alt={product.title} loading="lazy">
+                                            {:else}
+                                                <div class="product-placeholder">📦</div>
+                                            {/if}
+                                        </a>
+                                        <div class="product-content">
+                                            {#if product.brand}
+                                                <span class="product-brand">{product.brand}</span>
+                                            {/if}
+                                            <h3 class="product-title">
+                                                <a href="/produkt/{product.slug}">{product.title}</a>
+                                            </h3>
+                                            <div class="product-price-section">
+                                                <span class="price-label">od</span>
+                                                <span class="price-value">{formatPrice(product.price_min || product.price)}</span>
+                                            </div>
+                                            {#if product.offer_count > 1}
+                                                <div class="product-offers">📊 {product.offer_count} ponúk</div>
+                                            {/if}
+                                            <a href="/produkt/{product.slug}" class="product-btn">Porovnať ceny</a>
+                                        </div>
+                                    </article>
+                                {/each}
+                            </div>
+
+                            {#if totalPages > 1}
+                                <nav class="pagination">
+                                    <button class="page-btn" disabled={currentPage <= 1} on:click={() => changePage(currentPage - 1)}>‹</button>
+                                    {#each Array(Math.min(totalPages, 7)) as _, i}
+                                        {@const pageNum = currentPage <= 4 ? i + 1 : currentPage + i - 3}
+                                        {#if pageNum > 0 && pageNum <= totalPages}
+                                            <button class="page-btn" class:active={pageNum === currentPage} on:click={() => changePage(pageNum)}>{pageNum}</button>
+                                        {/if}
                                     {/each}
-                                    {#if brands.length > 12}
-                                        <span class="more-brands">+{brands.length - 12} ďalších</span>
-                                    {/if}
-                                </div>
+                                    <button class="page-btn" disabled={currentPage >= totalPages} on:click={() => changePage(currentPage + 1)}>›</button>
+                                </nav>
+                            {/if}
+                        {:else}
+                            <div class="empty-state">
+                                <div class="empty-icon">🔍</div>
+                                <h2>Žiadne produkty</h2>
+                                <p>V tejto kategórii sme nenašli žiadne produkty.</p>
+                                {#if hasActiveFilters}
+                                    <button class="btn-primary" on:click={clearFilters}>Zrušiť filtre</button>
+                                {/if}
                             </div>
                         {/if}
-
-                        <!-- Sort -->
-                        <div class="filter-group">
-                            <label class="filter-label">📊 Zoradiť</label>
-                            <select bind:value={sort} on:change={applyFilters}>
-                                <option value="newest">Najnovšie</option>
-                                <option value="price_asc">Najlacnejšie</option>
-                                <option value="price_desc">Najdrahšie</option>
-                                <option value="name_asc">A-Z</option>
-                                <option value="name_desc">Z-A</option>
-                            </select>
-                        </div>
-                    </div>
-                {/if}
-            </div>
-
-            <!-- Subcategories -->
-            {#if children.length > 0}
-                <div class="subcategories">
-                    <h2 class="subcategories__title">Podkategórie</h2>
-                    <div class="subcategories__grid">
-                        {#each children as child}
-                            <a href="/kategoria/{child.slug}" class="subcat-card">
-                                <span class="subcat-card__icon">📦</span>
-                                <span class="subcat-card__name">{child.name}</span>
-                                <span class="subcat-card__count">{child.product_count || 0} produktov</span>
-                            </a>
-                        {/each}
                     </div>
                 </div>
-            {/if}
-
-            <!-- Products -->
-            <div class="products-section">
-                <div class="products-header">
-                    <span class="results-count">Zobrazených {products.length} z {totalProducts}</span>
-                </div>
-
-                {#if products.length > 0}
-                    <div class="products-grid">
-                        {#each products as product}
-                            <article class="product-card">
-                                <a href="/produkt/{product.slug}" class="product-card__image">
-                                    {#if product.image_url}
-                                        <img src={product.image_url} alt={product.title} loading="lazy">
-                                    {:else}
-                                        <div class="product-card__placeholder">📦</div>
-                                    {/if}
-                                </a>
-                                <div class="product-card__content">
-                                    {#if product.brand}
-                                        <span class="product-card__brand">{product.brand}</span>
-                                    {/if}
-                                    <h3 class="product-card__title">
-                                        <a href="/produkt/{product.slug}">{product.title}</a>
-                                    </h3>
-                                    <div class="product-card__price-section">
-                                        <span class="product-card__price-label">od</span>
-                                        <span class="product-card__price">{formatPrice(product.price_min || product.price)}</span>
-                                    </div>
-                                    {#if product.offer_count > 1}
-                                        <div class="product-card__offers">
-                                            📊 {product.offer_count} ponúk
-                                        </div>
-                                    {/if}
-                                    <a href="/produkt/{product.slug}" class="product-card__btn">
-                                        Porovnať ceny
-                                    </a>
-                                </div>
-                            </article>
-                        {/each}
-                    </div>
-
-                    {#if totalPages > 1}
-                        <nav class="pagination">
-                            <button class="pagination__btn" disabled={currentPage <= 1} on:click={() => changePage(currentPage - 1)}>‹</button>
-                            {#each Array(Math.min(totalPages, 7)) as _, i}
-                                {@const pageNum = currentPage <= 4 ? i + 1 : currentPage + i - 3}
-                                {#if pageNum > 0 && pageNum <= totalPages}
-                                    <button class="pagination__btn" class:active={pageNum === currentPage} on:click={() => changePage(pageNum)}>{pageNum}</button>
-                                {/if}
-                            {/each}
-                            <button class="pagination__btn" disabled={currentPage >= totalPages} on:click={() => changePage(currentPage + 1)}>›</button>
-                        </nav>
-                    {/if}
-                {:else}
-                    <div class="empty-state">
-                        <div class="empty-state__icon">🔍</div>
-                        <h2>Žiadne produkty</h2>
-                        <p>V tejto kategórii sme nenašli žiadne produkty.</p>
-                        {#if hasActiveFilters}
-                            <button class="btn btn--primary" on:click={clearFilters}>Zrušiť filtre</button>
-                        {/if}
-                    </div>
-                {/if}
             </div>
         {/if}
     </div>
@@ -303,7 +295,7 @@
 
 /* Category Header */
 .category-header {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 .category-header h1 {
     font-size: 32px;
@@ -316,99 +308,61 @@
     color: #6b7280;
 }
 
-/* ========== FILTERS BAR ========== */
-.filters-bar {
+/* ========== MAIN LAYOUT ========== */
+.main-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+/* ========== LEFT SIDEBAR ========== */
+.sidebar {
     background: #f8fafc;
     border-radius: 16px;
-    padding: 16px 20px;
-    margin-bottom: 24px;
+    padding: 20px;
+    position: sticky;
+    top: 20px;
 }
 
-.filters-bar__toggle {
+.sidebar-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.toggle-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    color: #374151;
-    position: relative;
-}
-
-.toggle-btn:hover {
-    border-color: #c4956a;
-}
-
-.active-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    width: 16px;
-    height: 16px;
-    background: #ef4444;
-    color: white;
-    border-radius: 50%;
-    font-size: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.arrow {
-    font-size: 10px;
-    transition: transform 0.2s;
-}
-.arrow.open {
-    transform: rotate(180deg);
+.sidebar-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    color: #1f2937;
 }
 
 .clear-btn {
-    padding: 8px 14px;
+    font-size: 12px;
+    color: #dc2626;
     background: #fee2e2;
     border: none;
-    border-radius: 8px;
-    color: #dc2626;
-    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 6px;
     cursor: pointer;
 }
 .clear-btn:hover {
     background: #fecaca;
 }
 
-.filters-content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
+.filter-section {
+    margin-bottom: 24px;
 }
 
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.filter-group--brands {
-    flex: 1;
-    min-width: 300px;
-}
-
-.filter-label {
-    font-size: 13px;
+.filter-section h4 {
+    font-size: 14px;
     font-weight: 600;
     color: #374151;
+    margin: 0 0 12px;
 }
 
 .price-inputs {
@@ -418,8 +372,8 @@
 }
 
 .price-inputs input {
-    width: 80px;
-    padding: 10px 12px;
+    width: 70px;
+    padding: 10px;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     font-size: 14px;
@@ -427,75 +381,90 @@
 
 .price-inputs span {
     color: #9ca3af;
+    font-size: 14px;
 }
 
 .price-hint {
-    font-size: 11px;
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 8px;
+}
+
+.brand-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.brand-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.brand-item:hover {
+    background: #f1f5f9;
+}
+
+.brand-item.active {
+    background: #fef3c7;
+}
+
+.brand-item input {
+    accent-color: #c4956a;
+}
+
+.brand-name {
+    flex: 1;
+    font-size: 14px;
+    color: #374151;
+}
+
+.brand-count {
+    font-size: 12px;
     color: #9ca3af;
 }
 
-.brand-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.brand-chip {
-    padding: 6px 12px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 20px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-
-.brand-chip:hover {
-    border-color: #c4956a;
-}
-
-.brand-chip.active {
-    background: #c4956a;
-    border-color: #c4956a;
-    color: white;
-}
-
-.brand-chip .count {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
 .more-brands {
-    padding: 6px 12px;
-    color: #6b7280;
     font-size: 12px;
+    color: #6b7280;
+    padding: 8px 10px;
 }
 
-.filter-group select {
-    padding: 10px 32px 10px 12px;
+.filter-section select {
+    width: 100%;
+    padding: 10px 12px;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     font-size: 14px;
     background: white;
     cursor: pointer;
-    min-width: 150px;
 }
 
-/* ========== SUBCATEGORIES ========== */
+/* ========== RIGHT CONTENT ========== */
+.content {
+    min-width: 0;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 16px;
+}
+
+/* Subcategories */
 .subcategories {
     margin-bottom: 32px;
 }
 
-.subcategories__title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: #1f2937;
-}
-
-.subcategories__grid {
+.subcategories-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 12px;
 }
 
@@ -503,7 +472,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 16px;
+    padding: 16px 12px;
     background: #f9fafb;
     border-radius: 12px;
     text-decoration: none;
@@ -516,29 +485,25 @@
     transform: translateY(-2px);
 }
 
-.subcat-card__icon {
-    font-size: 28px;
-    margin-bottom: 10px;
+.subcat-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
 }
 
-.subcat-card__name {
-    font-size: 14px;
+.subcat-name {
+    font-size: 13px;
     font-weight: 600;
     color: #1f2937;
     text-align: center;
     margin-bottom: 4px;
 }
 
-.subcat-card__count {
-    font-size: 12px;
+.subcat-count {
+    font-size: 11px;
     color: #6b7280;
 }
 
-/* ========== PRODUCTS ========== */
-.products-section {
-    margin-top: 24px;
-}
-
+/* Products */
 .products-header {
     margin-bottom: 16px;
 }
@@ -550,7 +515,7 @@
 
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
 }
 
@@ -567,20 +532,20 @@
     transform: translateY(-4px);
 }
 
-.product-card__image {
+.product-image {
     display: block;
     aspect-ratio: 1;
     background: #f9fafb;
     padding: 16px;
 }
 
-.product-card__image img {
+.product-image img {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
-.product-card__placeholder {
+.product-placeholder {
     width: 100%;
     height: 100%;
     display: flex;
@@ -590,11 +555,11 @@
     opacity: 0.3;
 }
 
-.product-card__content {
+.product-content {
     padding: 16px;
 }
 
-.product-card__brand {
+.product-brand {
     font-size: 11px;
     font-weight: 600;
     color: #c4956a;
@@ -602,41 +567,41 @@
     letter-spacing: 0.5px;
 }
 
-.product-card__title {
+.product-title {
     font-size: 14px;
     font-weight: 600;
     margin: 8px 0;
     line-height: 1.4;
 }
 
-.product-card__title a {
+.product-title a {
     color: #1f2937;
     text-decoration: none;
 }
 
-.product-card__price-section {
+.product-price-section {
     margin: 12px 0;
 }
 
-.product-card__price-label {
+.price-label {
     font-size: 12px;
     color: #6b7280;
 }
 
-.product-card__price {
+.price-value {
     font-size: 22px;
     font-weight: 800;
     color: #111;
     margin-left: 4px;
 }
 
-.product-card__offers {
+.product-offers {
     font-size: 12px;
     color: #6b7280;
     margin-bottom: 12px;
 }
 
-.product-card__btn {
+.product-btn {
     display: block;
     text-align: center;
     padding: 12px;
@@ -649,7 +614,7 @@
     transition: all 0.2s;
 }
 
-.product-card__btn:hover {
+.product-btn:hover {
     background: linear-gradient(135deg, #b8875c, #a67a50);
 }
 
@@ -661,7 +626,7 @@
     margin-top: 40px;
 }
 
-.pagination__btn {
+.page-btn {
     width: 44px;
     height: 44px;
     border: 1px solid #e5e7eb;
@@ -673,18 +638,18 @@
     transition: all 0.2s;
 }
 
-.pagination__btn:hover {
+.page-btn:hover {
     border-color: #c4956a;
     color: #c4956a;
 }
 
-.pagination__btn.active {
+.page-btn.active {
     background: #c4956a;
     color: white;
     border-color: #c4956a;
 }
 
-.pagination__btn:disabled {
+.page-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -695,7 +660,7 @@
     padding: 80px 20px;
 }
 
-.empty-state__icon {
+.empty-icon {
     font-size: 4rem;
     margin-bottom: 16px;
 }
@@ -711,41 +676,39 @@
     margin-bottom: 24px;
 }
 
-.btn {
+.btn-primary {
     padding: 12px 24px;
     border-radius: 10px;
     font-weight: 600;
     cursor: pointer;
     border: none;
-    transition: all 0.2s;
-}
-
-.btn--primary {
     background: #c4956a;
     color: white;
 }
 
-.btn--primary:hover {
+.btn-primary:hover {
     background: #b8875c;
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar {
+        position: relative;
+        top: auto;
+    }
+}
+
+@media (max-width: 600px) {
     .category-header h1 {
         font-size: 24px;
     }
     
-    .filters-content {
-        flex-direction: column;
-        gap: 16px;
-    }
-    
-    .filter-group--brands {
-        min-width: auto;
-    }
-    
-    .subcategories__grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    .subcategories-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
     
     .products-grid {
@@ -753,11 +716,11 @@
         gap: 12px;
     }
     
-    .product-card__content {
+    .product-content {
         padding: 12px;
     }
     
-    .product-card__price {
+    .price-value {
         font-size: 18px;
     }
 }

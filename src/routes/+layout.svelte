@@ -212,7 +212,7 @@
                     <div class="mp-footer__col">
                         <h4>Kontakt</h4>
                         <p class="mp-footer__contact">
-                            <strong>Email:</strong> info@megaprice.sk<br>
+                            <strong>Email:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7c15121a133c11191b1d0c0e151f19520f17">[email&#160;protected]</a><br>
                             <strong>Telefón:</strong> +421 900 000 000
                         </p>
                     </div>
@@ -736,12 +736,4 @@
     }
     
     .mp-actions {
-        margin-left: auto;
-    }
-    
-    .mp-actions__icon svg {
-        width: 22px;
-        height: 22px;
-    }
-}
-</style>
+      
