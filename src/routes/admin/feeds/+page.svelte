@@ -28,17 +28,19 @@
     let feedPreview = null;
     let previewError = '';
     let activePreviewTab = 'fields';
+    let editMode = false;
+    let editingFeedId = null;
 
     const targetFields = [
-        { value: '', label: '-- Ignorovat --' },
-        { value: 'title', label: 'N�zov produktu' },
+        { value: '', label: '-- Ignorovať --' },
+        { value: 'title', label: 'Názov produktu' },
         { value: 'description', label: 'Popis' },
         { value: 'price', label: 'Cena' },
         { value: 'ean', label: 'EAN' },
-        { value: 'brand', label: 'Znacka' },
-        { value: 'image_url', label: 'Obr�zok' },
+        { value: 'brand', label: 'Značka' },
+        { value: 'image_url', label: 'Obrázok' },
         { value: 'url', label: 'URL produktu' },
-        { value: 'category', label: 'Kateg�ria' },
+        { value: 'category', label: 'Kategória' },
     ];
 
     onMount(() => {
@@ -90,10 +92,10 @@
                 // Auto-map common fields
                 autoMapFields();
             } else {
-                previewError = data.error || 'Nepodarilo sa nac�tat feed';
+                previewError = data.error || 'Nepodarilo sa načítať feed';
             }
         } catch (err) {
-            previewError = 'Chyba pri nac�tavan� feedu: ' + err.message;
+            previewError = 'Chyba pri načítavaní feedu: ' + err.message;
         }
 
         previewLoading = false;
@@ -132,7 +134,7 @@
 
     async function saveFeed() {
         if (!newFeed.name || !newFeed.url) {
-            alert('Vyplnte n�zov a URL feedu');
+            alert('Vyplňte názov a URL feedu');
             return;
         }
 
@@ -150,7 +152,7 @@
                 resetForm();
                 loadFeeds();
             } else {
-                alert(data.error || 'Chyba pri ukladan�');
+                alert(data.error || 'Chyba pri ukladaní');
             }
         } catch (err) {
             alert('Chyba: ' + err.message);
@@ -158,13 +160,13 @@
     }
 
     async function deleteFeed(id, name) {
-        if (!confirm(`Vymazat feed "${name}"?`)) return;
+        if (!confirm(`Vymazať feed "${name}"?`)) return;
 
         try {
             await fetch(API_BASE + '/admin/feeds/' + id, { method: 'DELETE' });
             loadFeeds();
         } catch (err) {
-            alert('Chyba pri mazan�');
+            alert('Chyba pri mazaní');
         }
     }
 
@@ -173,14 +175,14 @@
         showImportModal = true;
         importProgress = {
             status: 'downloading',
-            message: 'Stahujem feed...',
+            message: 'Sťahujem feed...',
             total: 0,
             processed: 0,
             created: 0,
             updated: 0,
             errors: 0,
             percent: 0,
-            logs: ['Sp��tam import...']
+            logs: ['Spúšťam import...']
         };
 
         try {
@@ -222,6 +224,50 @@
         };
         feedPreview = null;
         previewError = '';
+        editMode = false;
+        editingFeedId = null;
+    }
+
+    function editFeed(feed) {
+        editMode = true;
+        editingFeedId = feed.id;
+        newFeed = {
+            name: feed.name,
+            url: feed.url,
+            type: feed.type || 'xml',
+            schedule: feed.schedule || 'daily',
+            is_active: feed.is_active,
+            xml_item_path: feed.xml_item_path || 'SHOPITEM',
+            field_mapping: feed.field_mapping || {}
+        };
+        showAddModal = true;
+    }
+
+    async function updateFeed() {
+        if (!newFeed.name || !newFeed.url) {
+            alert('Vyplňte názov a URL feedu');
+            return;
+        }
+
+        try {
+            const res = await fetch(API_BASE + '/admin/feeds/' + editingFeedId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newFeed)
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                showAddModal = false;
+                resetForm();
+                loadFeeds();
+            } else {
+                alert(data.error || 'Chyba pri ukladaní');
+            }
+        } catch (err) {
+            alert('Chyba: ' + err.message);
+        }
     }
 
     function closeImportModal() {
@@ -245,19 +291,19 @@
             <p class="subtitle">Import produktov z XML/CSV feedov</p>
         </div>
         <button class="btn btn-primary" on:click={() => showAddModal = true}>
-            ? Pridat feed
+            + Pridať feed
         </button>
     </div>
 
     {#if loading}
-        <div class="loading">Nac�tavam...</div>
+        <div class="loading">Načítavam...</div>
     {:else if feeds.length === 0}
         <div class="empty-state">
-            <div class="empty-icon">??</div>
-            <h3>�iadne feedy</h3>
-            <p>Pridajte svoj prv� XML/CSV feed pre import produktov</p>
+            <div class="empty-icon">FEED</div>
+            <h3>Žiadne feedy</h3>
+            <p>Pridajte svoj prvý XML/CSV feed pre import produktov</p>
             <button class="btn btn-primary" on:click={() => showAddModal = true}>
-                ? Pridat feed
+                + Pridať feed
             </button>
         </div>
     {:else}
@@ -266,14 +312,14 @@
                 <div class="feed-card">
                     <div class="feed-header">
                         <div class="feed-icon">
-                            {#if feed.type === 'xml'}??{:else if feed.type === 'csv'}??{:else}??{/if}
+                            {#if feed.type === 'xml'}XML{:else if feed.type === 'csv'}CSV{:else}JSON{/if}
                         </div>
                         <div class="feed-info">
                             <h3>{feed.name}</h3>
                             <span class="feed-type">{feed.type.toUpperCase()}</span>
                         </div>
                         <div class="feed-status" class:active={feed.is_active}>
-                            {feed.is_active ? '??' : '?'}
+                            {feed.is_active ? 'Aktívny' : 'Neaktívny'}
                         </div>
                     </div>
 
@@ -286,22 +332,34 @@
                         </div>
                         <div class="stat">
                             <span class="stat-value">{feed.schedule || 'manual'}</span>
-                            <span class="stat-label">pl�n</span>
+                            <span class="stat-label">plán</span>
                         </div>
                     </div>
 
                     {#if feed.last_import}
                         <div class="feed-last-import">
-                            Posledn� import: {formatDate(feed.last_import)}
+                            Posledný import: {formatDate(feed.last_import)}
+                        </div>
+                    {/if}
+
+                    {#if feed.field_mapping && Object.keys(feed.field_mapping).length > 0}
+                        <div class="feed-mapping">
+                            <strong>Mapovanie:</strong>
+                            {#each Object.entries(feed.field_mapping).filter(([k, v]) => v) as [field, target]}
+                                <span class="mapping-tag">{field} → {target}</span>
+                            {/each}
                         </div>
                     {/if}
 
                     <div class="feed-actions">
+                        <button class="btn btn-edit" on:click={() => editFeed(feed)}>
+                            Upraviť
+                        </button>
                         <button class="btn btn-success" on:click={() => startImport(feed)}>
-                            ?? Importovat
+                            Importovať
                         </button>
                         <button class="btn btn-danger" on:click={() => deleteFeed(feed.id, feed.name)}>
-                            ???
+                            Zmazať
                         </button>
                     </div>
                 </div>
@@ -315,14 +373,14 @@
     <div class="modal-overlay" on:click={() => { showAddModal = false; resetForm(); }}>
         <div class="modal modal-lg" on:click|stopPropagation>
             <div class="modal-header">
-                <h2>Pridat nov� feed</h2>
-                <button class="modal-close" on:click={() => { showAddModal = false; resetForm(); }}>?</button>
+                <h2>{editMode ? 'Upraviť feed' : 'Pridať nový feed'}</h2>
+                <button class="modal-close" on:click={() => { showAddModal = false; resetForm(); }}>×</button>
             </div>
 
             <div class="modal-body">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>N�zov feedu</label>
+                        <label>Názov feedu</label>
                         <input type="text" bind:value={newFeed.name} placeholder="Napr. Heureka XML">
                     </div>
                     <div class="form-group">
@@ -340,7 +398,7 @@
                     <div class="input-with-button">
                         <input type="url" bind:value={newFeed.url} placeholder="https://example.com/feed.xml">
                         <button class="btn" on:click={previewFeed} disabled={previewLoading}>
-                            {previewLoading ? '?' : '??'} Nac�tat
+                            {previewLoading ? 'Načítavam...' : 'Načítať'}
                         </button>
                     </div>
                 </div>
@@ -349,9 +407,28 @@
                     <div class="form-group">
                         <label>XML element produktu</label>
                         <input type="text" bind:value={newFeed.xml_item_path} placeholder="SHOPITEM">
-                        <small>�tandardne SHOPITEM pre Heureka feedy</small>
+                        <small>Štandardne SHOPITEM pre Heureka feedy</small>
                     </div>
                 {/if}
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Plán importu</label>
+                        <select bind:value={newFeed.schedule}>
+                            <option value="manual">Manuálne</option>
+                            <option value="hourly">Každú hodinu</option>
+                            <option value="daily">Denne</option>
+                            <option value="weekly">Týždenne</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" bind:checked={newFeed.is_active}>
+                            <span>Aktívny feed</span>
+                        </label>
+                    </div>
+                </div>
 
                 {#if previewError}
                     <div class="alert alert-error">{previewError}</div>
@@ -365,24 +442,24 @@
                                 class:active={activePreviewTab === 'fields'}
                                 on:click={() => activePreviewTab = 'fields'}
                             >
-                                ?? Polia ({feedPreview.fields?.length || 0})
+                                Polia ({feedPreview.fields?.length || 0})
                             </button>
                             <button 
                                 class="preview-tab"
                                 class:active={activePreviewTab === 'attributes'}
                                 on:click={() => activePreviewTab = 'attributes'}
                             >
-                                ??? Atrib�ty ({feedPreview.attributes?.length || 0})
+                                Atribúty ({feedPreview.attributes?.length || 0})
                             </button>
                             <button 
                                 class="preview-tab"
                                 class:active={activePreviewTab === 'sample'}
                                 on:click={() => activePreviewTab = 'sample'}
                             >
-                                ??? Uk�ka
+                                Ukážka
                             </button>
                             <span class="preview-count">
-                                ? {feedPreview.total_items || 0} polo�iek
+                                {feedPreview.total_items || 0} položiek
                             </span>
                         </div>
 
@@ -392,8 +469,8 @@
                                     <thead>
                                         <tr>
                                             <th>Pole z feedu</th>
-                                            <th>Uk�ka</th>
-                                            <th>Mapovat na</th>
+                                            <th>Ukážka</th>
+                                            <th>Mapovať na</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -419,17 +496,17 @@
                                 </table>
                             {:else if activePreviewTab === 'attributes'}
                                 {#if feedPreview.attributes?.length > 0}
-                                    <p class="info-text">PARAM atrib�ty n�jden� vo feede (bud� automaticky importovan�):</p>
+                                    <p class="info-text">PARAM atribúty nájdené vo feede (budú automaticky importované):</p>
                                     <div class="attr-grid">
                                         {#each feedPreview.attributes.sort((a, b) => b.count - a.count) as attr}
                                             <div class="attr-item">
                                                 <span class="attr-name">{attr.name}</span>
-                                                <span class="attr-count">{attr.count}�</span>
+                                                <span class="attr-count">{attr.count}×</span>
                                             </div>
                                         {/each}
                                     </div>
                                 {:else}
-                                    <div class="empty-preview">�iadne PARAM atrib�ty</div>
+                                    <div class="empty-preview">Žiadne PARAM atribúty</div>
                                 {/if}
                             {:else if activePreviewTab === 'sample'}
                                 <div class="sample-data">
@@ -442,8 +519,12 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn" on:click={() => { showAddModal = false; resetForm(); }}>Zru�it</button>
-                <button class="btn btn-primary" on:click={saveFeed}>?? Ulo�it feed</button>
+                <button class="btn" on:click={() => { showAddModal = false; resetForm(); }}>Zrušiť</button>
+                {#if editMode}
+                    <button class="btn btn-primary" on:click={updateFeed}>Uložiť zmeny</button>
+                {:else}
+                    <button class="btn btn-primary" on:click={saveFeed}>Uložiť feed</button>
+                {/if}
             </div>
         </div>
     </div>
@@ -456,11 +537,11 @@
             <div class="modal-header">
                 <h2>
                     {#if importProgress.status === 'completed'}
-                        ? Import dokoncen�
+                        Import dokončený
                     {:else if importProgress.status === 'error'}
-                        ? Import zlyhal
+                        Import zlyhal
                     {:else}
-                        ?? Import prebieha...
+                        Import prebieha...
                     {/if}
                 </h2>
             </div>
@@ -481,11 +562,11 @@
                     </div>
                     <div class="progress-stat">
                         <div class="stat-value text-green">{importProgress.created}</div>
-                        <div class="stat-label">Vytvoren�</div>
+                        <div class="stat-label">Vytvorené</div>
                     </div>
                     <div class="progress-stat">
                         <div class="stat-value text-blue">{importProgress.updated}</div>
-                        <div class="stat-label">Aktualizovan�</div>
+                        <div class="stat-label">Aktualizované</div>
                     </div>
                     <div class="progress-stat">
                         <div class="stat-value text-red">{importProgress.errors}</div>
@@ -502,7 +583,7 @@
 
             <div class="modal-footer">
                 {#if importProgress.status === 'completed' || importProgress.status === 'error'}
-                    <button class="btn btn-primary" on:click={closeImportModal}>Zavriet</button>
+                    <button class="btn btn-primary" on:click={closeImportModal}>Zavrieť</button>
                 {/if}
             </div>
         </div>
@@ -571,7 +652,12 @@
 }
 
 .feed-icon {
-    font-size: 32px;
+    font-size: 14px;
+    font-weight: 700;
+    background: #f1f5f9;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #64748b;
 }
 
 .feed-info h3 {
@@ -588,6 +674,16 @@
 
 .feed-status {
     margin-left: auto;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.feed-status.active {
+    background: #dcfce7;
+    color: #16a34a;
 }
 
 .feed-url {
@@ -627,6 +723,23 @@
     margin-bottom: 12px;
 }
 
+.feed-mapping {
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.mapping-tag {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
 .feed-actions {
     display: flex;
     gap: 8px;
@@ -658,6 +771,15 @@
 
 .btn-primary:hover {
     background: #996f0a;
+}
+
+.btn-edit {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.btn-edit:hover {
+    background: #bae6fd;
 }
 
 .btn-success {
@@ -772,6 +894,19 @@
     margin-top: 4px;
     color: #6b7280;
     font-size: 12px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 10px 0;
+}
+
+.checkbox-label input {
+    width: 18px;
+    height: 18px;
 }
 
 .input-with-button {

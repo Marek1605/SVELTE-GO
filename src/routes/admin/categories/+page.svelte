@@ -34,8 +34,8 @@
     }
 
     async function deleteAllCategories() {
-        if (!confirm('?? Naozaj chcete vymazat VäETKY kategÛrie?')) return;
-        if (!confirm('?? Toto je nevratn· akcia! Pokracovat?')) return;
+        if (!confirm('Naozaj chcete vymaza≈• V≈†ETKY kateg√≥rie?')) return;
+        if (!confirm('Toto je nevratn√° akcia! Pokraƒçova≈•?')) return;
         
         deleting = true;
         try {
@@ -43,20 +43,20 @@
             const result = await res.json();
             
             if (result.success) {
-                alert(`? Vymazan˝ch ${result.deleted} kategÛriÌ`);
+                alert('Vymazan√Ωch ' + result.deleted + ' kateg√≥ri√≠');
                 await loadCategories();
             } else {
-                alert('? Chyba: ' + (result.error || 'Nezn·ma chyba'));
+                alert('Chyba: ' + (result.error || 'Nezn√°ma chyba'));
             }
         } catch (err) {
-            alert('? Chyba: ' + err.message);
+            alert('Chyba: ' + err.message);
         }
         deleting = false;
     }
 
     async function deleteAllProducts() {
-        if (!confirm('?? Naozaj chcete vymazat VäETKY produkty?')) return;
-        if (!confirm('?? Toto je nevratn· akcia! Pokracovat?')) return;
+        if (!confirm('Naozaj chcete vymaza≈• V≈†ETKY produkty?')) return;
+        if (!confirm('Toto je nevratn√° akcia! Pokraƒçova≈•?')) return;
         
         deleting = true;
         try {
@@ -64,12 +64,12 @@
             const result = await res.json();
             
             if (result.success) {
-                alert(`? Vymazan˝ch ${result.deleted} produktov`);
+                alert('Vymazan√Ωch ' + result.deleted + ' produktov');
             } else {
-                alert('? Chyba: ' + (result.error || 'Nezn·ma chyba'));
+                alert('Chyba: ' + (result.error || 'Nezn√°ma chyba'));
             }
         } catch (err) {
-            alert('? Chyba: ' + err.message);
+            alert('Chyba: ' + err.message);
         }
         deleting = false;
     }
@@ -108,15 +108,15 @@
 <div class="categories-page">
     <div class="page-header">
         <div>
-            <h1>KategÛrie</h1>
-            <p class="subtitle">{totalCount} kategÛriÌ celkom</p>
+            <h1>Kateg√≥rie</h1>
+            <p class="subtitle">{totalCount} kateg√≥ri√≠ celkom</p>
         </div>
         <div class="header-actions">
             <button class="btn btn-danger" on:click={deleteAllCategories} disabled={deleting}>
-                ??? Vymazat kategÛrie
+                Vymaza≈• kateg√≥rie
             </button>
             <button class="btn btn-danger" on:click={deleteAllProducts} disabled={deleting}>
-                ??? Vymazat produkty
+                Vymaza≈• produkty
             </button>
         </div>
     </div>
@@ -124,7 +124,7 @@
     <div class="toolbar">
         <input 
             type="text" 
-            placeholder="?? Hladat kategÛriu..." 
+            placeholder="Hƒæada≈• kateg√≥riu..." 
             bind:value={searchQuery}
             class="search-input"
         >
@@ -134,34 +134,34 @@
                 class:active={viewMode === 'tree'}
                 on:click={() => viewMode = 'tree'}
             >
-                ?? Strom
+                Strom
             </button>
             <button 
                 class="toggle-btn"
                 class:active={viewMode === 'flat'}
                 on:click={() => viewMode = 'flat'}
             >
-                ?? Zoznam
+                Zoznam
             </button>
         </div>
     </div>
 
     <div class="card">
         {#if loading}
-            <div class="loading">NacÌtavam...</div>
+            <div class="loading">Naƒç√≠tavam...</div>
         {:else if filteredCategories.length === 0}
             <div class="empty">
                 {#if searchQuery}
-                    éiadne kategÛrie pre "{searchQuery}"
+                    ≈Ωiadne kateg√≥rie pre "{searchQuery}"
                 {:else}
-                    éiadne kategÛrie. Importujte feed pre vytvorenie kategÛriÌ.
+                    ≈Ωiadne kateg√≥rie. Importujte feed pre vytvorenie kateg√≥ri√≠.
                 {/if}
             </div>
         {:else}
             <table class="categories-table">
                 <thead>
                     <tr>
-                        <th>N·zov</th>
+                        <th>N√°zov</th>
                         <th>Slug</th>
                         <th class="text-right">Produktov</th>
                     </tr>
@@ -171,7 +171,6 @@
                         {#each filteredCategories as cat}
                             <tr class="parent-row">
                                 <td>
-                                    <span class="cat-icon">{cat.icon || '??'}</span>
                                     <strong>{cat.name}</strong>
                                     {#if cat.children?.length}
                                         <span class="children-count">({cat.children.length})</span>
@@ -184,7 +183,7 @@
                                 {#each cat.children as child}
                                     <tr class="child-row">
                                         <td style="padding-left: 32px;">
-                                            ? {child.name}
+                                            ‚Ü≥ {child.name}
                                             {#if child.children?.length}
                                                 <span class="children-count">({child.children.length})</span>
                                             {/if}
@@ -196,7 +195,7 @@
                                         {#each child.children as grandchild}
                                             <tr class="grandchild-row">
                                                 <td style="padding-left: 56px;">
-                                                    ? {grandchild.name}
+                                                    ‚Ü≥ {grandchild.name}
                                                 </td>
                                                 <td><code>{grandchild.slug}</code></td>
                                                 <td class="text-right">{grandchild.product_count || 0}</td>
@@ -210,8 +209,7 @@
                         {#each filteredCategories as cat}
                             <tr>
                                 <td style="padding-left: {(cat.level || 0) * 24 + 16}px;">
-                                    {#if cat.level > 0}?{/if}
-                                    <span class="cat-icon">{cat.icon || '??'}</span>
+                                    {#if cat.level > 0}‚Ü≥{/if}
                                     {cat.name}
                                 </td>
                                 <td><code>{cat.slug}</code></td>
