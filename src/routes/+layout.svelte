@@ -19,7 +19,7 @@
     onMount(async () => {
         // Load categories from API
         try {
-            const res = await fetch('/api/v1/categories');
+            const res = await fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/categories');
             const data = await res.json();
             if (data.data) {
                 // Get only root categories (no parent)
