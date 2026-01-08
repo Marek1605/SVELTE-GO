@@ -8,6 +8,13 @@
     let wishlistCount = 0;
     let compareCount = 0;
     let navCategories = [];
+
+    function handleSearch(e) {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`;
+        }
+    }
     
     onMount(async () => {
         // Load categories from API
