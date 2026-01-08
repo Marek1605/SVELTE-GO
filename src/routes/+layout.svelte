@@ -8,7 +8,7 @@
     let wishlistCount = 0;
     let compareCount = 0;
     
-    const navCategories = [
+    const navCategories = []; // REMOVED OLD: [
         { name: 'Uncategorized', slug: 'uncategorized', icon: '📦' },
         { name: 'Dom a záhrada', slug: 'dom-zahrada', icon: '🏠' },
         { name: 'Domáce spotrebiče', slug: 'elektronika', icon: '🔌' },
