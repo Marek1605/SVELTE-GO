@@ -39,7 +39,7 @@
         
         deleting = true;
         try {
-            const res = await fetch(API_BASE + '/admin/categories/all', { method: 'DELETE' });
+            const res = await fetch('/api/v1/admin/categories/all', { method: 'DELETE' });
             const result = await res.json();
             
             if (result.success) {
@@ -60,7 +60,7 @@
         
         deleting = true;
         try {
-            const res = await fetch(API_BASE + '/admin/products/all', { method: 'DELETE' });
+            const res = await fetch('/api/v1/admin/products/all', { method: 'DELETE' });
             const result = await res.json();
             
             if (result.success) {

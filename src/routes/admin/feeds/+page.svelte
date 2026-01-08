@@ -61,7 +61,7 @@
     async function loadFeeds() {
         loading = true;
         try {
-            const res = await fetch(API_BASE + '/admin/feeds');
+            const res = await fetch('/api/v1/admin/feeds');
             const data = await res.json();
             feeds = data.success ? (data.data || []) : [];
         } catch (err) {
@@ -82,7 +82,7 @@
         feedPreview = null;
 
         try {
-            const res = await fetch(API_BASE + '/admin/feeds/preview', {
+            const res = await fetch('/api/v1/admin/feeds/preview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -146,7 +146,7 @@
         }
 
         try {
-            const res = await fetch(API_BASE + '/admin/feeds', {
+            const res = await fetch('/api/v1/admin/feeds', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newFeed)
@@ -170,7 +170,7 @@
         if (!confirm(`Vymazať feed "${name}"?`)) return;
 
         try {
-            await fetch(API_BASE + '/admin/feeds/' + id, { method: 'DELETE' });
+            await fetch('/api/v1/admin/feeds/' + id, { method: 'DELETE' });
             loadFeeds();
         } catch (err) {
             alert('Chyba pri mazaní');
@@ -193,12 +193,12 @@
         };
 
         try {
-            await fetch(API_BASE + '/admin/feeds/' + feed.id + '/import', { method: 'POST' });
+            await fetch('/api/v1/admin/feeds/' + feed.id + '/import', { method: 'POST' });
 
             // Poll for progress
             progressInterval = setInterval(async () => {
                 try {
-                    const res = await fetch(API_BASE + '/admin/feeds/' + feed.id + '/progress');
+                    const res = await fetch('/api/v1/admin/feeds/' + feed.id + '/progress');
                     const data = await res.json();
                     
                     if (data.success && data.data) {
@@ -263,7 +263,7 @@
         }
 
         try {
-            const res = await fetch(API_BASE + '/admin/feeds/' + editingFeedId, {
+            const res = await fetch('/api/v1/admin/feeds/' + editingFeedId, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newFeed)
