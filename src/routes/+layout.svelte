@@ -139,7 +139,7 @@
                             class="mp-catnav__link"
                             class:is-active={$page.url.pathname.includes(cat.slug)}
                         >
-                            <span class="mp-catnav__icon">{cat.icon}</span>
+                            {#if cat.icon}<span class="mp-catnav__icon">{cat.icon}</span>{/if}
                             <span class="mp-catnav__text">{cat.name}</span>
                         </a>
                     {/each}
@@ -271,13 +271,8 @@
     flex-direction: column;
 }
 
-.mp-main {
-    flex: 1;
-    background: #fff;
-}
-
 /* =============================================
-   HEADER - EXACT MEGAPRICE.SK COPY
+   HEADER
    ============================================= */
 
 .mp-header-wrap {
@@ -285,55 +280,53 @@
     top: 0;
     z-index: 1000;
     background: #fff;
+    transition: box-shadow 0.2s ease;
 }
 
-/* Hide main header when scrolled */
-.mp-header-wrap.is-scrolled .mp-header {
-    display: none;
+.mp-header-wrap.is-scrolled {
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
 }
 
-/* Main Header */
 .mp-header {
-    background: #fff;
     padding: 20px 0;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .mp-header__container {
-    display: flex;
-    align-items: center;
-    gap: 40px;
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
 }
 
-/* Logo - exact megaprice.sk style */
+/* Logo */
 .mp-logo {
     font-size: 26px;
     font-weight: 500;
     color: #c4956a;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.5px;
     flex-shrink: 0;
 }
 
-/* Search - exact megaprice.sk style */
+/* Search */
 .mp-search {
     flex: 1;
-    max-width: 650px;
+    max-width: 600px;
 }
 
 .mp-search__box {
     display: flex;
-    align-items: stretch;
-    border: 2px solid #e5e7eb;
+    background: #f5f5f5;
     border-radius: 12px;
     overflow: hidden;
-    background: #fff;
-    transition: border-color 0.2s;
+    transition: all 0.2s ease;
 }
 
 .mp-search__box:focus-within {
-    border-color: #c4956a;
+    background: #fff;
+    box-shadow: 0 0 0 2px #c4956a;
 }
 
 .mp-search__input {
@@ -342,8 +335,8 @@
     border: none;
     outline: none;
     font-size: 15px;
-    color: #1f2937;
     background: transparent;
+    color: #1f2937;
 }
 
 .mp-search__input::placeholder {
@@ -354,102 +347,93 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 14px 28px;
+    padding: 14px 24px;
     background: #c4956a;
     border: none;
     color: #fff;
     font-size: 15px;
     font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s ease;
 }
 
 .mp-search__btn:hover {
     background: #b8875c;
 }
 
-.mp-search__btn svg {
-    flex-shrink: 0;
-}
-
-/* Header Actions - exact megaprice.sk style */
+/* Actions */
 .mp-actions {
     display: flex;
-    gap: 8px;
-    flex-shrink: 0;
+    align-items: center;
+    gap: 4px;
 }
 
 .mp-actions__item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
-    color: #4b5563;
-    transition: color 0.2s;
+    padding: 10px 16px;
+    border-radius: 12px;
+    transition: all 0.15s ease;
     min-width: 72px;
 }
 
 .mp-actions__item:hover {
-    color: #c4956a;
+    background: #f5f5f5;
 }
 
 .mp-actions__icon {
     position: relative;
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.mp-actions__item:hover .mp-actions__icon {
+    color: #c4956a;
 }
 
 .mp-actions__badge {
     position: absolute;
-    top: -8px;
-    right: -12px;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    background: #c4956a;
+    top: -6px;
+    right: -8px;
+    background: #ef4444;
     color: #fff;
     font-size: 11px;
     font-weight: 600;
+    padding: 2px 6px;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    min-width: 18px;
+    text-align: center;
 }
 
 .mp-actions__label {
     font-size: 12px;
-    font-weight: 500;
+    color: #6b7280;
     white-space: nowrap;
 }
 
 /* =============================================
-   CATEGORIES NAV - EXACT MEGAPRICE.SK COPY
+   CATEGORY NAVIGATION
    ============================================= */
 
 .mp-catnav {
     background: #fff;
-    border-top: 1px solid #f3f4f6;
     border-bottom: 1px solid #e5e7eb;
 }
 
 .mp-catnav__container {
-    display: flex;
-    align-items: center;
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 24px;
+    display: flex;
+    align-items: center;
 }
 
 .mp-catnav__scroll {
     display: flex;
-    flex: 1;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    gap: 0;
 }
 
 .mp-catnav__scroll::-webkit-scrollbar {
@@ -459,21 +443,23 @@
 .mp-catnav__link {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     padding: 16px 20px;
-    color: #374151;
+    color: #4b5563;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 450;
     white-space: nowrap;
-    border-bottom: 3px solid transparent;
-    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
     transition: all 0.15s ease;
 }
 
-.mp-catnav__link:hover,
+.mp-catnav__link:hover {
+    color: #c4956a;
+    background: #faf8f6;
+}
+
 .mp-catnav__link.is-active {
     color: #c4956a;
-    background: linear-gradient(180deg, transparent 0%, rgba(196, 149, 106, 0.06) 100%);
     border-bottom-color: #c4956a;
 }
 
@@ -545,6 +531,14 @@
 .mp-catnav__btn:hover {
     background: #f3f4f6;
     color: #c4956a;
+}
+
+/* =============================================
+   MAIN CONTENT
+   ============================================= */
+
+.mp-main {
+    flex: 1;
 }
 
 /* =============================================
