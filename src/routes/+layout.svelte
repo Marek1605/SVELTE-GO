@@ -8,17 +8,7 @@
     let wishlistCount = 0;
     let compareCount = 0;
     
-    const navCategories = []; // REMOVED OLD: [
-        { name: 'Uncategorized', slug: 'uncategorized', icon: '📦' },
-        { name: 'Dom a záhrada', slug: 'dom-zahrada', icon: '🏠' },
-        { name: 'Domáce spotrebiče', slug: 'elektronika', icon: '🔌' },
-        { name: 'Elektronika', slug: 'elektronika', icon: '📱' },
-        { name: 'Hračky', slug: 'hracky', icon: '🎮' },
-        { name: 'Hračky pre najmenších', slug: 'hracky-pre-najmensich', icon: '🧸' },
-        { name: 'Kancelárske potreby', slug: 'kancelarske-potreby', icon: '📎' },
-        { name: 'Kostýmy', slug: 'kostymy', icon: '🎭' },
-        { name: 'Kuchynské potreby', slug: 'kuchynske-potreby', icon: '🍳' },
-        { name: 'Ostatné', slug: 'ostatne', icon: '📋' },
+    const navCategories = [];
     ];
     
     function handleSearch(e) {
