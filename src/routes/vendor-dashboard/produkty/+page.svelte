@@ -135,18 +135,19 @@
     function openEditModal(p) { currentProduct = { ...p, min_price: p.min_price || '', max_price: p.max_price || '' }; showEditModal = true; }
     function openCategoryModal(p) { currentProduct = { ...p }; showCategoryModal = true; }
     function viewOffers(p) {
-        // Otvor produkt - buď affiliate URL, alebo detail produktu v aplikácii
-        if (p.affiliate_url) {
-            window.open(p.affiliate_url, '_blank');
-        } else if (p.url) {
-            window.open(p.url, '_blank');
-        } else if (p.master_id || p.product_id) {
-            // Otvor detail produktu v aplikácii
-            window.open('/produkt/' + (p.master_id || p.product_id), '_blank');
-        } else if (p.id) {
-            window.open('/produkt/' + p.id, '_blank');
+        // Priorita: 1. slug produktu, 2. fulltext search podľa názvu
+        if (p.master_slug && p.master_slug !== '') {
+            window.open('/produkt/' + p.master_slug, '_blank');
+        } else if (p.slug && p.slug !== '') {
+            window.open('/produkt/' + p.slug, '_blank');
         } else {
-            alert('Produkt ešte nie je publikovaný');
+            // Fallback - fulltext search
+            const searchTerm = p.master_title || p.title || p.name || '';
+            if (searchTerm) {
+                window.open('/hladat?q=' + encodeURIComponent(searchTerm), '_blank');
+            } else {
+                alert('Produkt nemá nastavený názov ani slug.');
+            }
         }
     }
     
