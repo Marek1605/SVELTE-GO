@@ -4,6 +4,7 @@
     const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
     
     let vendors = [];
+    let filteredVendors = [];
     let loading = true;
     let error = null;
     
@@ -234,7 +235,21 @@
         }
     }
     
-    $: filteredVendors = getFilteredVendors();
+    $: {
+        let result = [...vendors];
+        if (filter !== 'all') {
+            result = result.filter(v => v.status === filter);
+        }
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            result = result.filter(v => 
+                v.company_name?.toLowerCase().includes(q) ||
+                v.email?.toLowerCase().includes(q) ||
+                v.shop?.shop_name?.toLowerCase().includes(q)
+            );
+        }
+        filteredVendors = result;
+    }
     $: stats = {
         total: vendors.length,
         pending: vendors.filter(v => v.status === 'pending').length,
