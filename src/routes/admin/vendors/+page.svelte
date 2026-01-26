@@ -197,8 +197,14 @@
             const data = await res.json();
             
             if (data.success) {
+                // Force reload data
+                vendors = [];
                 showCreditModal = false;
+                creditVendor = null;
+                creditAmount = '';
+                creditNote = '';
                 await loadVendors();
+                alert('Kredit úspešne aktualizovaný!');
             } else {
                 alert(data.error || 'Chyba pri operácii s kreditom');
             }
