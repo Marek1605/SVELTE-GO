@@ -23,12 +23,18 @@
     let totalPages = 1;
     let totalResults = 0;
     
+    // Modals
     let showConnectModal = false;
     let showEditModal = false;
+    let showCategoryModal = false;
+    let showOffersModal = false;
     let currentProduct = null;
     let masterSearchQuery = '';
     let masterResults = [];
     let searchingMaster = false;
+    let saving = false;
+    let allCategories = [];
+    let selectedCategories = [];
     
     $: if (browser && storesReady && !initialLoadDone) {
         initialLoadDone = true;
@@ -55,9 +61,7 @@
                     pairingRate: s.total_products > 0 ? Math.round((s.active_offers / s.total_products) * 100) : 0
                 };
             }
-        } catch (e) {
-            console.error('Stats error:', e);
-        }
+        } catch (e) { console.error('Stats error:', e); }
     }
     
     async function loadProducts() {
@@ -82,14 +86,9 @@
                 products = data.data || [];
                 totalResults = data.meta?.total || products.length;
                 totalPages = data.meta?.pages || Math.ceil(totalResults / perPage);
-                
-                if (stats.total === 0 && totalResults > 0) {
-                    stats.total = totalResults;
-                }
+                if (stats.total === 0 && totalResults > 0) stats.total = totalResults;
             }
-        } catch (e) {
-            console.error('Products error:', e);
-        }
+        } catch (e) { console.error('Products error:', e); }
         loading = false;
     }
     
@@ -103,137 +102,222 @@
             });
             const data = await res.json();
             masterResults = data.data?.products || data.data || [];
-        } catch (e) {
-            console.error('Search error:', e);
-        }
+        } catch (e) { console.error('Search error:', e); }
         searchingMaster = false;
+    }
+    
+    async function connectToMaster(masterId) {
+        const token = localStorage.getItem('vendor_token');
+        try {
+            const res = await fetch(API_BASE + '/vendor/products/' + masterId + '/connect', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                showConnectModal = false;
+                masterSearchQuery = '';
+                masterResults = [];
+                loadStats();
+                loadProducts();
+                showNotification('Produkt bol pripojený', 'success');
+            } else {
+                showNotification(data.error || 'Chyba pri pripájaní', 'error');
+            }
+        } catch (e) {
+            showNotification('Chyba pripojenia', 'error');
+        }
+    }
+    
+    async function disconnectProduct(productId) {
+        if (!confirm('Naozaj chcete odpojiť tento produkt?')) return;
+        const token = localStorage.getItem('vendor_token');
+        try {
+            const res = await fetch(API_BASE + '/vendor/products/' + productId + '/offer', {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadStats();
+                loadProducts();
+                showNotification('Produkt bol odpojený', 'success');
+            } else {
+                showNotification(data.error || 'Chyba', 'error');
+            }
+        } catch (e) {
+            showNotification('Chyba pripojenia', 'error');
+        }
+    }
+    
+    async function saveProduct() {
+        if (!currentProduct) return;
+        saving = true;
+        const token = localStorage.getItem('vendor_token');
+        try {
+            const res = await fetch(API_BASE + '/vendor/products/' + currentProduct.id + '/offer', {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    price: parseFloat(currentProduct.price) || 0,
+                    stock_status: currentProduct.stock_status,
+                    affiliate_url: currentProduct.affiliate_url || ''
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showEditModal = false;
+                loadProducts();
+                showNotification('Produkt bol uložený', 'success');
+            } else {
+                showNotification(data.error || 'Chyba', 'error');
+            }
+        } catch (e) {
+            showNotification('Chyba pripojenia', 'error');
+        }
+        saving = false;
+    }
+    
+    function showNotification(message, type) {
+        // Simple alert for now
+        if (type === 'error') alert('❌ ' + message);
     }
     
     function handleSearch() { currentPage = 1; loadProducts(); }
     function handleFilterChange(newFilter) { filter = newFilter; currentPage = 1; loadProducts(); }
     function handlePerPageChange() { currentPage = 1; loadProducts(); }
     function goToPage(page) { currentPage = page; loadProducts(); }
+    function refresh() { searchQuery = ''; filter = 'all'; currentPage = 1; loadStats(); loadProducts(); }
+    
     function openConnectModal() { masterSearchQuery = ''; masterResults = []; showConnectModal = true; }
     function openEditModal(product) { currentProduct = { ...product }; showEditModal = true; }
+    function openCategoryModal(product) { currentProduct = { ...product }; showCategoryModal = true; }
+    function openOffersModal(product) {
+        if (isFree) {
+            // FREE mode - redirect to search
+            window.open('/?s=' + encodeURIComponent(product.title || product.name), '_blank');
+        } else if (product.permalink || product.url) {
+            window.open(product.permalink || product.url, '_blank');
+        } else {
+            showNotification('Produkt ešte nie je publikovaný', 'error');
+        }
+    }
     
     function formatNumber(num) { return (num || 0).toLocaleString('sk-SK'); }
     function formatPrice(price) { return (price || 0).toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
     
-    const placeholderImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"%3E%3Crect fill="%23f3f4f6" width="50" height="50"/%3E%3Ctext fill="%239ca3af" font-size="8" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle"%3EIMG%3C/text%3E%3C/svg%3E';
+    const placeholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"%3E%3Crect fill="%23f1f5f9" width="60" height="60" rx="8"/%3E%3Ctext fill="%2394a3b8" font-size="10" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle"%3EIMG%3C/text%3E%3C/svg%3E';
 </script>
 
 {#if !storesReady}
-    <div class="mkmp-loading-container">
-        <div class="mkmp-spinner"></div>
-        <p>Načítavam dáta...</p>
-    </div>
+    <div class="loading-screen"><div class="spinner"></div><p>Načítavam...</p></div>
 {:else}
-<div class="mkmp-page">
+<div class="products-page">
     
     {#if isFree}
-    <div class="mkmp-free-banner">
-        <div class="mkmp-free-banner-icon">🔓</div>
-        <div class="mkmp-free-banner-content">
-            <strong>FREE režim</strong> - Vaše produkty sú zobrazené iba vo fulltextovom vyhľadávaní. 
-            Pre zobrazenie v kategóriách a "Kde kúpiť" tabuľke aktivujte platený režim.
+    <div class="free-banner">
+        <span class="free-icon">🔓</span>
+        <div class="free-text">
+            <strong>FREE režim</strong> — Produkty sú len vo fulltextovom vyhľadávaní. 
+            Pre kategórie a "Kde kúpiť" aktivujte platený režim.
         </div>
-        <a href="/vendor-dashboard/ppc" class="mkmp-btn-upgrade">⚡ Aktivovať PAID režim</a>
+        <a href="/vendor-dashboard/ppc" class="upgrade-btn">⚡ Aktivovať PAID</a>
     </div>
     {/if}
     
-    <!-- 5 STAT KARIET -->
-    <div class="mkmp-stats-row">
-        <button class="mkmp-stat-card" class:active={filter === 'all'} on:click={() => handleFilterChange('all')}>
-            <span class="mkmp-stat-icon">📦</span>
-            <div class="mkmp-stat-info">
-                <span class="mkmp-stat-number">{formatNumber(stats.total)}</span>
-                <span class="mkmp-stat-label">Celkom produktov</span>
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+        <button class="stat-card" class:active={filter === 'all'} on:click={() => handleFilterChange('all')}>
+            <div class="stat-icon blue">📦</div>
+            <div class="stat-content">
+                <div class="stat-value">{formatNumber(stats.total)}</div>
+                <div class="stat-label">Celkom produktov</div>
             </div>
         </button>
         
         {#if isFree}
-            <button class="mkmp-stat-card mkmp-stat-disabled" on:click={() => window.location.href = '/vendor-dashboard/ppc'}>
-                <span class="mkmp-stat-icon">🔗</span>
-                <div class="mkmp-stat-info">
-                    <span class="mkmp-stat-number mkmp-text-muted">0</span>
-                    <span class="mkmp-stat-label">Spárované</span>
-                    <span class="mkmp-stat-upgrade">🔒 Aktivovať PAID</span>
+            <button class="stat-card locked" on:click={() => window.location.href = '/vendor-dashboard/ppc'}>
+                <div class="stat-icon green">🔗</div>
+                <div class="stat-content">
+                    <div class="stat-value muted">0</div>
+                    <div class="stat-label">Spárované</div>
+                    <div class="stat-lock">🔒 PAID</div>
                 </div>
             </button>
-            <button class="mkmp-stat-card mkmp-stat-disabled" on:click={() => window.location.href = '/vendor-dashboard/ppc'}>
-                <span class="mkmp-stat-icon">⚠️</span>
-                <div class="mkmp-stat-info">
-                    <span class="mkmp-stat-number mkmp-text-muted">0</span>
-                    <span class="mkmp-stat-label">Nespárované</span>
-                    <span class="mkmp-stat-upgrade">🔒 Aktivovať PAID</span>
+            <button class="stat-card locked" on:click={() => window.location.href = '/vendor-dashboard/ppc'}>
+                <div class="stat-icon orange">⚠️</div>
+                <div class="stat-content">
+                    <div class="stat-value muted">0</div>
+                    <div class="stat-label">Nespárované</div>
+                    <div class="stat-lock">🔒 PAID</div>
                 </div>
             </button>
-            <button class="mkmp-stat-card mkmp-stat-warning" on:click={() => window.location.href = '/vendor-dashboard/ppc'}>
-                <span class="mkmp-stat-icon">📂</span>
-                <div class="mkmp-stat-info">
-                    <span class="mkmp-stat-number">{formatNumber(stats.total)}</span>
-                    <span class="mkmp-stat-label">Bez kategórie</span>
-                    <span class="mkmp-stat-upgrade">🔒 FREE režim</span>
+            <button class="stat-card warning" on:click={() => window.location.href = '/vendor-dashboard/ppc'}>
+                <div class="stat-icon yellow">📂</div>
+                <div class="stat-content">
+                    <div class="stat-value">{formatNumber(stats.total)}</div>
+                    <div class="stat-label">Bez kategórie</div>
+                    <div class="stat-lock">🔒 FREE</div>
                 </div>
             </button>
-            <button class="mkmp-stat-card mkmp-stat-disabled" on:click={() => window.location.href = '/vendor-dashboard/ppc'}>
-                <span class="mkmp-stat-icon">⏳</span>
-                <div class="mkmp-stat-info">
-                    <span class="mkmp-stat-number mkmp-text-muted">0</span>
-                    <span class="mkmp-stat-label">Na schválenie</span>
-                    <span class="mkmp-stat-upgrade">🔒 Aktivovať PAID</span>
+            <button class="stat-card locked" on:click={() => window.location.href = '/vendor-dashboard/ppc'}>
+                <div class="stat-icon purple">⏳</div>
+                <div class="stat-content">
+                    <div class="stat-value muted">0</div>
+                    <div class="stat-label">Na schválenie</div>
+                    <div class="stat-lock">🔒 PAID</div>
                 </div>
             </button>
         {:else}
-            <button class="mkmp-stat-card" class:active={filter === 'paired'} on:click={() => handleFilterChange('paired')}>
-                <span class="mkmp-stat-icon">🔗</span>
-                <div class="mkmp-stat-info">
-                    <span class="mkmp-stat-number">{formatNumber(stats.paired)}</span>
-                    <span class="mkmp-stat-label">Spárované</span>
-                    <span class="mkmp-stat-percent">{stats.pairingRate}% spárovaných</span>
+            <button class="stat-card" class:active={filter === 'paired'} on:click={() => handleFilterChange('paired')}>
+                <div class="stat-icon green">🔗</div>
+                <div class="stat-content">
+                    <div class="stat-value">{formatNumber(stats.paired)}</div>
+                    <div class="stat-label">Spárované</div>
+                    <div class="stat-percent">{stats.pairingRate}%</div>
                 </div>
             </button>
-            <button class="mkmp-stat-card" class:active={filter === 'unpaired'} on:click={() => handleFilterChange('unpaired')}>
-                <span class="mkmp-stat-icon">⚠️</span>
-                <div class="mkmp-stat-info">
-                    <span class="mkmp-stat-number">{formatNumber(stats.unpaired)}</span>
-                    <span class="mkmp-stat-label">Nespárované</span>
+            <button class="stat-card" class:active={filter === 'unpaired'} on:click={() => handleFilterChange('unpaired')}>
+                <div class="stat-icon orange">⚠️</div>
+                <div class="stat-content">
+                    <div class="stat-value">{formatNumber(stats.unpaired)}</div>
+                    <div class="stat-label">Nespárované</div>
                 </div>
             </button>
-            <button class="mkmp-stat-card" class:active={filter === 'no_category'} on:click={() => handleFilterChange('no_category')}>
-                <span class="mkmp-stat-icon">📂</span>
-                <div class="mkmp-stat-info">
-                    <span class="mkmp-stat-number">{formatNumber(stats.withoutCategories)}</span>
-                    <span class="mkmp-stat-label">Bez kategórie</span>
+            <button class="stat-card" class:active={filter === 'no_category'} on:click={() => handleFilterChange('no_category')}>
+                <div class="stat-icon yellow">📂</div>
+                <div class="stat-content">
+                    <div class="stat-value">{formatNumber(stats.withoutCategories)}</div>
+                    <div class="stat-label">Bez kategórie</div>
                 </div>
             </button>
-            <button class="mkmp-stat-card" class:active={filter === 'pending'} on:click={() => handleFilterChange('pending')}>
-                <span class="mkmp-stat-icon">⏳</span>
-                <div class="mkmp-stat-info">
-                    <span class="mkmp-stat-number">{formatNumber(stats.pendingApprovals)}</span>
-                    <span class="mkmp-stat-label">Na schválenie</span>
+            <button class="stat-card" class:active={filter === 'pending'} on:click={() => handleFilterChange('pending')}>
+                <div class="stat-icon purple">⏳</div>
+                <div class="stat-content">
+                    <div class="stat-value">{formatNumber(stats.pendingApprovals)}</div>
+                    <div class="stat-label">Na schválenie</div>
                 </div>
             </button>
         {/if}
     </div>
     
     <!-- TOOLBAR -->
-    <div class="mkmp-toolbar">
-        <div class="mkmp-search-group">
-            <input type="text" class="mkmp-input" placeholder="🔍 Hľadať master produkt (názov, ID)..." bind:value={searchQuery} on:keypress={(e) => e.key === 'Enter' && handleSearch()}>
-            <button class="mkmp-btn mkmp-btn-blue" on:click={handleSearch}>🔍 Hľadať</button>
-            <button class="mkmp-btn mkmp-btn-gray" on:click={() => { loadStats(); loadProducts(); }}>🔄 Obnoviť</button>
+    <div class="toolbar">
+        <div class="search-box">
+            <input type="text" placeholder="🔍 Hľadať master produkt (názov, ID)..." bind:value={searchQuery} on:keypress={(e) => e.key === 'Enter' && handleSearch()}>
+            <button class="btn primary" on:click={handleSearch}>Hľadať</button>
+            <button class="btn secondary" on:click={refresh}>🔄 Obnoviť</button>
         </div>
-        <div class="mkmp-filter-group">
-            <select class="mkmp-select" bind:value={filter} on:change={() => handleFilterChange(filter)}>
-                <option value="all">Všetky master produkty</option>
+        <div class="filters">
+            <select bind:value={filter} on:change={() => handleFilterChange(filter)}>
+                <option value="all">Všetky produkty</option>
                 {#if !isFree}
-                    <option value="with_category">Zaradené v kategorii</option>
-                    <option value="no_category">Nezaradené produkty</option>
-                    <option value="pending">Na schválenie</option>
+                    <option value="with_category">S kategóriou</option>
+                    <option value="no_category">Bez kategórie</option>
+                    <option value="pending">Čaká na schválenie</option>
                 {/if}
             </select>
-            <select class="mkmp-select" bind:value={perPage} on:change={handlePerPageChange}>
+            <select bind:value={perPage} on:change={handlePerPageChange}>
                 <option value={5}>5 / strana</option>
                 <option value={10}>10 / strana</option>
                 <option value={25}>25 / strana</option>
@@ -242,51 +326,78 @@
         </div>
     </div>
     
-    <!-- CONNECT BUTTON -->
-    <div class="mkmp-connect-row">
-        <button class="mkmp-btn mkmp-btn-green" on:click={openConnectModal}>➕ Pripojiť sa k master produktu</button>
-    </div>
-    
-    <!-- RESULTS INFO -->
-    <div class="mkmp-results-bar">
-        📊 Zobrazených {formatNumber(products.length)} z {formatNumber(totalResults)} produktov
+    <!-- CONNECT BTN -->
+    <div class="action-bar">
+        <button class="btn success" on:click={openConnectModal}>➕ Pripojiť sa k master produktu</button>
+        <span class="results-info">📊 Zobrazených {products.length} z {formatNumber(totalResults)} produktov</span>
     </div>
     
     <!-- TABLE -->
-    <div class="mkmp-table-box">
-        <table class="mkmp-table">
+    <div class="table-wrapper">
+        <table class="data-table">
             <thead>
                 <tr>
-                    <th>IMG</th>
+                    <th style="width:60px">IMG</th>
                     <th>MASTER PRODUKT</th>
-                    <th>ID</th>
-                    <th>CENA</th>
-                    <th>STAV</th>
-                    <th>PREDAJCOV</th>
-                    <th>BUY BOX</th>
-                    <th>KATEGÓRIA</th>
-                    <th>AKCIE</th>
+                    <th style="width:100px">ID</th>
+                    <th style="width:90px">CENA</th>
+                    <th style="width:90px">STAV</th>
+                    <th style="width:80px">PREDAJCOV</th>
+                    <th style="width:80px">BUY BOX</th>
+                    <th style="width:120px">KATEGÓRIA</th>
+                    <th style="width:220px">AKCIE</th>
                 </tr>
             </thead>
             <tbody>
                 {#if loading}
-                    <tr><td colspan="9" class="mkmp-loading"><div class="mkmp-spinner"></div> Načítavam...</td></tr>
+                    <tr><td colspan="9" class="loading-cell"><div class="spinner small"></div> Načítavam...</td></tr>
                 {:else if products.length === 0}
-                    <tr><td colspan="9" class="mkmp-empty"><div class="mkmp-empty-icon">📦</div><p>Žiadne produkty</p></td></tr>
+                    <tr><td colspan="9" class="empty-cell">
+                        <div class="empty-icon">📦</div>
+                        <p>Žiadne produkty</p>
+                        <small>Nahrajte XML feed alebo pridajte produkty manuálne</small>
+                    </td></tr>
                 {:else}
                     {#each products as product}
                         <tr>
-                            <td><img src={product.image_url || product.master_image || placeholderImage} alt="" class="mkmp-thumb" on:error={(e) => e.target.src = placeholderImage}></td>
-                            <td class="mkmp-name"><strong>{product.title || product.master_title || product.name || '-'}</strong></td>
-                            <td><span class="mkmp-id">{product.id || '-'}</span></td>
-                            <td class="mkmp-price">{formatPrice(product.price)}</td>
-                            <td>{#if product.stock_status === 'instock'}<span class="mkmp-instock">✓ Skladom</span>{:else}<span class="mkmp-outstock">✗ Vypredané</span>{/if}</td>
-                            <td class="mkmp-center">{product.vendors_count || 1}</td>
-                            <td class="mkmp-center">{#if product.is_buybox}<span class="mkmp-buybox">🏆</span>{:else}-{/if}</td>
-                            <td>{#if product.category}<span class="mkmp-cat">{product.category}</span>{:else}<span class="mkmp-nocat">✗ Bez kategórie</span>{/if}</td>
-                            <td class="mkmp-actions">
-                                <button class="mkmp-act-btn mkmp-edit" on:click={() => openEditModal(product)}>✏️</button>
-                                <a href={product.affiliate_url || product.url || '#'} target="_blank" class="mkmp-act-btn mkmp-view">👁️</a>
+                            <td><img src={product.image_url || product.master_image || placeholder} alt="" class="thumb" on:error={(e) => e.target.src = placeholder}></td>
+                            <td class="product-name">
+                                <strong>{product.title || product.master_title || product.name || '-'}</strong>
+                                {#if product.has_pending}<span class="pending-badge">⏳ Pending</span>{/if}
+                            </td>
+                            <td><code class="id-code">{product.id?.slice(0,8) || '-'}</code></td>
+                            <td class="price">{formatPrice(product.price)}</td>
+                            <td>
+                                {#if product.stock_status === 'instock'}
+                                    <span class="stock in">✓ Skladom</span>
+                                {:else}
+                                    <span class="stock out">✗ Vypredané</span>
+                                {/if}
+                            </td>
+                            <td class="center"><span class="vendor-count">{product.vendors_count || 1}</span></td>
+                            <td class="center">
+                                {#if isFree}
+                                    <span class="no-buybox">—</span>
+                                {:else if product.is_buybox}
+                                    <span class="buybox">🏆 Áno</span>
+                                {:else}
+                                    <span class="no-buybox">—</span>
+                                {/if}
+                            </td>
+                            <td>
+                                {#if isFree}
+                                    <a href="/vendor-dashboard/ppc" class="free-cat-link">🔒 FREE</a>
+                                {:else if product.category}
+                                    <span class="category-tag">{product.category}</span>
+                                {:else}
+                                    <span class="no-category">❌ Bez kategórie</span>
+                                {/if}
+                            </td>
+                            <td class="actions-cell">
+                                <button class="action-btn edit" title="Upraviť" on:click={() => openEditModal(product)}>📝</button>
+                                <button class="action-btn category" title="Kategórie" on:click={() => openCategoryModal(product)}>🏷️</button>
+                                <button class="action-btn offers" title="Ponuky ({product.vendors_count || 1})" on:click={() => openOffersModal(product)}>👁️</button>
+                                <button class="action-btn disconnect" title="Odpojiť" on:click={() => disconnectProduct(product.id)}>🔌</button>
                             </td>
                         </tr>
                     {/each}
@@ -297,12 +408,13 @@
     
     <!-- PAGINATION -->
     {#if totalPages > 1}
-        <div class="mkmp-pagination">
-            <button class="mkmp-pg-btn" disabled={currentPage === 1} on:click={() => goToPage(currentPage - 1)}>←</button>
+        <div class="pagination">
+            <button class="page-btn" disabled={currentPage === 1} on:click={() => goToPage(currentPage - 1)}>‹ Predošlá</button>
             {#each Array(Math.min(totalPages, 7)) as _, i}
-                <button class="mkmp-pg-btn" class:active={currentPage === i + 1} on:click={() => goToPage(i + 1)}>{i + 1}</button>
+                <button class="page-btn" class:active={currentPage === i + 1} on:click={() => goToPage(i + 1)}>{i + 1}</button>
             {/each}
-            <button class="mkmp-pg-btn" disabled={currentPage === totalPages} on:click={() => goToPage(currentPage + 1)}>→</button>
+            {#if totalPages > 7}<span class="page-dots">...</span><button class="page-btn" on:click={() => goToPage(totalPages)}>{totalPages}</button>{/if}
+            <button class="page-btn" disabled={currentPage === totalPages} on:click={() => goToPage(currentPage + 1)}>Ďalšia ›</button>
         </div>
     {/if}
 </div>
@@ -310,154 +422,253 @@
 
 <!-- CONNECT MODAL -->
 {#if showConnectModal}
-    <div class="mkmp-modal">
-        <div class="mkmp-modal-bg" on:click={() => showConnectModal = false} on:keydown={() => {}} role="button" tabindex="0"></div>
-        <div class="mkmp-modal-box">
-            <div class="mkmp-modal-head">
-                <h3>➕ Pripojiť sa k master produktu</h3>
-                <button class="mkmp-modal-close" on:click={() => showConnectModal = false}>&times;</button>
+<div class="modal-overlay" on:click={() => showConnectModal = false} on:keydown={() => {}} role="button" tabindex="0">
+    <div class="modal" on:click|stopPropagation>
+        <div class="modal-header">
+            <h3>➕ Pripojiť sa k master produktu</h3>
+            <button class="close-btn" on:click={() => showConnectModal = false}>&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Vyhľadať master produkt</label>
+                <input type="text" placeholder="Zadajte názov, EAN alebo ID..." bind:value={masterSearchQuery} on:input={searchMasterProducts}>
             </div>
-            <div class="mkmp-modal-body">
-                <input type="text" class="mkmp-input mkmp-full" placeholder="Zadajte názov, EAN alebo ID..." bind:value={masterSearchQuery} on:input={searchMasterProducts}>
-                {#if searchingMaster}
-                    <p class="mkmp-searching">Hľadám...</p>
-                {:else if masterResults.length > 0}
-                    <div class="mkmp-results">
-                        {#each masterResults as result}
-                            <div class="mkmp-result-item">
-                                <img src={result.image_url || placeholderImage} alt="">
-                                <div><strong>{result.title || result.name}</strong><br><small>ID: {result.id}</small></div>
-                                <button class="mkmp-btn mkmp-btn-green mkmp-btn-sm">Pripojiť</button>
+            {#if searchingMaster}
+                <div class="search-loading"><div class="spinner small"></div> Hľadám...</div>
+            {:else if masterResults.length > 0}
+                <div class="master-list">
+                    {#each masterResults as m}
+                        <div class="master-item" on:click={() => connectToMaster(m.id)} on:keydown={() => {}} role="button" tabindex="0">
+                            <img src={m.image_url || placeholder} alt="">
+                            <div class="master-info">
+                                <strong>{m.title || m.name}</strong>
+                                <small>ID: {m.id} | EAN: {m.ean || '-'}</small>
                             </div>
-                        {/each}
-                    </div>
-                {:else if masterSearchQuery.length >= 2}
-                    <p class="mkmp-noresults">Žiadne výsledky</p>
-                {/if}
-            </div>
+                            <button class="btn success small">Pripojiť</button>
+                        </div>
+                    {/each}
+                </div>
+            {:else if masterSearchQuery.length >= 2}
+                <p class="no-results">Žiadne výsledky pre "{masterSearchQuery}"</p>
+            {/if}
         </div>
     </div>
+</div>
 {/if}
 
 <!-- EDIT MODAL -->
 {#if showEditModal && currentProduct}
-    <div class="mkmp-modal">
-        <div class="mkmp-modal-bg" on:click={() => showEditModal = false} on:keydown={() => {}} role="button" tabindex="0"></div>
-        <div class="mkmp-modal-box">
-            <div class="mkmp-modal-head">
-                <h3>📝 Upraviť ponuku</h3>
-                <button class="mkmp-modal-close" on:click={() => showEditModal = false}>&times;</button>
+<div class="modal-overlay" on:click={() => showEditModal = false} on:keydown={() => {}} role="button" tabindex="0">
+    <div class="modal" on:click|stopPropagation>
+        <div class="modal-header">
+            <h3>📝 Upraviť ponuku</h3>
+            <button class="close-btn" on:click={() => showEditModal = false}>&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="product-preview">
+                <img src={currentProduct.image_url || placeholder} alt="">
+                <strong>{currentProduct.title || currentProduct.name}</strong>
             </div>
-            <div class="mkmp-modal-body">
-                <div class="mkmp-form-group"><label>Názov</label><input type="text" class="mkmp-input mkmp-full" bind:value={currentProduct.title}></div>
-                <div class="mkmp-form-group"><label>Cena (€)</label><input type="number" step="0.01" class="mkmp-input mkmp-full" bind:value={currentProduct.price}></div>
-                <div class="mkmp-form-group"><label>Stav</label>
-                    <select class="mkmp-select mkmp-full" bind:value={currentProduct.stock_status}>
-                        <option value="instock">Skladom</option>
-                        <option value="outofstock">Vypredané</option>
-                    </select>
-                </div>
-                <div class="mkmp-modal-foot">
-                    <button class="mkmp-btn mkmp-btn-gray" on:click={() => showEditModal = false}>Zrušiť</button>
-                    <button class="mkmp-btn mkmp-btn-blue">Uložiť</button>
-                </div>
+            <div class="form-group">
+                <label>Cena (€)</label>
+                <input type="number" step="0.01" bind:value={currentProduct.price}>
+            </div>
+            <div class="form-group">
+                <label>Stav skladu</label>
+                <select bind:value={currentProduct.stock_status}>
+                    <option value="instock">Skladom</option>
+                    <option value="outofstock">Vypredané</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Affiliate URL</label>
+                <input type="text" bind:value={currentProduct.affiliate_url} placeholder="https://...">
             </div>
         </div>
+        <div class="modal-footer">
+            <button class="btn secondary" on:click={() => showEditModal = false}>Zrušiť</button>
+            <button class="btn primary" on:click={saveProduct} disabled={saving}>{saving ? 'Ukladám...' : 'Uložiť'}</button>
+        </div>
     </div>
+</div>
+{/if}
+
+<!-- CATEGORY MODAL -->
+{#if showCategoryModal && currentProduct}
+<div class="modal-overlay" on:click={() => showCategoryModal = false} on:keydown={() => {}} role="button" tabindex="0">
+    <div class="modal" on:click|stopPropagation>
+        <div class="modal-header">
+            <h3>🏷️ Kategórie produktu</h3>
+            <button class="close-btn" on:click={() => showCategoryModal = false}>&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="product-preview">
+                <img src={currentProduct.image_url || placeholder} alt="">
+                <strong>{currentProduct.title || currentProduct.name}</strong>
+            </div>
+            {#if isFree}
+                <div class="free-notice">
+                    <span>🔒</span>
+                    <p>Kategórie je možné upravovať len v PAID režime.</p>
+                    <a href="/vendor-dashboard/ppc" class="btn success">Aktivovať PAID</a>
+                </div>
+            {:else}
+                <div class="form-group">
+                    <label>Aktuálna kategória</label>
+                    <p>{currentProduct.category || 'Bez kategórie'}</p>
+                </div>
+            {/if}
+        </div>
+        <div class="modal-footer">
+            <button class="btn secondary" on:click={() => showCategoryModal = false}>Zavrieť</button>
+        </div>
+    </div>
+</div>
 {/if}
 
 <style>
-    .mkmp-page { width: 100%; }
-    .mkmp-loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; gap: 16px; }
-    .mkmp-spinner { width: 40px; height: 40px; border: 3px solid #E5E7EB; border-top-color: #3B82F6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    :root { --blue: #3B82F6; --green: #10B981; --orange: #F59E0B; --red: #EF4444; --purple: #8B5CF6; }
+    
+    .products-page { width: 100%; padding: 0; }
+    
+    .loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; gap: 16px; color: #64748b; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .spinner.small { width: 24px; height: 24px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    .mkmp-free-banner { display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); border: 2px solid #F59E0B; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
-    .mkmp-free-banner-icon { font-size: 32px; }
-    .mkmp-free-banner-content { flex: 1; color: #92400E; font-size: 14px; }
-    .mkmp-btn-upgrade { background: linear-gradient(135deg, #F59E0B, #D97706); color: #fff; padding: 12px 24px; font-weight: 700; border-radius: 8px; text-decoration: none; }
+    /* FREE BANNER */
+    .free-banner { display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid var(--orange); border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; }
+    .free-icon { font-size: 36px; }
+    .free-text { flex: 1; color: #92400e; }
+    .upgrade-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 12px 28px; border-radius: 10px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 14px rgba(245,158,11,0.4); transition: transform 0.2s; }
+    .upgrade-btn:hover { transform: translateY(-2px); }
     
-    .mkmp-stats-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-    .mkmp-stat-card { flex: 1; min-width: 150px; display: flex; align-items: center; gap: 12px; padding: 16px; background: #fff; border: 2px solid #E5E7EB; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
-    .mkmp-stat-card:hover { border-color: #3B82F6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
-    .mkmp-stat-card.active { border-color: #3B82F6; background: #EFF6FF; }
-    .mkmp-stat-card.mkmp-stat-disabled { background: #F9FAFB; opacity: 0.8; }
-    .mkmp-stat-card.mkmp-stat-warning { background: #FFFBEB; border-color: #FCD34D; }
-    .mkmp-stat-icon { font-size: 28px; }
-    .mkmp-stat-info { display: flex; flex-direction: column; }
-    .mkmp-stat-number { font-size: 22px; font-weight: 700; color: #1F2937; }
-    .mkmp-stat-number.mkmp-text-muted { color: #9CA3AF; }
-    .mkmp-stat-label { font-size: 12px; color: #6B7280; }
-    .mkmp-stat-percent { font-size: 11px; color: #10B981; font-weight: 600; }
-    .mkmp-stat-upgrade { font-size: 10px; color: #F59E0B; font-weight: 600; background: #FEF3C7; padding: 2px 6px; border-radius: 4px; margin-top: 4px; }
+    /* STAT CARDS */
+    .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: white; border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.2s; text-align: left; }
+    .stat-card:hover { border-color: var(--blue); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(59,130,246,0.15); }
+    .stat-card.active { border-color: var(--blue); background: #eff6ff; }
+    .stat-card.locked { opacity: 0.7; }
+    .stat-card.warning { background: #fffbeb; border-color: #fcd34d; }
+    .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .stat-icon.blue { background: #dbeafe; }
+    .stat-icon.green { background: #d1fae5; }
+    .stat-icon.orange { background: #ffedd5; }
+    .stat-icon.yellow { background: #fef3c7; }
+    .stat-icon.purple { background: #ede9fe; }
+    .stat-content { flex: 1; }
+    .stat-value { font-size: 28px; font-weight: 800; color: #1e293b; }
+    .stat-value.muted { color: #94a3b8; }
+    .stat-label { font-size: 13px; color: #64748b; }
+    .stat-percent { font-size: 12px; color: var(--green); font-weight: 600; }
+    .stat-lock { font-size: 11px; color: var(--orange); font-weight: 600; background: #fef3c7; padding: 2px 8px; border-radius: 6px; margin-top: 4px; display: inline-block; }
     
-    .mkmp-toolbar { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-    .mkmp-search-group { display: flex; gap: 8px; flex: 1; min-width: 300px; }
-    .mkmp-filter-group { display: flex; gap: 8px; }
-    .mkmp-input { padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 14px; flex: 1; }
-    .mkmp-select { padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 14px; background: #fff; }
+    /* TOOLBAR */
+    .toolbar { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-box { display: flex; gap: 10px; flex: 1; min-width: 300px; }
+    .search-box input { flex: 1; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; }
+    .search-box input:focus { outline: none; border-color: var(--blue); }
+    .filters { display: flex; gap: 10px; }
+    .filters select { padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: white; cursor: pointer; }
     
-    .mkmp-btn { padding: 10px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; }
-    .mkmp-btn-blue { background: #3B82F6; color: #fff; }
-    .mkmp-btn-gray { background: #F3F4F6; color: #374151; }
-    .mkmp-btn-green { background: #10B981; color: #fff; }
-    .mkmp-btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn { padding: 12px 20px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn.primary { background: var(--blue); color: white; }
+    .btn.primary:hover { background: #2563eb; }
+    .btn.secondary { background: #f1f5f9; color: #475569; }
+    .btn.success { background: var(--green); color: white; }
+    .btn.success:hover { background: #059669; }
+    .btn.small { padding: 8px 14px; font-size: 12px; }
     
-    .mkmp-connect-row { margin-bottom: 16px; }
-    .mkmp-results-bar { padding: 12px 16px; background: #F9FAFB; border-radius: 8px; margin-bottom: 16px; font-size: 14px; color: #6B7280; }
+    /* ACTION BAR */
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .results-info { color: #64748b; font-size: 14px; }
     
-    .mkmp-table-box { background: #fff; border-radius: 12px; border: 1px solid #E5E7EB; overflow-x: auto; }
-    .mkmp-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-    .mkmp-table th { padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; background: #F9FAFB; border-bottom: 1px solid #E5E7EB; }
-    .mkmp-table td { padding: 12px; border-bottom: 1px solid #E5E7EB; font-size: 13px; vertical-align: middle; }
-    .mkmp-table tr:hover { background: #F9FAFB; }
+    /* TABLE */
+    .table-wrapper { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { padding: 16px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+    .data-table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .data-table tr:hover { background: #f8fafc; }
     
-    .mkmp-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid #E5E7EB; }
-    .mkmp-name { max-width: 200px; } .mkmp-name strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .mkmp-id { background: #EFF6FF; color: #3B82F6; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-family: monospace; }
-    .mkmp-price { font-weight: 600; color: #059669; }
-    .mkmp-center { text-align: center; }
-    .mkmp-instock { color: #10B981; font-weight: 500; }
-    .mkmp-outstock { color: #EF4444; font-weight: 500; }
-    .mkmp-buybox { font-size: 16px; }
-    .mkmp-cat { background: #EFF6FF; color: #3B82F6; padding: 4px 10px; border-radius: 20px; font-size: 11px; }
-    .mkmp-nocat { color: #EF4444; font-size: 12px; }
+    .thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 10px; border: 1px solid #e2e8f0; }
+    .product-name { max-width: 200px; }
+    .product-name strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1e293b; }
+    .pending-badge { display: inline-block; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px; }
+    .id-code { background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 11px; color: #64748b; }
+    .price { font-weight: 700; color: var(--green); }
+    .center { text-align: center; }
+    .stock { font-weight: 600; font-size: 13px; }
+    .stock.in { color: var(--green); }
+    .stock.out { color: var(--red); }
+    .vendor-count { background: #f1f5f9; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 13px; }
+    .buybox { color: var(--orange); font-weight: 600; }
+    .no-buybox { color: #94a3b8; }
+    .category-tag { background: #eff6ff; color: var(--blue); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .no-category { color: var(--red); font-size: 12px; }
+    .free-cat-link { color: var(--orange); font-weight: 600; font-size: 12px; text-decoration: none; }
     
-    .mkmp-actions { display: flex; gap: 6px; }
-    .mkmp-act-btn { width: 32px; height: 32px; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-    .mkmp-edit { background: #EFF6FF; color: #3B82F6; }
-    .mkmp-view { background: #F0FDF4; color: #10B981; }
+    .actions-cell { display: flex; gap: 6px; }
+    .action-btn { width: 40px; height: 40px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.2s; }
+    .action-btn.edit { background: #eff6ff; color: var(--blue); }
+    .action-btn.edit:hover { background: var(--blue); color: white; }
+    .action-btn.category { background: #fef3c7; color: #92400e; }
+    .action-btn.category:hover { background: var(--orange); color: white; }
+    .action-btn.offers { background: #d1fae5; color: #065f46; }
+    .action-btn.offers:hover { background: var(--green); color: white; }
+    .action-btn.disconnect { background: #fee2e2; color: #b91c1c; }
+    .action-btn.disconnect:hover { background: var(--red); color: white; }
     
-    .mkmp-loading, .mkmp-empty { text-align: center; padding: 60px; color: #6B7280; }
-    .mkmp-empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .loading-cell, .empty-cell { text-align: center; padding: 60px 20px; color: #64748b; }
+    .empty-icon { font-size: 56px; margin-bottom: 16px; }
     
-    .mkmp-pagination { display: flex; gap: 6px; justify-content: center; padding: 16px; }
-    .mkmp-pg-btn { padding: 8px 14px; border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; cursor: pointer; }
-    .mkmp-pg-btn.active { background: #3B82F6; color: #fff; border-color: #3B82F6; }
-    .mkmp-pg-btn:disabled { opacity: 0.5; }
+    /* PAGINATION */
+    .pagination { display: flex; gap: 8px; justify-content: center; padding: 24px; }
+    .page-btn { padding: 10px 16px; border: 2px solid #e2e8f0; background: white; border-radius: 10px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+    .page-btn:hover:not(:disabled) { border-color: var(--blue); }
+    .page-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .page-dots { padding: 10px; color: #94a3b8; }
     
-    .mkmp-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; }
-    .mkmp-modal-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-    .mkmp-modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow: hidden; }
-    .mkmp-modal-head { padding: 16px 20px; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; background: #F9FAFB; }
-    .mkmp-modal-head h3 { margin: 0; font-size: 16px; }
-    .mkmp-modal-close { background: none; border: none; font-size: 24px; cursor: pointer; }
-    .mkmp-modal-body { padding: 20px; max-height: calc(80vh - 60px); overflow-y: auto; }
-    .mkmp-modal-foot { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
-    .mkmp-form-group { margin-bottom: 16px; }
-    .mkmp-form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-    .mkmp-full { width: 100%; }
+    /* MODALS */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 99999; }
+    .modal { background: white; border-radius: 20px; width: 90%; max-width: 520px; max-height: 85vh; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.25); }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+    .modal-header h3 { margin: 0; font-size: 18px; color: #1e293b; }
+    .close-btn { background: none; border: none; font-size: 28px; color: #94a3b8; cursor: pointer; line-height: 1; }
+    .close-btn:hover { color: #1e293b; }
+    .modal-body { padding: 24px; max-height: calc(85vh - 140px); overflow-y: auto; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; }
     
-    .mkmp-results { max-height: 300px; overflow-y: auto; }
-    .mkmp-result-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #E5E7EB; border-radius: 8px; margin-bottom: 8px; }
-    .mkmp-result-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
-    .mkmp-result-item div { flex: 1; }
-    .mkmp-searching, .mkmp-noresults { text-align: center; padding: 20px; color: #6B7280; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--blue); }
     
-    @media (max-width: 768px) {
-        .mkmp-stats-row { flex-direction: column; }
-        .mkmp-stat-card { min-width: 100%; }
-        .mkmp-toolbar { flex-direction: column; }
-        .mkmp-search-group, .mkmp-filter-group { width: 100%; }
+    .product-preview { display: flex; align-items: center; gap: 16px; padding: 16px; background: #f8fafc; border-radius: 12px; margin-bottom: 20px; }
+    .product-preview img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; }
+    
+    .master-list { max-height: 350px; overflow-y: auto; }
+    .master-item { display: flex; align-items: center; gap: 14px; padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+    .master-item:hover { border-color: var(--blue); background: #f8fafc; }
+    .master-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+    .master-info { flex: 1; }
+    .master-info strong { display: block; color: #1e293b; margin-bottom: 4px; }
+    .master-info small { color: #64748b; font-size: 12px; }
+    
+    .search-loading { display: flex; align-items: center; gap: 12px; padding: 20px; color: #64748b; }
+    .no-results { text-align: center; padding: 30px; color: #64748b; }
+    
+    .free-notice { text-align: center; padding: 30px; background: #fef3c7; border-radius: 12px; }
+    .free-notice span { font-size: 40px; }
+    .free-notice p { margin: 16px 0; color: #92400e; }
+    
+    @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { 
+        .stats-grid { grid-template-columns: 1fr; } 
+        .toolbar { flex-direction: column; }
+        .search-box { flex-direction: column; }
+        .action-bar { flex-direction: column; gap: 12px; }
+        .free-banner { flex-direction: column; text-align: center; }
     }
 </style>
