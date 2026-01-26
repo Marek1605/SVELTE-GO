@@ -424,6 +424,8 @@
 
 .mp-gallery {
     grid-area: gallery;
+    display: flex;
+    gap: 12px;
 }
 
 .mp-info {
@@ -443,6 +445,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .mp-gallery__thumb {
@@ -459,14 +462,16 @@
 .mp-gallery__thumb img { width: 100%; height: 100%; object-fit: contain; }
 
 .mp-gallery__main {
-    width: 400px;
-    height: 400px;
+    flex: 1;
+    max-width: 400px;
+    aspect-ratio: 1;
     background: #f9fafb;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: zoom-in;
+    border: none;
 }
 .mp-gallery__main img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .mp-gallery__placeholder { font-size: 5rem; opacity: 0.3; }
