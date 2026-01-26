@@ -1,0 +1,1260 @@
+<script>
+    import { page } from '$app/stores';
+    import { api } from '$lib/api';
+    import { onMount } from 'svelte';
+    import '../app.css';
+    
+    let searchQuery = '';
+    let isScrolled = false;
+    let isCollapsed = false;
+    let wishlistCount = 0;
+    let compareCount = 0;
+    let navCategories = [];
+    let mobileMenuOpen = false;
+    let mobileSearchOpen = false;
+
+    function handleSearch(e) {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`;
+        }
+
+    function toggleMobileSearch() {
+        mobileSearchOpen = !mobileSearchOpen;
+        if (mobileSearchOpen) {
+            mobileMenuOpen = false;
+            document.body.style.overflow = '';
+        }
+    }
+        mobileSearchOpen = false;
+    }
+    
+    function toggleMobileMenu() {
+        mobileMenuOpen = !mobileMenuOpen;
+        if (mobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+    
+    function closeMobileMenu() {
+        mobileMenuOpen = false;
+        document.body.style.overflow = '';
+    }
+    
+    onMount(() => {
+        const SCROLL_THRESHOLD = 200;
+        const HYSTERESIS = 50;
+        let collapsed = false;
+        let ticking = false;
+
+        const update = () => {
+            const y = window.scrollY || 0;
+            isScrolled = y > 8;
+
+            if (y > SCROLL_THRESHOLD && !collapsed) {
+                collapsed = true;
+                isCollapsed = true;
+            } else if (y < (SCROLL_THRESHOLD - HYSTERESIS) && collapsed) {
+                collapsed = false;
+                isCollapsed = false;
+            }
+
+            ticking = false;
+        };
+
+        const onScroll = () => {
+            if (!ticking) {
+                requestAnimationFrame(update);
+                ticking = true;
+            }
+        };
+
+        update();
+        window.addEventListener('scroll', onScroll, { passive: true });
+
+        // Load categories for header navigation
+        (async () => {
+            try {
+                const res = await api.getCategoriesTree();
+                if (res?.success && Array.isArray(res.data)) {
+                    const top = res.data.filter(c => !c.parent_id || c.parent_id === 0);
+                    navCategories = (top.length ? top : res.data).slice(0, 14);
+                } else if (res?.success && res?.data?.categories && Array.isArray(res.data.categories)) {
+                    navCategories = res.data.categories.slice(0, 14);
+                }
+            } catch (e) {
+                console.error('Failed to load categories', e);
+            }
+        })();
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+        };
+    });
+
+</script>
+
+{#if $page.url.pathname.startsWith('/admin')}
+    <!-- Admin has its own layout, just render slot -->
+    <slot />
+{:else}
+<div class="mp-site">
+    <!-- ========== HEADER ========== -->
+    <header class="mp-header-wrap" class:is-scrolled={isScrolled} class:is-collapsed={isCollapsed}>
+        
+        <!-- Main Header Row -->
+        <div class="mp-header">
+            <div class="mp-header__container">
+                
+                <!-- Mobile Menu Button -->
+                <button class="mp-mobile-menu-btn" on:click={toggleMobileMenu} aria-label="Menu">
+                    <span class="mp-hamburger" class:is-active={mobileMenuOpen}>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+                
+                <!-- Logo -->
+                <a href="/" class="mp-logo">
+                    <span class="mp-logo__text">megaprice</span>
+                </a>
+                
+                <!-- Search Form (Desktop) -->
+                <form class="mp-search mp-search--desktop" on:submit={handleSearch}>
+                    <div class="mp-search__box">
+                        <input 
+                            type="text" 
+                            class="mp-search__input" 
+                            placeholder="Hľadaj produkt, značku..."
+                            bind:value={searchQuery}
+                        >
+                        <button type="submit" class="mp-search__btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <span>Hľadať</span>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Mobile Search Button -->
+                <button class="mp-mobile-search-btn" on:click={toggleMobileSearch} aria-label="Hľadať">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+                
+                <!-- Header Actions -->
+                <nav class="mp-actions">
+                    <a href="/ucet" class="mp-actions__item">
+                        <div class="mp-actions__icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span class="mp-actions__label">Môj účet</span>
+                    </a>
+                    
+                    <a href="/oblubene" class="mp-actions__item">
+                        <div class="mp-actions__icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                            {#if wishlistCount > 0}
+                                <span class="mp-actions__badge">{wishlistCount}</span>
+                            {/if}
+                        </div>
+                        <span class="mp-actions__label">Obľúbené</span>
+                    </a>
+                    
+                    <a href="/porovnanie" class="mp-actions__item mp-actions__item--desktop">
+                        <div class="mp-actions__icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 3h5v5"></path>
+                                <path d="M4 20L21 3"></path>
+                                <path d="M21 16v5h-5"></path>
+                                <path d="M15 15l6 6"></path>
+                                <path d="M4 4l5 5"></path>
+                            </svg>
+                            {#if compareCount > 0}
+                                <span class="mp-actions__badge">{compareCount}</span>
+                            {/if}
+                        </div>
+                        <span class="mp-actions__label">Porovnať</span>
+                    </a>
+                    
+                    <a href="/kosik" class="mp-actions__item mp-actions__item--desktop">
+                        <div class="mp-actions__icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                        </div>
+                        <span class="mp-actions__label">Košík</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+        
+
+        {#if navCategories.length > 0}
+        <!-- Categories Nav (Desktop) -->
+        <nav class="mp-catnav" class:is-collapsed={isCollapsed} aria-label="Kategórie">
+            <div class="mp-catnav__container">
+                <div class="mp-catnav__list">
+                    {#each navCategories as cat}
+                        <a
+                            href={"/kategoria/" + (cat.slug ?? cat.url_slug ?? cat.id)}
+                            class="mp-catnav__item"
+                            class:is-active={$page.url.pathname === ("/kategoria/" + (cat.slug ?? cat.url_slug ?? cat.id))}
+                        >
+                            {cat.name ?? cat.title ?? cat.slug}
+                        </a>
+                    {/each}
+                </div>
+            </div>
+        </nav>
+        {/if}
+
+        <!-- Mobile Search Bar (expandable) -->
+        {#if mobileSearchOpen}
+            <div class="mp-mobile-search">
+                <form class="mp-mobile-search__form" on:submit={handleSearch}>
+                    <input 
+                        type="text" 
+                        class="mp-mobile-search__input" 
+                        placeholder="Hľadaj produkt, značku..."
+                        bind:value={searchQuery}
+                    >
+                    <button type="submit" class="mp-mobile-search__btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                    <button type="button" class="mp-mobile-search__close" on:click={toggleMobileSearch}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        {/if}
+        
+
+    </header>
+    
+    <!-- ========== MOBILE MENU DRAWER ========== -->
+    <div class="mp-mobile-overlay" class:is-active={mobileMenuOpen} on:click={closeMobileMenu} role="button" tabindex="-1" aria-label="Zatvoriť menu"></div>
+    <aside class="mp-mobile-drawer" class:is-active={mobileMenuOpen}>
+        <div class="mp-mobile-drawer__header">
+            <span class="mp-mobile-drawer__title">Menu</span>
+            <button class="mp-mobile-drawer__close" on:click={closeMobileMenu}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="mp-mobile-drawer__content">
+            <!-- User Actions -->
+            <div class="mp-mobile-drawer__section">
+                <a href="/ucet" class="mp-mobile-drawer__action" on:click={closeMobileMenu}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Môj účet</span>
+                </a>
+                <a href="/oblubene" class="mp-mobile-drawer__action" on:click={closeMobileMenu}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    <span>Obľúbené</span>
+                    {#if wishlistCount > 0}<span class="mp-mobile-drawer__badge">{wishlistCount}</span>{/if}
+                </a>
+                <a href="/porovnanie" class="mp-mobile-drawer__action" on:click={closeMobileMenu}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M16 3h5v5"></path>
+                        <path d="M4 20L21 3"></path>
+                        <path d="M21 16v5h-5"></path>
+                        <path d="M15 15l6 6"></path>
+                        <path d="M4 4l5 5"></path>
+                    </svg>
+                    <span>Porovnať</span>
+                    {#if compareCount > 0}<span class="mp-mobile-drawer__badge">{compareCount}</span>{/if}
+                </a>
+                <a href="/kosik" class="mp-mobile-drawer__action" on:click={closeMobileMenu}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span>Košík</span>
+                </a>
+            </div>
+            
+            <!-- Categories -->
+            <div class="mp-mobile-drawer__section">
+                <h3 class="mp-mobile-drawer__heading">Kategórie</h3>
+                <div class="mp-mobile-drawer__categories">
+                    {#each navCategories as cat}
+                        <a 
+                            href="/kategoria/{cat.slug}" 
+                            class="mp-mobile-drawer__cat"
+                            class:is-active={$page.url.pathname.includes(cat.slug)}
+                            on:click={closeMobileMenu}
+                        >
+                            {#if cat.icon}<span class="mp-mobile-drawer__cat-icon">{cat.icon}</span>{/if}
+                            <span>{cat.name}</span>
+                        </a>
+                    {/each}
+                </div>
+            </div>
+            
+            <!-- Info Links -->
+            <div class="mp-mobile-drawer__section">
+                <h3 class="mp-mobile-drawer__heading">Informácie</h3>
+                <a href="/o-nas" class="mp-mobile-drawer__link" on:click={closeMobileMenu}>O nás</a>
+                <a href="/kontakt" class="mp-mobile-drawer__link" on:click={closeMobileMenu}>Kontakt</a>
+                <a href="/pre-predajcov" class="mp-mobile-drawer__link" on:click={closeMobileMenu}>Pre predajcov</a>
+                <a href="/pomoc" class="mp-mobile-drawer__link" on:click={closeMobileMenu}>Pomoc</a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="mp-main">
+        <slot />
+    </main>
+    
+    <!-- ========== MOBILE BOTTOM NAVIGATION ========== -->
+    <nav class="mp-bottom-nav">
+        <a href="/" class="mp-bottom-nav__item" class:is-active={$page.url.pathname === '/'}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+            </svg>
+            <span>Domov</span>
+        </a>
+        <a href="/kategorie" class="mp-bottom-nav__item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Kategórie</span>
+        </a>
+        <a href="/porovnanie" class="mp-bottom-nav__item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M16 3h5v5"></path>
+                <path d="M4 20L21 3"></path>
+                <path d="M21 16v5h-5"></path>
+                <path d="M15 15l6 6"></path>
+                <path d="M4 4l5 5"></path>
+            </svg>
+            {#if compareCount > 0}<span class="mp-bottom-nav__badge">{compareCount}</span>{/if}
+            <span>Porovnať</span>
+        </a>
+        <a href="/kosik" class="mp-bottom-nav__item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span>Košík</span>
+        </a>
+        <a href="/ucet" class="mp-bottom-nav__item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Účet</span>
+        </a>
+    </nav>
+    
+    <!-- ========== FOOTER ========== -->
+    <footer class="mp-footer">
+        <div class="mp-footer__main">
+            <div class="mp-footer__container">
+                <div class="mp-footer__grid">
+                    <div class="mp-footer__brand">
+                        <a href="/" class="mp-footer__logo">megaprice</a>
+                        <p>Porovnávač cien, ktorý vám pomôže nájsť najlepšie ponuky od stoviek overených predajcov na Slovensku.</p>
+                    </div>
+                    <div class="mp-footer__col">
+                        <h4>Informácie</h4>
+                        <ul>
+                            <li><a href="/o-nas">O nás</a></li>
+                            <li><a href="/kontakt">Kontakt</a></li>
+                            <li><a href="/pre-predajcov">Pre predajcov</a></li>
+                            <li><a href="/pomoc">Pomoc</a></li>
+                        </ul>
+                    </div>
+                    <div class="mp-footer__col">
+                        <h4>Právne</h4>
+                        <ul>
+                            <li><a href="/obchodne-podmienky">Obchodné podmienky</a></li>
+                            <li><a href="/ochrana-sukromia">Ochrana súkromia</a></li>
+                            <li><a href="/cookies">Cookies</a></li>
+                        </ul>
+                    </div>
+                    <div class="mp-footer__col">
+                        <h4>Kontakt</h4>
+                        <p class="mp-footer__contact">
+                            <strong>Email:</strong> info@megaprice.sk<br>
+                            <strong>Telefón:</strong> +421 900 000 000
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mp-footer__bottom">
+            <div class="mp-footer__container">
+                <p>© 2024 MegaPrice.sk. Všetky práva vyhradené.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+{/if}
+
+<style>
+/* =============================================
+   MEGAPRICE.SK - OPTIMIZED WITH MOBILE
+   ============================================= */
+
+/* Reset & Base */
+:global(*) {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:global(html) {
+    scroll-behavior: smooth;
+}
+
+:global(body) {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #1f2937;
+    background: #f8f9fa;
+    -webkit-font-smoothing: antialiased;
+}
+
+:global(a) {
+    text-decoration: none;
+    color: inherit;
+}
+
+:global(img) {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+:global(button) {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* Layout */
+.mp-site {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 70px; /* Space for mobile bottom nav */
+}
+
+@media (min-width: 769px) {
+    .mp-site {
+        padding-bottom: 0;
+    }
+}
+
+
+
+
+/* Sticky Header Wrapper */
+.mp-header-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 1200;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    transition: box-shadow 0.25s ease;
+}
+
+.mp-header-wrap.is-scrolled {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.mp-header-wrap.is-collapsed .mp-header {
+    padding: 10px 0;
+}
+
+.mp-header-wrap.is-collapsed .mp-search--desktop {
+    display: none;
+}
+
+/* Category Navigation Bar (WordPress-like) */
+.mp-catnav {
+    display: none;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+@media (min-width: 769px) {
+    .mp-catnav {
+        display: block;
+    }
+}
+
+.mp-catnav__container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.mp-catnav__list {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 10px 0;
+    scrollbar-width: none;
+}
+
+.mp-catnav__list::-webkit-scrollbar {
+    display: none;
+}
+
+.mp-catnav__item {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+}
+
+.mp-catnav__item:hover {
+    background: #f3f4f6;
+}
+
+.mp-catnav__item.is-active {
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+
+.mp-header {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.mp-header__container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+@media (min-width: 769px) {
+    .mp-header {
+        padding: 20px 0;
+    }
+    
+    .mp-header__container {
+        padding: 0 24px;
+        gap: 32px;
+    }
+}
+
+/* Mobile Menu Button */
+.mp-mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    flex-shrink: 0;
+    border-radius: 10px;
+    transition: background 0.15s ease;
+}
+
+.mp-mobile-menu-btn:hover {
+    background: #f5f5f5;
+}
+
+@media (min-width: 769px) {
+    .mp-mobile-menu-btn {
+        display: none;
+    }
+}
+
+/* Hamburger Icon */
+.mp-hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 20px;
+    height: 14px;
+    position: relative;
+}
+
+.mp-hamburger span {
+    display: block;
+    height: 2px;
+    background: #374151;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.mp-hamburger.is-active span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+
+.mp-hamburger.is-active span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+.mp-hamburger.is-active span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Logo */
+.mp-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.mp-logo__text {
+    font-size: 20px;
+    font-weight: 600;
+    color: #c4956a;
+    letter-spacing: -0.5px;
+}
+
+@media (min-width: 769px) {
+    .mp-logo__text {
+        font-size: 26px;
+    }
+}
+
+/* Search - Desktop */
+.mp-search--desktop {
+    flex: 1;
+    max-width: 600px;
+    display: none;
+}
+
+@media (min-width: 769px) {
+    .mp-search--desktop {
+        display: block;
+    }
+}
+
+.mp-search__box {
+    display: flex;
+    background: #f5f5f5;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.mp-search__box:focus-within {
+    background: #fff;
+    box-shadow: 0 0 0 2px #c4956a;
+}
+
+.mp-search__input {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    background: transparent;
+    color: #1f2937;
+}
+
+.mp-search__input::placeholder {
+    color: #9ca3af;
+}
+
+.mp-search__btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    background: #c4956a;
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.mp-search__btn:hover {
+    background: #b8875c;
+}
+
+@media (max-width: 900px) {
+    .mp-search__btn span {
+        display: none;
+    }
+    
+    .mp-search__btn {
+        padding: 14px 18px;
+    }
+}
+
+/* Mobile Search Button */
+.mp-mobile-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    color: #6b7280;
+    margin-left: auto;
+    flex-shrink: 0;
+    border-radius: 10px;
+    transition: all 0.15s ease;
+}
+
+.mp-mobile-search-btn:hover {
+    background: #f5f5f5;
+    color: #c4956a;
+}
+
+@media (min-width: 769px) {
+    .mp-mobile-search-btn {
+        display: none;
+    }
+}
+
+/* Mobile Search Bar */
+.mp-mobile-search {
+    padding: 12px 12px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.mp-mobile-search__form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.mp-mobile-search__input {
+    flex: 1;
+    padding: 12px 14px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    background: transparent;
+}
+
+.mp-mobile-search__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: #c4956a;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.mp-mobile-search__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+/* Actions */
+.mp-actions {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.mp-actions__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    border-radius: 10px;
+    transition: all 0.15s ease;
+}
+
+@media (min-width: 769px) {
+    .mp-actions__item {
+        padding: 10px 16px;
+        min-width: 72px;
+    }
+}
+
+.mp-actions__item:hover {
+    background: #f5f5f5;
+}
+
+.mp-actions__item--desktop {
+    display: none;
+}
+
+@media (min-width: 769px) {
+    .mp-actions__item--desktop {
+        display: flex;
+    }
+}
+
+.mp-actions__icon {
+    position: relative;
+    color: #6b7280;
+    margin-bottom: 2px;
+}
+
+.mp-actions__icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+@media (min-width: 769px) {
+    .mp-actions__icon {
+        margin-bottom: 4px;
+    }
+    
+    .mp-actions__icon svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+.mp-actions__item:hover .mp-actions__icon {
+    color: #c4956a;
+}
+
+.mp-actions__badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+}
+
+.mp-actions__label {
+    font-size: 11px;
+    color: #6b7280;
+    white-space: nowrap;
+    display: none;
+}
+
+@media (min-width: 769px) {
+    .mp-actions__label {
+        display: block;
+        font-size: 12px;
+    }
+}
+
+
+.mp-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1100;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.mp-mobile-overlay.is-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mp-mobile-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 300px;
+    max-width: 85vw;
+    background: #fff;
+    z-index: 1200;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mp-mobile-drawer.is-active {
+    transform: translateX(0);
+}
+
+.mp-mobile-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+    background: #faf8f6;
+}
+
+.mp-mobile-drawer__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.mp-mobile-drawer__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    color: #6b7280;
+    border-radius: 10px;
+    transition: all 0.15s ease;
+}
+
+.mp-mobile-drawer__close:hover {
+    background: #fff;
+    color: #1f2937;
+}
+
+.mp-mobile-drawer__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mp-mobile-drawer__section {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 16px;
+}
+
+.mp-mobile-drawer__section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.mp-mobile-drawer__heading {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.mp-mobile-drawer__action {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    color: #374151;
+    font-size: 15px;
+    font-weight: 500;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.mp-mobile-drawer__action:last-child {
+    border-bottom: none;
+}
+
+.mp-mobile-drawer__action svg {
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+.mp-mobile-drawer__badge {
+    margin-left: auto;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.mp-mobile-drawer__categories {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mp-mobile-drawer__cat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 450;
+    transition: all 0.15s ease;
+}
+
+.mp-mobile-drawer__cat:hover,
+.mp-mobile-drawer__cat.is-active {
+    background: #faf8f6;
+    color: #c4956a;
+}
+
+.mp-mobile-drawer__cat-icon {
+    font-size: 18px;
+}
+
+.mp-mobile-drawer__link {
+    display: block;
+    padding: 12px 0;
+    color: #6b7280;
+    font-size: 14px;
+    border-bottom: 1px solid #f5f5f5;
+    transition: color 0.15s ease;
+}
+
+.mp-mobile-drawer__link:last-child {
+    border-bottom: none;
+}
+
+.mp-mobile-drawer__link:hover {
+    color: #c4956a;
+}
+
+/* =============================================
+   MOBILE BOTTOM NAVIGATION
+   ============================================= */
+
+.mp-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 6px 0;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+
+@media (min-width: 769px) {
+    .mp-bottom-nav {
+        display: none;
+    }
+}
+
+.mp-bottom-nav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 10px;
+    color: #6b7280;
+    font-size: 10px;
+    font-weight: 500;
+    position: relative;
+    transition: color 0.15s ease;
+    min-width: 56px;
+}
+
+.mp-bottom-nav__item svg {
+    width: 22px;
+    height: 22px;
+}
+
+.mp-bottom-nav__item.is-active,
+.mp-bottom-nav__item:hover {
+    color: #c4956a;
+}
+
+.mp-bottom-nav__badge {
+    position: absolute;
+    top: 2px;
+    right: 8px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 8px;
+    min-width: 14px;
+    text-align: center;
+}
+
+/* =============================================
+   MAIN CONTENT
+   ============================================= */
+
+.mp-main {
+    flex: 1;
+}
+
+/* =============================================
+   FOOTER
+   ============================================= */
+
+.mp-footer {
+    background: #1f2937;
+    color: #fff;
+    margin-top: auto;
+}
+
+.mp-footer__main {
+    padding: 40px 0 30px;
+}
+
+@media (min-width: 769px) {
+    .mp-footer__main {
+        padding: 60px 0 40px;
+    }
+}
+
+.mp-footer__container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+@media (min-width: 769px) {
+    .mp-footer__container {
+        padding: 0 24px;
+    }
+}
+
+.mp-footer__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+}
+
+@media (min-width: 600px) {
+    .mp-footer__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+    }
+}
+
+@media (min-width: 900px) {
+    .mp-footer__grid {
+        grid-template-columns: 1.5fr 1fr 1fr 1fr;
+        gap: 48px;
+    }
+}
+
+.mp-footer__logo {
+    font-size: 24px;
+    font-weight: 500;
+    color: #c4956a;
+    display: inline-block;
+    margin-bottom: 16px;
+}
+
+.mp-footer__brand p {
+    font-size: 14px;
+    color: #9ca3af;
+    line-height: 1.7;
+}
+
+.mp-footer__col h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.mp-footer__col ul {
+    list-style: none;
+}
+
+.mp-footer__col li {
+    margin-bottom: 12px;
+}
+
+.mp-footer__col a {
+    font-size: 14px;
+    color: #9ca3af;
+    transition: color 0.2s;
+}
+
+.mp-footer__col a:hover {
+    color: #fff;
+}
+
+.mp-footer__contact {
+    font-size: 14px;
+    color: #9ca3af;
+    line-height: 1.8;
+}
+
+.mp-footer__contact strong {
+    color: #d1d5db;
+}
+
+.mp-footer__bottom {
+    padding: 20px 0;
+    border-top: 1px solid #374151;
+}
+
+.mp-footer__bottom p {
+    text-align: center;
+    font-size: 13px;
+    color: #6b7280;
+}
+</style>

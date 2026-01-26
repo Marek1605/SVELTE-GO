@@ -1,0 +1,48 @@
+/* MegaPrice Global Styles */
+
+/* CSS Variables */
+:root {
+    --mp-primary: #c4956a;
+    --mp-primary-dark: #b8875c;
+    --mp-primary-light: #d4a97e;
+    
+    --mp-text: #1f2937;
+    --mp-text-light: #6b7280;
+    --mp-text-lighter: #9ca3af;
+    
+    --mp-bg: #f8f9fa;
+    --mp-bg-white: #ffffff;
+    --mp-bg-gray: #f3f4f6;
+    
+    --mp-border: #e5e7eb;
+    --mp-border-light: #f3f4f6;
+    
+    --mp-success: #16a34a;
+    --mp-warning: #f59e0b;
+    --mp-danger: #ef4444;
+    
+    --mp-radius-sm: 6px;
+    --mp-radius-md: 10px;
+    --mp-radius-lg: 14px;
+    --mp-radius-xl: 20px;
+    
+    --mp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --mp-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --mp-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    
+    --mp-container: 1400px;
+}
+
+/* Global Container */
+.mp-container {
+    max-width: var(--mp-container);
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+@media (max-width: 768px) {
+    .mp-container {
+        padding: 0 16px;
+    }
+}
+// Thu Jan  8 05:23:53 PM UTC 2026
