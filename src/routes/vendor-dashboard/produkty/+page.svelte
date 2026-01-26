@@ -134,20 +134,27 @@
     function openConnectModal() { masterSearchQuery = ''; masterResults = []; showConnectModal = true; }
     function openEditModal(p) { currentProduct = { ...p, min_price: p.min_price || '', max_price: p.max_price || '' }; showEditModal = true; }
     function openCategoryModal(p) { currentProduct = { ...p }; showCategoryModal = true; }
+    function generateSlug(text) {
+        if (!text) return '';
+        return text.toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+            .replace(/[^a-z0-9\s-]/g, '') // remove special chars
+            .replace(/\s+/g, '-') // spaces to dashes
+            .replace(/-+/g, '-') // multiple dashes to single
+            .replace(/^-|-$/g, ''); // trim dashes
+    }
+    
     function viewOffers(p) {
-        // Priorita: 1. slug produktu, 2. fulltext search podľa názvu
-        if (p.master_slug && p.master_slug !== '') {
-            window.open('/produkt/' + p.master_slug, '_blank');
-        } else if (p.slug && p.slug !== '') {
-            window.open('/produkt/' + p.slug, '_blank');
+        // Použij slug ak existuje, inak vygeneruj z názvu
+        let slug = p.master_slug || p.slug || '';
+        if (!slug) {
+            const title = p.master_title || p.title || p.name || '';
+            slug = generateSlug(title);
+        }
+        if (slug) {
+            window.open('/produkt/' + slug, '_blank');
         } else {
-            // Fallback - fulltext search
-            const searchTerm = p.master_title || p.title || p.name || '';
-            if (searchTerm) {
-                window.open('/hladat?q=' + encodeURIComponent(searchTerm), '_blank');
-            } else {
-                alert('Produkt nemá nastavený názov ani slug.');
-            }
+            alert('Produkt nemá názov.');
         }
     }
     
