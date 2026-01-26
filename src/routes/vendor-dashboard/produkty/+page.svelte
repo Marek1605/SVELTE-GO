@@ -118,13 +118,10 @@
                 method: 'PUT',
                 headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    price: parseFloat(currentProduct.price) || 0, 
-                    original_price: parseFloat(currentProduct.original_price) || 0,
-                    stock_status: currentProduct.stock_status || 'instock',
-                    stock_quantity: parseInt(currentProduct.stock_quantity) || 0,
-                    affiliate_url: currentProduct.affiliate_url || '',
-                    shipping_price: parseFloat(currentProduct.shipping_cost) || 0,
-                    delivery_days: String(currentProduct.delivery_days || '3')
+                    price: parseFloat(currentProduct.price) || 0,
+                    min_price: parseFloat(currentProduct.min_price) || null,
+                    max_price: parseFloat(currentProduct.max_price) || null,
+                    affiliate_url: currentProduct.affiliate_url || ''
                 })
             });
             const data = await res.json();
@@ -143,11 +140,9 @@
     function openEditModal(p) { 
         currentProduct = { 
             ...p, 
-            original_price: p.original_price || '',
-            stock_quantity: p.stock_quantity || 0,
-            affiliate_url: p.affiliate_url || '',
-            delivery_days: p.delivery_days || '3',
-            shipping_cost: p.shipping_price || p.shipping_cost || 0
+            min_price: p.min_price || '',
+            max_price: p.max_price || '',
+            affiliate_url: p.affiliate_url || ''
         }; 
         showEditModal = true; 
     }
@@ -338,53 +333,46 @@
             </div>
             
             <div class="section-title">💰 Cenové nastavenia</div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Vaša cena (€) <span class="instant">⚡ Okamžite</span></label>
-                    <input type="number" step="0.01" bind:value={currentProduct.price} required>
-                </div>
-                <div class="form-group">
-                    <label>Pôvodná cena (€)</label>
-                    <input type="number" step="0.01" bind:value={currentProduct.original_price} placeholder="Voliteľné - pre zľavy">
-                </div>
-            </div>
             <div class="form-group">
-                <label>Doprava (€)</label>
-                <input type="number" step="0.01" bind:value={currentProduct.shipping_cost} placeholder="0 = zadarmo">
+                <label>Aktuálna predajná cena (€) <span class="instant">⚡ Okamžite</span></label>
+                <input type="number" step="0.01" bind:value={currentProduct.price} required>
+                <small class="hint">Táto cena sa zobrazí zákazníkom</small>
             </div>
             
-            <div class="section-title">📦 Sklad a dostupnosť</div>
+            <div class="section-title">🤖 AI Cenový rozsah</div>
+            <p class="ai-info">Nastavte cenové rozpätie pre automatickú optimalizáciu ceny cez AI.</p>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Stav skladu <span class="instant">⚡ Okamžite</span></label>
-                    <select bind:value={currentProduct.stock_status}>
-                        <option value="instock">✓ Skladom</option>
-                        <option value="outofstock">✗ Vypredané</option>
-                        <option value="onbackorder">⏳ Na objednávku</option>
-                    </select>
+                    <label>Minimálna cena (€)</label>
+                    <input type="number" step="0.01" bind:value={currentProduct.min_price} placeholder="Najnižšia možná">
+                    <small class="hint">AI nikdy nepôjde nižšie</small>
                 </div>
                 <div class="form-group">
-                    <label>Množstvo na sklade</label>
-                    <input type="number" bind:value={currentProduct.stock_quantity} min="0">
+                    <label>Maximálna cena (€)</label>
+                    <input type="number" step="0.01" bind:value={currentProduct.max_price} placeholder="Najvyššia možná">
+                    <small class="hint">AI nikdy nepôjde vyššie</small>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Doba doručenia</label>
-                <select bind:value={currentProduct.delivery_days}>
-                    <option value="1">Do 24 hodín</option>
-                    <option value="2">1-2 dni</option>
-                    <option value="3">2-3 dni</option>
-                    <option value="5">3-5 dní</option>
-                    <option value="7">5-7 dní</option>
-                    <option value="14">1-2 týždne</option>
-                </select>
+            
+            {#if currentProduct.min_price && currentProduct.max_price}
+            <div class="price-range-preview">
+                <div class="range-bar">
+                    <div class="range-fill" style="left: 0%; width: {Math.min(100, ((currentProduct.price - currentProduct.min_price) / (currentProduct.max_price - currentProduct.min_price)) * 100)}%"></div>
+                    <div class="range-marker" style="left: {Math.min(100, Math.max(0, ((currentProduct.price - currentProduct.min_price) / (currentProduct.max_price - currentProduct.min_price)) * 100))}%"></div>
+                </div>
+                <div class="range-labels">
+                    <span>{formatPrice(currentProduct.min_price)}</span>
+                    <span class="current">Aktuálne: {formatPrice(currentProduct.price)}</span>
+                    <span>{formatPrice(currentProduct.max_price)}</span>
+                </div>
             </div>
+            {/if}
             
             <div class="section-title">🔗 Affiliate nastavenia</div>
             <div class="form-group">
                 <label>Affiliate URL (odkaz do vášho obchodu)</label>
                 <input type="url" bind:value={currentProduct.affiliate_url} placeholder="https://vaseshop.sk/produkt/...">
-                <small class="hint">Zákazníci budú presmerovaní na túto URL po kliknutí na "Do obchodu"</small>
+                <small class="hint">Zákazníci budú presmerovaní na túto URL</small>
             </div>
         </div>
         <div class="modal-foot">
@@ -490,6 +478,15 @@
     
     /* Form hints */
     .hint { display: block; font-size: 11px; color: #94a3b8; margin-top: 4px; }
+    .ai-info { font-size: 13px; color: #64748b; margin: 0 0 12px 0; background: #f0f9ff; padding: 10px 12px; border-radius: 6px; border-left: 3px solid #3b82f6; }
+    
+    /* Price range preview */
+    .price-range-preview { margin: 16px 0; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .range-bar { position: relative; height: 8px; background: #e2e8f0; border-radius: 4px; margin-bottom: 8px; }
+    .range-fill { position: absolute; height: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); border-radius: 4px; opacity: 0.3; }
+    .range-marker { position: absolute; top: -4px; width: 16px; height: 16px; background: #3b82f6; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: translateX(-50%); }
+    .range-labels { display: flex; justify-content: space-between; font-size: 12px; color: #64748b; }
+    .range-labels .current { font-weight: 600; color: #3b82f6; }
     
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; }
