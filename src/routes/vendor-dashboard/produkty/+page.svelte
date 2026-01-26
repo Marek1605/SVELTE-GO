@@ -117,7 +117,15 @@
             const res = await fetch(API_BASE + '/vendor/products/' + currentProduct.id + '/offer', {
                 method: 'PUT',
                 headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ price: parseFloat(currentProduct.price) || 0, stock_status: currentProduct.stock_status, min_price: parseFloat(currentProduct.min_price) || null, max_price: parseFloat(currentProduct.max_price) || null })
+                body: JSON.stringify({ 
+                    price: parseFloat(currentProduct.price) || 0, 
+                    original_price: parseFloat(currentProduct.original_price) || 0,
+                    stock_status: currentProduct.stock_status || 'instock',
+                    stock_quantity: parseInt(currentProduct.stock_quantity) || 0,
+                    affiliate_url: currentProduct.affiliate_url || '',
+                    shipping_price: parseFloat(currentProduct.shipping_cost) || 0,
+                    delivery_days: String(currentProduct.delivery_days || '3')
+                })
             });
             const data = await res.json();
             if (data.success) { showEditModal = false; loadProducts(); }
@@ -132,7 +140,17 @@
     function goToPage(p) { currentPage = p; loadProducts(); }
     function refresh() { searchQuery = ''; filter = 'all'; currentPage = 1; loadStats(); loadProducts(); }
     function openConnectModal() { masterSearchQuery = ''; masterResults = []; showConnectModal = true; }
-    function openEditModal(p) { currentProduct = { ...p, min_price: p.min_price || '', max_price: p.max_price || '' }; showEditModal = true; }
+    function openEditModal(p) { 
+        currentProduct = { 
+            ...p, 
+            original_price: p.original_price || '',
+            stock_quantity: p.stock_quantity || 0,
+            affiliate_url: p.affiliate_url || '',
+            delivery_days: p.delivery_days || '3',
+            shipping_cost: p.shipping_price || p.shipping_cost || 0
+        }; 
+        showEditModal = true; 
+    }
     function openCategoryModal(p) { currentProduct = { ...p }; showCategoryModal = true; }
     function generateSlug(text) {
         if (!text) return '';
@@ -310,32 +328,63 @@
     <div class="modal wide" on:click|stopPropagation>
         <div class="modal-head"><h3>📝 Upraviť ponuku</h3><button on:click={() => showEditModal = false}>&times;</button></div>
         <div class="modal-body">
-            <div class="form-group">
-                <label>Názov produktu (iba čítanie)</label>
-                <input type="text" value={currentProduct.title || currentProduct.name || ''} disabled>
+            <!-- Product preview -->
+            <div class="product-preview">
+                <img src={currentProduct.image_url || currentProduct.master_image || placeholder} alt="" class="preview-img">
+                <div class="preview-info">
+                    <h4>{currentProduct.title || currentProduct.master_title || currentProduct.name}</h4>
+                    <span class="preview-id">ID: {currentProduct.id?.slice(0,8) || '-'}</span>
+                </div>
             </div>
+            
+            <div class="section-title">💰 Cenové nastavenia</div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Vaša cena (€) <span class="instant">⚡ Okamžite</span></label>
                     <input type="number" step="0.01" bind:value={currentProduct.price} required>
                 </div>
                 <div class="form-group">
-                    <label>Stav skladu <span class="instant">⚡ Okamžite</span></label>
-                    <select bind:value={currentProduct.stock_status}>
-                        <option value="instock">Skladom</option>
-                        <option value="outofstock">Vypredané</option>
-                    </select>
+                    <label>Pôvodná cena (€)</label>
+                    <input type="number" step="0.01" bind:value={currentProduct.original_price} placeholder="Voliteľné - pre zľavy">
                 </div>
             </div>
+            <div class="form-group">
+                <label>Doprava (€)</label>
+                <input type="number" step="0.01" bind:value={currentProduct.shipping_cost} placeholder="0 = zadarmo">
+            </div>
+            
+            <div class="section-title">📦 Sklad a dostupnosť</div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Minimálna cena (€) <span class="instant">⚡ Okamžite</span></label>
-                    <input type="number" step="0.01" bind:value={currentProduct.min_price} placeholder="Voliteľné">
+                    <label>Stav skladu <span class="instant">⚡ Okamžite</span></label>
+                    <select bind:value={currentProduct.stock_status}>
+                        <option value="instock">✓ Skladom</option>
+                        <option value="outofstock">✗ Vypredané</option>
+                        <option value="onbackorder">⏳ Na objednávku</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>Maximálna cena (€) <span class="instant">⚡ Okamžite</span></label>
-                    <input type="number" step="0.01" bind:value={currentProduct.max_price} placeholder="Voliteľné">
+                    <label>Množstvo na sklade</label>
+                    <input type="number" bind:value={currentProduct.stock_quantity} min="0">
                 </div>
+            </div>
+            <div class="form-group">
+                <label>Doba doručenia</label>
+                <select bind:value={currentProduct.delivery_days}>
+                    <option value="1">Do 24 hodín</option>
+                    <option value="2">1-2 dni</option>
+                    <option value="3">2-3 dni</option>
+                    <option value="5">3-5 dní</option>
+                    <option value="7">5-7 dní</option>
+                    <option value="14">1-2 týždne</option>
+                </select>
+            </div>
+            
+            <div class="section-title">🔗 Affiliate nastavenia</div>
+            <div class="form-group">
+                <label>Affiliate URL (odkaz do vášho obchodu)</label>
+                <input type="url" bind:value={currentProduct.affiliate_url} placeholder="https://vaseshop.sk/produkt/...">
+                <small class="hint">Zákazníci budú presmerovaní na túto URL po kliknutí na "Do obchodu"</small>
             </div>
         </div>
         <div class="modal-foot">
@@ -422,17 +471,31 @@
     
     .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; }
     .modal { background: #fff; border-radius: 10px; width: 90%; max-width: 480px; max-height: 85vh; overflow: hidden; }
-    .modal.wide { max-width: 600px; }
+    .modal.wide { max-width: 700px; }
     .modal-head { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
     .modal-head h3 { margin: 0; font-size: 15px; }
     .modal-head button { background: none; border: none; font-size: 22px; cursor: pointer; color: #94a3b8; }
     .modal-body { padding: 18px; max-height: calc(85vh - 120px); overflow-y: auto; }
     .modal-foot { padding: 12px 18px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 8px; }
     
+    /* Product preview in modal */
+    .product-preview { display: flex; align-items: center; gap: 14px; padding: 14px; background: #f8fafc; border-radius: 8px; margin-bottom: 18px; border: 1px solid #e2e8f0; }
+    .preview-img { width: 70px; height: 70px; object-fit: contain; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0; }
+    .preview-info h4 { margin: 0 0 4px 0; font-size: 14px; color: #1e293b; line-height: 1.3; }
+    .preview-id { font-size: 11px; color: #94a3b8; font-family: monospace; }
+    
+    /* Section titles */
+    .section-title { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin: 18px 0 12px 0; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
+    .section-title:first-of-type { margin-top: 0; }
+    
+    /* Form hints */
+    .hint { display: block; font-size: 11px; color: #94a3b8; margin-top: 4px; }
+    
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; }
     .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
     .form-group input:disabled { background: #f1f5f9; color: #64748b; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
     .form-row { display: flex; gap: 12px; }
     .form-row .form-group { flex: 1; }
     .instant { background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
