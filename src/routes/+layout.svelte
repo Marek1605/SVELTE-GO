@@ -114,16 +114,14 @@
             try {
                 const res = await api.getCategoriesTree();
                 if (res?.success && Array.isArray(res.data)) {
-                    const rootCats = res.data.filter(c => !c.parent_id);
-                    navCategories = rootCats.slice(0, 12).map(cat => {
-                        const children = res.data
-                            .filter(c => c.parent_id === cat.id)
-                            .map(child => {
-                                const grandchildren = res.data
-                                    .filter(g => g.parent_id === child.id)
-                                    .slice(0, 15);
-                                return { ...child, grandchildren };
-                            });
+                    // API vracia tree štruktúru - root kategórie s children
+                    navCategories = res.data.slice(0, 12).map(cat => {
+                        // Children sú už v cat.children z API
+                        const children = (cat.children || []).map(child => {
+                            // Grandchildren sú v child.children
+                            const grandchildren = (child.children || []).slice(0, 15);
+                            return { ...child, grandchildren };
+                        });
                         return { ...cat, children };
                     });
                 }
@@ -289,12 +287,12 @@
                                 </div>
                                 <span class="mp-mega__subcat-name">{subcategory.name}</span>
                             </a>
-                            {#if subcategory.children && subcategory.children.length > 0}
+                            {#if subcategory.grandchildren && subcategory.grandchildren.length > 0}
                                 <div class="mp-mega__links">
-                                    {#each subcategory.children.slice(0, 6) as grandchild}
+                                    {#each subcategory.grandchildren.slice(0, 6) as grandchild}
                                         <a href={"/kategoria/" + (grandchild.slug || grandchild.id)} class="mp-mega__link">{grandchild.name}</a>
                                     {/each}
-                                    {#if subcategory.children.length > 6}
+                                    {#if subcategory.grandchildren.length > 6}
                                         <a href={"/kategoria/" + (subcategory.slug || subcategory.id)} class="mp-mega__link mp-mega__more">ďalšie...</a>
                                     {/if}
                                 </div>
