@@ -273,7 +273,7 @@
             </div>
         </div>
 
-        <!-- MEGA MENU - dropdown pod kategóriami (profibuy style) -->
+        <!-- MEGA MENU - megaprice.sk štýl s profibuy štruktúrou -->
         {#if megaMenuOpen && activeCategoryData}
             <div class="mp-mega" on:mouseenter={cancelMegaClose} on:mouseleave={scheduleMegaClose}>
                 <div class="mp-mega__container">
@@ -291,11 +291,11 @@
                             </a>
                             {#if subcategory.children && subcategory.children.length > 0}
                                 <div class="mp-mega__links">
-                                    {#each subcategory.children.slice(0, 8) as grandchild}
-                                        <a href={"/kategoria/" + (grandchild.slug || grandchild.id)} class="mp-mega__link">• {grandchild.name}</a>
+                                    {#each subcategory.children.slice(0, 6) as grandchild}
+                                        <a href={"/kategoria/" + (grandchild.slug || grandchild.id)} class="mp-mega__link">{grandchild.name}</a>
                                     {/each}
-                                    {#if subcategory.children.length > 8}
-                                        <a href={"/kategoria/" + (subcategory.slug || subcategory.id)} class="mp-mega__link mp-mega__more">+ ďalšie</a>
+                                    {#if subcategory.children.length > 6}
+                                        <a href={"/kategoria/" + (subcategory.slug || subcategory.id)} class="mp-mega__link mp-mega__more">ďalšie...</a>
                                     {/if}
                                 </div>
                             {/if}
@@ -473,38 +473,36 @@
 .mp-mega__container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 0;
+    gap: 20px;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 20px;
-    max-height: 70vh;
+    padding: 24px 20px;
+    max-height: 75vh;
     overflow-y: auto;
 }
 
 .mp-mega__col {
-    padding: 10px 14px;
-    border-right: 1px solid #f3f4f6;
+    padding: 0;
 }
-.mp-mega__col:last-child { border-right: none; }
-.mp-mega__col:nth-child(4n) { border-right: none; }
 
-/* Podkategória s obrázkom - CPC style */
+/* Podkategória - megaprice.sk štýl (zaoblený šedý box) */
 .mp-mega__subcat {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    transition: all 0.15s;
-    margin-bottom: 6px;
+    gap: 14px;
+    padding: 14px 16px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    transition: all 0.2s;
+    margin-bottom: 12px;
 }
-.mp-mega__subcat:hover { background: #fef7f0; }
+.mp-mega__subcat:hover { background: #eeeeee; }
 
 .mp-mega__subcat-img {
-    width: 36px;
-    height: 36px;
-    border-radius: 6px;
-    background: #f8fafc;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: #e8e8e8;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -515,50 +513,56 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+    padding: 4px;
 }
 .mp-mega__subcat-img span {
-    font-size: 14px;
-    font-weight: 600;
-    color: #94a3b8;
+    font-size: 18px;
+    font-weight: 700;
+    color: #888;
 }
-.mp-mega__subcat:hover .mp-mega__subcat-img { background: #fff5f0; }
+.mp-mega__subcat:hover .mp-mega__subcat-img { background: #e0e0e0; }
 
 .mp-mega__subcat-name {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: #1f2937;
     line-height: 1.3;
 }
 .mp-mega__subcat:hover .mp-mega__subcat-name { color: #c4956a; }
 
-/* 3. úroveň - bodkové linky */
+/* 3. úroveň - linky pod kategóriou */
 .mp-mega__links {
     display: flex;
     flex-direction: column;
-    gap: 1px;
-    padding-left: 46px;
-    margin-top: -2px;
+    gap: 6px;
+    padding: 0 8px 16px 8px;
+    margin-top: -4px;
 }
 
 .mp-mega__link {
-    font-size: 12px;
-    color: #64748b;
-    padding: 2px 0;
-    transition: color 0.15s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 13px;
+    color: #6b7280;
+    padding: 4px 8px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mp-mega__link::before {
+    content: '›';
+    color: #d1d5db;
+    font-weight: bold;
 }
 .mp-mega__link:hover { color: #c4956a; }
+.mp-mega__link:hover::before { color: #c4956a; }
 .mp-mega__more { color: #c4956a; font-weight: 500; }
+.mp-mega__more::before { content: '+'; }
 
 @media (max-width: 1200px) {
     .mp-mega__container { grid-template-columns: repeat(3, 1fr); }
-    .mp-mega__col:nth-child(3n) { border-right: none; }
 }
 @media (max-width: 900px) {
     .mp-mega__container { grid-template-columns: repeat(2, 1fr); }
-    .mp-mega__col:nth-child(2n) { border-right: none; }
 }
 @media (max-width: 768px) {
     .mp-mega { display: none; }

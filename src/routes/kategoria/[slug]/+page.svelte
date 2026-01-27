@@ -201,7 +201,7 @@
 
                 <!-- RIGHT CONTENT -->
                 <div class="content">
-                    <!-- Subcategories - profibuy style (menšie) -->
+                    <!-- Subcategories - megaprice.sk štýl -->
                     {#if children.length > 0}
                         <div class="subcategories">
                             <div class="subcategories-grid">
@@ -211,7 +211,7 @@
                                             {#if child.image_url}
                                                 <img src={child.image_url} alt={child.name} loading="lazy">
                                             {:else}
-                                                <div class="subcat-placeholder">📦</div>
+                                                <span class="subcat-placeholder">{child.name?.charAt(0)?.toUpperCase() || '?'}</span>
                                             {/if}
                                         </div>
                                         <span class="subcat-name">{child.name}</span>
@@ -336,13 +336,13 @@
 .section-title { font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px; }
 
 .subcategories { margin-bottom: 24px; }
-.subcategories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-.subcat-card { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; text-decoration: none; transition: all 0.2s; }
-.subcat-card:hover { border-color: #c4956a; background: #fef7f0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-.subcat-image { width: 40px; height: 40px; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.subcat-image img { width: 100%; height: 100%; object-fit: contain; }
-.subcat-placeholder { font-size: 20px; opacity: 0.3; }
-.subcat-name { font-size: 13px; font-weight: 600; color: #1f2937; line-height: 1.3; }
+.subcategories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.subcat-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #f5f5f5; border-radius: 12px; text-decoration: none; transition: all 0.2s; }
+.subcat-card:hover { background: #eeeeee; }
+.subcat-image { width: 44px; height: 44px; background: #e8e8e8; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+.subcat-image img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.subcat-placeholder { font-size: 18px; color: #888; font-weight: 700; }
+.subcat-name { font-size: 14px; font-weight: 600; color: #1f2937; line-height: 1.3; }
 .subcat-card:hover .subcat-name { color: #c4956a; }
 
 .products-header { margin-bottom: 16px; }
