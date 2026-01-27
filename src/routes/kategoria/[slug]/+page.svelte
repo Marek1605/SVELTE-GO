@@ -201,10 +201,9 @@
 
                 <!-- RIGHT CONTENT -->
                 <div class="content">
-                    <!-- Subcategories -->
+                    <!-- Subcategories - profibuy style (menšie) -->
                     {#if children.length > 0}
                         <div class="subcategories">
-                            <h2 class="section-title">Podkategórie</h2>
                             <div class="subcategories-grid">
                                 {#each children as child}
                                     <a href="/kategoria/{child.slug}" class="subcat-card">
@@ -215,10 +214,7 @@
                                                 <div class="subcat-placeholder">📦</div>
                                             {/if}
                                         </div>
-                                        <div class="subcat-info">
-                                            <span class="subcat-name">{child.name}</span>
-                                            <span class="subcat-count">{child.product_count || 0} produktov</span>
-                                        </div>
+                                        <span class="subcat-name">{child.name}</span>
                                     </a>
                                 {/each}
                             </div>
@@ -339,16 +335,15 @@
 .content { min-width: 0; }
 .section-title { font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px; }
 
-.subcategories { margin-bottom: 32px; }
-.subcategories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-.subcat-card { display: flex; flex-direction: column; background: #fff; border-radius: 12px; text-decoration: none; transition: all 0.2s; border: 1px solid #e5e7eb; overflow: hidden; }
-.subcat-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.12); transform: translateY(-4px); border-color: #c4956a; }
-.subcat-image { aspect-ratio: 1; background: #f9fafb; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.subcategories { margin-bottom: 24px; }
+.subcategories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.subcat-card { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; text-decoration: none; transition: all 0.2s; }
+.subcat-card:hover { border-color: #c4956a; background: #fef7f0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.subcat-image { width: 40px; height: 40px; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .subcat-image img { width: 100%; height: 100%; object-fit: contain; }
-.subcat-placeholder { font-size: 3rem; opacity: 0.3; }
-.subcat-info { padding: 12px 14px; background: #fff; border-top: 1px solid #f1f5f9; }
-.subcat-name { display: block; font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 4px; line-height: 1.3; }
-.subcat-count { font-size: 11px; color: #6b7280; }
+.subcat-placeholder { font-size: 20px; opacity: 0.3; }
+.subcat-name { font-size: 13px; font-weight: 600; color: #1f2937; line-height: 1.3; }
+.subcat-card:hover .subcat-name { color: #c4956a; }
 
 .products-header { margin-bottom: 16px; }
 .results-count { font-size: 14px; color: #6b7280; }

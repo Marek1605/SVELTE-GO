@@ -231,7 +231,13 @@
                         on:mouseenter={() => handleCategoryMouseEnter(cat)}
                         on:mouseleave={handleCategoryMouseLeave}
                     >
-                        <span class="mp-catnav__item-icon">{cat.icon || getCategoryEmoji(cat.name)}</span>
+                        <span class="mp-catnav__item-img">
+                            {#if cat.image_url}
+                                <img src={cat.image_url} alt="">
+                            {:else}
+                                <span>{cat.icon || getCategoryEmoji(cat.name)}</span>
+                            {/if}
+                        </span>
                         {cat.name}
                     </a>
                 {/each}
@@ -267,7 +273,7 @@
             </div>
         </div>
 
-        <!-- MEGA MENU - dropdown pod kategóriami -->
+        <!-- MEGA MENU - dropdown pod kategóriami (profibuy style) -->
         {#if megaMenuOpen && activeCategoryData}
             <div class="mp-mega" on:mouseenter={cancelMegaClose} on:mouseleave={scheduleMegaClose}>
                 <div class="mp-mega__container">
@@ -283,11 +289,14 @@
                                 </div>
                                 <span class="mp-mega__subcat-name">{subcategory.name}</span>
                             </a>
-                            {#if subcategory.grandchildren && subcategory.grandchildren.length > 0}
+                            {#if subcategory.children && subcategory.children.length > 0}
                                 <div class="mp-mega__links">
-                                    {#each subcategory.grandchildren as grandchild}
-                                        <a href={"/kategoria/" + (grandchild.slug || grandchild.id)} class="mp-mega__link">{grandchild.name}</a>
+                                    {#each subcategory.children.slice(0, 8) as grandchild}
+                                        <a href={"/kategoria/" + (grandchild.slug || grandchild.id)} class="mp-mega__link">• {grandchild.name}</a>
                                     {/each}
+                                    {#if subcategory.children.length > 8}
+                                        <a href={"/kategoria/" + (subcategory.slug || subcategory.id)} class="mp-mega__link mp-mega__more">+ ďalšie</a>
+                                    {/if}
                                 </div>
                             {/if}
                         </div>
@@ -413,9 +422,12 @@
 
 .mp-catnav__list { display: flex; gap: 0; flex: 1; overflow-x: auto; scrollbar-width: none; }
 .mp-catnav__list::-webkit-scrollbar { display: none; }
-.mp-catnav__item { display: flex; align-items: center; gap: 6px; padding: 14px 16px; color: #374151; font-weight: 600; font-size: 13px; white-space: nowrap; transition: all 0.15s; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.mp-catnav__item:hover, .mp-catnav__item.is-active { background: #fff5f0; color: #ff6b35; border-bottom-color: #ff6b35; }
-.mp-catnav__item-icon { font-size: 15px; }
+.mp-catnav__item { display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: #374151; font-weight: 600; font-size: 13px; white-space: nowrap; transition: all 0.15s; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.mp-catnav__item:hover, .mp-catnav__item.is-active { background: #fef7f0; color: #c4956a; border-bottom-color: #c4956a; }
+.mp-catnav__item-img { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: #f8fafc; overflow: hidden; flex-shrink: 0; }
+.mp-catnav__item-img img { width: 100%; height: 100%; object-fit: contain; }
+.mp-catnav__item-img span { font-size: 16px; }
+.mp-catnav__item:hover .mp-catnav__item-img { background: #fff5f0; }
 
 .mp-catnav__right { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 12px; padding-left: 12px; border-left: 1px solid #e5e7eb; background: #fff; opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.3s ease; }
 .mp-catnav.is-collapsed .mp-catnav__right { opacity: 1; visibility: visible; pointer-events: auto; }
@@ -460,7 +472,7 @@
 
 .mp-mega__container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 0;
     max-width: 1400px;
     margin: 0 auto;
@@ -470,28 +482,29 @@
 }
 
 .mp-mega__col {
-    padding: 12px;
+    padding: 10px 14px;
     border-right: 1px solid #f3f4f6;
 }
 .mp-mega__col:last-child { border-right: none; }
+.mp-mega__col:nth-child(4n) { border-right: none; }
 
-/* Podkategória s obrázkom */
+/* Podkategória s obrázkom - CPC style */
 .mp-mega__subcat {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    transition: background 0.15s;
-    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: all 0.15s;
+    margin-bottom: 6px;
 }
-.mp-mega__subcat:hover { background: #f8fafc; }
+.mp-mega__subcat:hover { background: #fef7f0; }
 
 .mp-mega__subcat-img {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: #f1f5f9;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    background: #f8fafc;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -501,48 +514,51 @@
 .mp-mega__subcat-img img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 .mp-mega__subcat-img span {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: #94a3b8;
 }
-.mp-mega__subcat:hover .mp-mega__subcat-img span { color: #ff6b35; }
+.mp-mega__subcat:hover .mp-mega__subcat-img { background: #fff5f0; }
 
 .mp-mega__subcat-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #1f2937;
     line-height: 1.3;
 }
-.mp-mega__subcat:hover .mp-mega__subcat-name { color: #ff6b35; }
+.mp-mega__subcat:hover .mp-mega__subcat-name { color: #c4956a; }
 
-/* 3. úroveň - slovné linky */
+/* 3. úroveň - bodkové linky */
 .mp-mega__links {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px 8px;
-    padding-left: 10px;
+    flex-direction: column;
+    gap: 1px;
+    padding-left: 46px;
+    margin-top: -2px;
 }
 
 .mp-mega__link {
     font-size: 12px;
     color: #64748b;
-    padding: 4px 0;
+    padding: 2px 0;
     transition: color 0.15s;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.mp-mega__link:hover { color: #ff6b35; }
-.mp-mega__link::after {
-    content: '•';
-    margin-left: 8px;
-    color: #e2e8f0;
-}
-.mp-mega__link:last-child::after { display: none; }
+.mp-mega__link:hover { color: #c4956a; }
+.mp-mega__more { color: #c4956a; font-weight: 500; }
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
     .mp-mega__container { grid-template-columns: repeat(3, 1fr); }
+    .mp-mega__col:nth-child(3n) { border-right: none; }
+}
+@media (max-width: 900px) {
+    .mp-mega__container { grid-template-columns: repeat(2, 1fr); }
+    .mp-mega__col:nth-child(2n) { border-right: none; }
 }
 @media (max-width: 768px) {
     .mp-mega { display: none; }
