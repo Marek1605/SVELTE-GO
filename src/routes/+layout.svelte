@@ -275,8 +275,8 @@
                         <div class="mp-mega__col">
                             <a href={"/kategoria/" + (subcategory.slug || subcategory.id)} class="mp-mega__subcat">
                                 <div class="mp-mega__subcat-img">
-                                    {#if subcategory.image}
-                                        <img src={subcategory.image} alt="">
+                                    {#if subcategory.image_url}
+                                        <img src={subcategory.image_url} alt="">
                                     {:else}
                                         <span>{getInitial(subcategory.name)}</span>
                                     {/if}
