@@ -471,10 +471,10 @@
 .mp-mega__container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: 12px;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 24px 20px;
+    padding: 16px 20px;
     max-height: 75vh;
     overflow-y: auto;
 }
@@ -483,23 +483,23 @@
     padding: 0;
 }
 
-/* Podkategória - megaprice.sk štýl (zaoblený šedý box) */
+/* Podkategória - kompaktný štýl */
 .mp-mega__subcat {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 10px 12px;
     background: #f5f5f5;
-    border-radius: 12px;
+    border-radius: 10px;
     transition: all 0.2s;
-    margin-bottom: 12px;
+    margin-bottom: 6px;
 }
 .mp-mega__subcat:hover { background: #eeeeee; }
 
 .mp-mega__subcat-img {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
     background: #e8e8e8;
     display: flex;
     align-items: center;
@@ -511,40 +511,40 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    padding: 4px;
+    padding: 3px;
 }
 .mp-mega__subcat-img span {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
     color: #888;
 }
 .mp-mega__subcat:hover .mp-mega__subcat-img { background: #e0e0e0; }
 
 .mp-mega__subcat-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #1f2937;
-    line-height: 1.3;
+    line-height: 1.25;
 }
 .mp-mega__subcat:hover .mp-mega__subcat-name { color: #c4956a; }
 
-/* 3. úroveň - linky pod kategóriou */
+/* 3. úroveň - kompaktné linky */
 .mp-mega__links {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 0 8px 16px 8px;
-    margin-top: -4px;
+    gap: 2px;
+    padding: 0 6px 10px 6px;
+    margin-top: -2px;
 }
 
 .mp-mega__link {
-    font-size: 13px;
+    font-size: 12px;
     color: #6b7280;
-    padding: 4px 8px;
+    padding: 3px 6px;
     transition: all 0.15s;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
 }
 .mp-mega__link::before {
     content: '›';
