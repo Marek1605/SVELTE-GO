@@ -472,7 +472,7 @@
     max-width: 1400px;
     margin: 0 auto;
     padding: 20px 24px;
-    max-height: 80vh;
+    max-height: 50vh;
     overflow-y: auto;
 }
 
@@ -489,7 +489,7 @@
     gap: 12px;
     padding: 4px 0;
     transition: all 0.15s;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 .mp-mega__subcat:hover .mp-mega__subcat-name { color: #c4956a; }
 
@@ -527,14 +527,15 @@
     line-height: 1.2;
 }
 
-/* 3. úroveň - inline linky s bodkami (profibuy štýl) */
+/* 3. úroveň - inline linky s bodkami (všetky s bodkou) */
 .mp-mega__links {
     display: flex;
     flex-wrap: wrap;
+    align-items: flex-start;
     gap: 0;
-    padding: 0;
-    margin-top: 0;
-    line-height: 1.6;
+    padding: 2px 0 6px 0;
+    margin: 0;
+    line-height: 1.7;
 }
 
 .mp-mega__link {
@@ -546,11 +547,8 @@
 }
 .mp-mega__link::before {
     content: '•';
-    color: #d1d5db;
-    margin: 0 6px;
-}
-.mp-mega__link:first-child::before {
-    display: none;
+    color: #9ca3af;
+    margin: 0 5px;
 }
 .mp-mega__link:hover { color: #c4956a; }
 .mp-mega__more { color: #c4956a; font-weight: 500; }
