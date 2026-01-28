@@ -271,7 +271,7 @@
             </div>
         </div>
 
-        <!-- MEGA MENU - megaprice.sk štýl s profibuy štruktúrou -->
+        <!-- MEGA MENU - profibuy.sk štýl s CPC farbami -->
         {#if megaMenuOpen && activeCategoryData}
             <div class="mp-mega" on:mouseenter={cancelMegaClose} on:mouseleave={scheduleMegaClose}>
                 <div class="mp-mega__container">
@@ -289,12 +289,9 @@
                             </a>
                             {#if subcategory.grandchildren && subcategory.grandchildren.length > 0}
                                 <div class="mp-mega__links">
-                                    {#each subcategory.grandchildren.slice(0, 6) as grandchild}
+                                    {#each subcategory.grandchildren.slice(0, 10) as grandchild}
                                         <a href={"/kategoria/" + (grandchild.slug || grandchild.id)} class="mp-mega__link">{grandchild.name}</a>
                                     {/each}
-                                    {#if subcategory.grandchildren.length > 6}
-                                        <a href={"/kategoria/" + (subcategory.slug || subcategory.id)} class="mp-mega__link mp-mega__more">ďalšie...</a>
-                                    {/if}
                                 </div>
                             {/if}
                         </div>
@@ -471,36 +468,34 @@
 .mp-mega__container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    gap: 8px 16px;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 16px 20px;
-    max-height: 75vh;
+    padding: 20px 24px;
+    max-height: 80vh;
     overflow-y: auto;
 }
 
 .mp-mega__col {
-    padding: 0;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
 }
+.mp-mega__col:nth-last-child(-n+4) { border-bottom: none; }
 
-/* Podkategória - kompaktný štýl */
+/* Podkategória - profibuy štýl (bez pozadia) */
 .mp-mega__subcat {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    background: #f5f5f5;
-    border-radius: 10px;
-    transition: all 0.2s;
+    gap: 12px;
+    padding: 4px 0;
+    transition: all 0.15s;
     margin-bottom: 6px;
 }
-.mp-mega__subcat:hover { background: #eeeeee; }
+.mp-mega__subcat:hover .mp-mega__subcat-name { color: #c4956a; }
 
 .mp-mega__subcat-img {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    background: #e8e8e8;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -511,50 +506,54 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    padding: 3px;
 }
 .mp-mega__subcat-img span {
-    font-size: 15px;
-    font-weight: 700;
-    color: #888;
+    font-size: 14px;
+    font-weight: 600;
+    color: #9ca3af;
+    width: 36px;
+    height: 36px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.mp-mega__subcat:hover .mp-mega__subcat-img { background: #e0e0e0; }
 
 .mp-mega__subcat-name {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     color: #1f2937;
-    line-height: 1.25;
+    line-height: 1.2;
 }
-.mp-mega__subcat:hover .mp-mega__subcat-name { color: #c4956a; }
 
-/* 3. úroveň - kompaktné linky */
+/* 3. úroveň - inline linky s bodkami (profibuy štýl) */
 .mp-mega__links {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 0 6px 10px 6px;
-    margin-top: -2px;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 0;
+    margin-top: 0;
+    line-height: 1.6;
 }
 
 .mp-mega__link {
     font-size: 12px;
     color: #6b7280;
-    padding: 3px 6px;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    padding: 0;
+    transition: color 0.15s;
+    white-space: nowrap;
 }
 .mp-mega__link::before {
-    content: '›';
+    content: '•';
     color: #d1d5db;
-    font-weight: bold;
+    margin: 0 6px;
+}
+.mp-mega__link:first-child::before {
+    display: none;
 }
 .mp-mega__link:hover { color: #c4956a; }
-.mp-mega__link:hover::before { color: #c4956a; }
 .mp-mega__more { color: #c4956a; font-weight: 500; }
-.mp-mega__more::before { content: '+'; }
 
 @media (max-width: 1200px) {
     .mp-mega__container { grid-template-columns: repeat(3, 1fr); }
