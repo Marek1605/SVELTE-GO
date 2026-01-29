@@ -129,6 +129,10 @@
                         <span class="mkma-nav-icon">📋</span>
                         <span class="mkma-nav-text">Reporty</span>
                     </a>
+                    <a href="/vendor-dashboard/analytika" class="mkma-nav-item" class:active={currentPath.includes('/analytika')} on:click={() => sidebarOpen = false}>
+                        <span class="mkma-nav-icon">🎯</span>
+                        <span class="mkma-nav-text">Analytika & Konverzie</span>
+                    </a>
                 </div>
                 
                 <div class="mkma-nav-divider"></div>
