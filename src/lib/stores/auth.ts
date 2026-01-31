@@ -95,7 +95,6 @@ function createAuthStore() {
                 if (browser) {
                     localStorage.setItem('vendor_token', data.data.token);
                     if (rememberMe) {
-                        // Token expires in 30 days if remember me, otherwise 24 hours
                         localStorage.setItem('vendor_token_expires', String(Date.now() + (rememberMe ? 30 : 1) * 24 * 60 * 60 * 1000));
                     }
                 }
@@ -129,11 +128,22 @@ function createAuthStore() {
     }): Promise<{ success: boolean; error?: string }> {
         const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
         
+        // Map frontend fields to backend expected fields
+        const fullName = `${data.first_name} ${data.last_name}`.trim();
+        
         try {
             const res = await fetch(`${API_BASE}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify({
+                    email: data.email,
+                    password: data.password,
+                    name: fullName,                    // Pre stĺpec "name" v DB
+                    company_name: data.shop_name,     // Použijeme shop_name ako company_name
+                    contact_person: fullName,         // Kontaktná osoba
+                    shop_name: data.shop_name,
+                    shop_url: data.shop_url
+                })
             });
             
             const result = await res.json();
