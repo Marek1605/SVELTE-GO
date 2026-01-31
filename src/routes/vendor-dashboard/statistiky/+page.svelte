@@ -2,480 +2,449 @@
     import { getContext, onMount } from 'svelte';
     import { browser } from '$app/environment';
     
+    const vendorStore = getContext('vendor');
     const shopStore = getContext('shop');
     const API_BASE = getContext('API_BASE');
     
+    $: vendor = $vendorStore;
     $: shop = $shopStore;
     
     let loading = true;
-    let period = '7';
-    let activeMetric = 'views';
-    
-    let stats = {
-        total_views: 0,
-        total_clicks: 0,
-        total_conversions: 0,
-        total_revenue: 0,
-        ctr: 0,
-        conversion_rate: 0,
-        views_change: 12.5,
-        clicks_change: 8.3,
-        conversions_change: 15.2,
-        revenue_change: 23.1
-    };
-    
-    let dailyData = [];
+    let period = '30days';
+    let clicksByDay = [];
     let topProducts = [];
+    
+    // Overview stats
+    let stats = {
+        totalClicks: 0,
+        totalCost: 0,
+        avgCpc: 0.05,
+        conversions: 0,
+        conversionRate: 0
+    };
     
     onMount(async () => {
         if (!browser) return;
-        await loadStats();
-        loading = false;
+        await loadData();
     });
     
-    async function loadStats() {
+    async function loadData() {
+        loading = true;
         const token = localStorage.getItem('vendor_token');
         if (!token) return;
         
         try {
-            const res = await fetch(`${API_BASE}/vendor/statistics?period=${period}`, {
+            // Load overview stats
+            const statsRes = await fetch(`${API_BASE}/vendor/stats`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const data = await res.json();
-            if (data.success && data.data) {
-                stats = { ...stats, ...data.data };
-                dailyData = data.data.daily || generateSampleData();
-                topProducts = data.data.top_products || [];
-            } else {
-                dailyData = generateSampleData();
+            const statsData = await statsRes.json();
+            if (statsData.success && statsData.data) {
+                stats = { ...stats, ...statsData.data };
+            }
+            
+            // Load detailed stats
+            const detailRes = await fetch(`${API_BASE}/vendor/statistics?period=${period}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const detailData = await detailRes.json();
+            if (detailData.success && detailData.data) {
+                clicksByDay = detailData.data.clicks_by_day || [];
+                topProducts = detailData.data.top_products || [];
             }
         } catch (e) {
-            console.log('Statistics endpoint not available, using sample data');
-            dailyData = generateSampleData();
+            console.error('Error loading stats:', e);
         }
-    }
-    
-    function generateSampleData() {
-        const data = [];
-        const days = parseInt(period);
-        for (let i = days - 1; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            data.push({
-                date: date.toISOString().split('T')[0],
-                views: Math.floor(Math.random() * 500) + 100,
-                clicks: Math.floor(Math.random() * 50) + 10,
-                conversions: Math.floor(Math.random() * 10),
-                revenue: Math.floor(Math.random() * 500) + 50
-            });
-        }
-        return data;
+        loading = false;
     }
     
     function formatNumber(num, decimals = 0) {
         return (num || 0).toLocaleString('sk-SK', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
     
-    function formatDate(dateStr) {
-        return new Date(dateStr).toLocaleDateString('sk-SK', { day: 'numeric', month: 'short' });
-    }
-    
-    function getMaxValue(metric) {
-        if (!dailyData.length) return 100;
-        return Math.max(...dailyData.map(d => d[metric])) || 100;
-    }
-    
-    function getBarHeight(value, metric) {
-        const max = getMaxValue(metric);
-        return Math.max((value / max) * 100, 2);
-    }
-    
-    async function changePeriod(newPeriod) {
+    function changePeriod(newPeriod) {
         period = newPeriod;
-        loading = true;
-        await loadStats();
-        loading = false;
+        loadData();
     }
+    
+    // Calculate chart data
+    $: maxClicks = Math.max(...clicksByDay.map(d => d.clicks || 0), 1);
 </script>
 
-<div class="stats-page">
-    <!-- Page Header -->
+<div class="stats-container">
     <div class="stats-header">
-        <div class="stats-header-content">
-            <h1>📈 Štatistiky</h1>
-            <p>Podrobné štatistiky výkonu vášho obchodu na MegaPrice.sk</p>
-        </div>
-        <div class="stats-period-selector">
-            <select value={period} on:change={(e) => changePeriod(e.target.value)}>
-                <option value="7">Posledných 7 dní</option>
-                <option value="14">Posledných 14 dní</option>
-                <option value="30">Posledných 30 dní</option>
-                <option value="90">Posledných 90 dní</option>
-            </select>
+        <h1>📈 Štatistiky</h1>
+        <div class="period-selector">
+            <button class:active={period === '7days'} on:click={() => changePeriod('7days')}>7 dní</button>
+            <button class:active={period === '30days'} on:click={() => changePeriod('30days')}>30 dní</button>
+            <button class:active={period === '90days'} on:click={() => changePeriod('90days')}>90 dní</button>
+            <button class:active={period === 'year'} on:click={() => changePeriod('year')}>Rok</button>
         </div>
     </div>
     
-    <!-- Main Stats Cards -->
-    <div class="stats-cards">
-        <div class="stats-card">
-            <div class="stats-card-header">
-                <span class="stats-card-icon">👁️</span>
-                <span class="stats-card-label">Zobrazenia</span>
+    {#if loading}
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Načítavam štatistiky...</p>
+        </div>
+    {:else}
+        <!-- Overview Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👆</div>
+                <div class="stat-content">
+                    <span class="stat-value">{formatNumber(stats.totalClicks)}</span>
+                    <span class="stat-label">Celkom preklikov</span>
+                </div>
             </div>
-            <div class="stats-card-value">{formatNumber(stats.total_views)}</div>
-            <div class="stats-card-change positive">
-                ↑ {stats.views_change}%
+            <div class="stat-card">
+                <div class="stat-icon">💸</div>
+                <div class="stat-content">
+                    <span class="stat-value">{formatNumber(stats.totalCost, 2)} €</span>
+                    <span class="stat-label">Minutý kredit</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <span class="stat-value">{formatNumber(stats.avgCpc, 3)} €</span>
+                    <span class="stat-label">Priemerný CPC</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-content">
+                    <span class="stat-value">{formatNumber(stats.conversionRate, 1)}%</span>
+                    <span class="stat-label">Konverzia</span>
+                </div>
             </div>
         </div>
         
-        <div class="stats-card">
-            <div class="stats-card-header">
-                <span class="stats-card-icon">👆</span>
-                <span class="stats-card-label">Kliky</span>
-            </div>
-            <div class="stats-card-value">{formatNumber(stats.total_clicks)}</div>
-            <div class="stats-card-change positive">
-                ↑ {stats.clicks_change}% · CTR: {formatNumber(stats.ctr, 1)}%
-            </div>
-        </div>
-        
-        <div class="stats-card stats-card-success">
-            <div class="stats-card-header">
-                <span class="stats-card-icon">✅</span>
-                <span class="stats-card-label">Konverzie</span>
-            </div>
-            <div class="stats-card-value">{formatNumber(stats.total_conversions)}</div>
-            <div class="stats-card-change positive">
-                ↑ {stats.conversions_change}% · CR: {formatNumber(stats.conversion_rate, 1)}%
-            </div>
-        </div>
-        
-        <div class="stats-card stats-card-revenue">
-            <div class="stats-card-header">
-                <span class="stats-card-icon">💰</span>
-                <span class="stats-card-label">Tržby</span>
-            </div>
-            <div class="stats-card-value">{formatNumber(stats.total_revenue, 2)} €</div>
-            <div class="stats-card-change positive">
-                ↑ {stats.revenue_change}%
-            </div>
-        </div>
-    </div>
-    
-    <!-- Trend Chart -->
-    <div class="stats-section">
-        <div class="stats-section-header">
-            <h3>📊 Graf trendov</h3>
-            <div class="stats-metric-tabs">
-                <button class="stats-metric-tab" class:active={activeMetric === 'views'} on:click={() => activeMetric = 'views'}>
-                    Zobrazenia
-                </button>
-                <button class="stats-metric-tab" class:active={activeMetric === 'clicks'} on:click={() => activeMetric = 'clicks'}>
-                    Kliky
-                </button>
-                <button class="stats-metric-tab" class:active={activeMetric === 'conversions'} on:click={() => activeMetric = 'conversions'}>
-                    Konverzie
-                </button>
-                <button class="stats-metric-tab" class:active={activeMetric === 'revenue'} on:click={() => activeMetric = 'revenue'}>
-                    Tržby
-                </button>
-            </div>
-        </div>
-        <div class="stats-section-body">
-            {#if loading}
-                <div class="stats-loading">Načítavam...</div>
-            {:else}
-                <div class="stats-chart">
-                    <div class="stats-chart-bars">
-                        {#each dailyData as day}
-                            <div class="stats-bar-container">
-                                <div 
-                                    class="stats-bar" 
-                                    style="height: {getBarHeight(day[activeMetric], activeMetric)}%"
-                                    title="{formatDate(day.date)}: {formatNumber(day[activeMetric], activeMetric === 'revenue' ? 2 : 0)}{activeMetric === 'revenue' ? ' €' : ''}"
-                                ></div>
-                                <span class="stats-bar-label">{formatDate(day.date)}</span>
+        <!-- Clicks Chart -->
+        <div class="chart-section">
+            <h2>Prekliky za obdobie</h2>
+            <div class="chart-container">
+                {#if clicksByDay.length === 0}
+                    <div class="no-data">
+                        <span class="no-data-icon">📊</span>
+                        <p>Zatiaľ žiadne dáta</p>
+                    </div>
+                {:else}
+                    <div class="bar-chart">
+                        {#each clicksByDay as day}
+                            <div class="bar-item">
+                                <div class="bar-wrapper">
+                                    <div 
+                                        class="bar" 
+                                        style="height: {(day.clicks / maxClicks) * 100}%"
+                                        title="{day.day}: {day.clicks} klikov, {formatNumber(day.cost, 2)} €"
+                                    ></div>
+                                </div>
+                                <span class="bar-label">{day.day?.split('-')[2] || ''}</span>
                             </div>
                         {/each}
                     </div>
-                </div>
-            {/if}
-        </div>
-    </div>
-    
-    <!-- Two Column Layout -->
-    <div class="stats-two-cols">
-        <!-- Top Products -->
-        <div class="stats-section">
-            <div class="stats-section-header">
-                <h3>📦 Najlepšie produkty</h3>
-                <a href="/vendor-dashboard/produkty" class="stats-link">Zobraziť všetky →</a>
-            </div>
-            <div class="stats-section-body">
-                {#if topProducts.length > 0}
-                    <table class="stats-table">
-                        <thead>
-                            <tr>
-                                <th>Produkt</th>
-                                <th>Zobrazenia</th>
-                                <th>Kliky</th>
-                                <th>Konverzie</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {#each topProducts.slice(0, 5) as product}
-                                <tr>
-                                    <td class="stats-product-name">{product.name}</td>
-                                    <td>{formatNumber(product.views)}</td>
-                                    <td>{formatNumber(product.clicks)}</td>
-                                    <td>{formatNumber(product.conversions)}</td>
-                                </tr>
-                            {/each}
-                        </tbody>
-                    </table>
-                {:else}
-                    <div class="stats-empty">
-                        <p>Zatiaľ žiadne dáta o produktoch</p>
+                    <div class="chart-legend">
+                        <span>Celkom: {formatNumber(clicksByDay.reduce((a, b) => a + (b.clicks || 0), 0))} klikov</span>
+                        <span>Náklady: {formatNumber(clicksByDay.reduce((a, b) => a + (b.cost || 0), 0), 2)} €</span>
                     </div>
                 {/if}
             </div>
         </div>
         
-        <!-- Performance Tips -->
-        <div class="stats-section">
-            <div class="stats-section-header">
-                <h3>💡 Tipy na zlepšenie</h3>
-            </div>
-            <div class="stats-section-body">
-                <div class="stats-tips">
-                    <div class="stats-tip">
-                        <span class="stats-tip-icon">📸</span>
-                        <div class="stats-tip-content">
-                            <strong>Kvalita obrázkov</strong>
-                            <p>Kvalitné obrázky zvyšujú CTR až o 40%</p>
-                        </div>
-                    </div>
-                    <div class="stats-tip">
-                        <span class="stats-tip-icon">💰</span>
-                        <div class="stats-tip-content">
-                            <strong>Konkurenčné ceny</strong>
-                            <p>Monitorujte ceny konkurencie</p>
-                        </div>
-                    </div>
-                    <div class="stats-tip">
-                        <span class="stats-tip-icon">📝</span>
-                        <div class="stats-tip-content">
-                            <strong>Popisy produktov</strong>
-                            <p>Detailné popisy zvyšujú konverzie</p>
-                        </div>
-                    </div>
-                    <div class="stats-tip">
-                        <span class="stats-tip-icon">⭐</span>
-                        <div class="stats-tip-content">
-                            <strong>Recenzie</strong>
-                            <p>Produkty s recenziami majú vyššiu konverziu</p>
-                        </div>
-                    </div>
+        <!-- Top Products -->
+        <div class="table-section">
+            <h2>Top produkty podľa klikov</h2>
+            {#if topProducts.length === 0}
+                <div class="no-data">
+                    <span class="no-data-icon">🛍️</span>
+                    <p>Zatiaľ žiadne produkty</p>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Daily Breakdown Table -->
-    <div class="stats-section">
-        <div class="stats-section-header">
-            <h3>📋 Denný prehľad</h3>
-        </div>
-        <div class="stats-section-body">
-            <div class="stats-table-wrap">
-                <table class="stats-table stats-table-full">
-                    <thead>
-                        <tr>
-                            <th>Dátum</th>
-                            <th>Zobrazenia</th>
-                            <th>Kliky</th>
-                            <th>CTR</th>
-                            <th>Konverzie</th>
-                            <th>CR</th>
-                            <th>Tržby</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {#each dailyData as day}
-                            {@const ctr = day.views > 0 ? (day.clicks / day.views * 100) : 0}
-                            {@const cr = day.clicks > 0 ? (day.conversions / day.clicks * 100) : 0}
+            {:else}
+                <div class="products-table">
+                    <table>
+                        <thead>
                             <tr>
-                                <td>{formatDate(day.date)}</td>
-                                <td>{formatNumber(day.views)}</td>
-                                <td>{formatNumber(day.clicks)}</td>
-                                <td>{formatNumber(ctr, 1)}%</td>
-                                <td>{formatNumber(day.conversions)}</td>
-                                <td>{formatNumber(cr, 1)}%</td>
-                                <td><strong>{formatNumber(day.revenue, 2)} €</strong></td>
+                                <th>Produkt</th>
+                                <th>Kliky</th>
+                                <th>Náklady</th>
+                                <th>CPC</th>
                             </tr>
-                        {/each}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {#each topProducts as product}
+                                <tr>
+                                    <td class="product-cell">
+                                        {#if product.image_url}
+                                            <img src={product.image_url} alt="" class="product-thumb">
+                                        {/if}
+                                        <span class="product-title">{product.title}</span>
+                                    </td>
+                                    <td>{formatNumber(product.clicks)}</td>
+                                    <td>{formatNumber(product.cost, 2)} €</td>
+                                    <td>{product.clicks > 0 ? formatNumber(product.cost / product.clicks, 3) : '0,000'} €</td>
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
+            {/if}
         </div>
-    </div>
+    {/if}
 </div>
 
 <style>
-    .stats-page { max-width: 1200px; margin: 0 auto; }
-    
-    .stats-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-    .stats-header h1 { font-size: 28px; font-weight: 700; color: #1f2937; margin: 0 0 8px; }
-    .stats-header p { color: #6b7280; margin: 0; }
-    
-    .stats-period-selector select {
-        padding: 10px 16px;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        font-size: 14px;
-        background: white;
-        cursor: pointer;
-    }
-    
-    .stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    
-    .stats-card {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    
-    .stats-card-success { border-left: 4px solid #10b981; }
-    .stats-card-revenue { border-left: 4px solid #f59e0b; }
-    
-    .stats-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .stats-card-icon { font-size: 20px; }
-    .stats-card-label { font-size: 13px; color: #6b7280; }
-    .stats-card-value { font-size: 28px; font-weight: 700; color: #1f2937; }
-    .stats-card-change { font-size: 13px; margin-top: 4px; }
-    .stats-card-change.positive { color: #10b981; }
-    
-    .stats-section {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        margin-bottom: 24px;
-        overflow: hidden;
-    }
-    
-    .stats-section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 20px;
-        border-bottom: 1px solid #e5e7eb;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-    
-    .stats-section-header h3 { font-size: 16px; font-weight: 600; margin: 0; }
-    .stats-section-body { padding: 20px; }
-    
-    .stats-link { font-size: 13px; color: #3b82f6; text-decoration: none; }
-    .stats-link:hover { text-decoration: underline; }
-    
-    .stats-metric-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
-    
-    .stats-metric-tab {
-        padding: 6px 12px;
-        background: #f3f4f6;
-        border: none;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .stats-metric-tab:hover { background: #e5e7eb; }
-    .stats-metric-tab.active { background: #3b82f6; color: white; }
-    
-    .stats-loading { text-align: center; padding: 40px; color: #9ca3af; }
-    
-    .stats-chart { padding: 20px 0; }
-    
-    .stats-chart-bars {
-        display: flex;
-        align-items: flex-end;
-        gap: 4px;
-        height: 200px;
-        padding: 0 10px;
-    }
-    
-    .stats-bar-container {
-        flex: 1;
-        display: flex;
+.stats-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.stats-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.period-selector {
+    display: flex;
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 10px;
+}
+
+.period-selector button {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.period-selector button:hover {
+    color: #1f2937;
+}
+
+.period-selector button.active {
+    background: white;
+    color: #3b82f6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.loading {
+    text-align: center;
+    padding: 60px;
+    color: #6b7280;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.stat-icon {
+    font-size: 32px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    display: block;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* Chart Section */
+.chart-section, .table-section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.chart-section h2, .table-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 20px 0;
+}
+
+.chart-container {
+    min-height: 200px;
+}
+
+.no-data {
+    text-align: center;
+    padding: 40px;
+    color: #9ca3af;
+}
+
+.no-data-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+/* Bar Chart */
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 200px;
+    padding: 0 10px;
+}
+
+.bar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+}
+
+.bar-wrapper {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.bar {
+    width: 100%;
+    max-width: 30px;
+    background: linear-gradient(180deg, #3b82f6, #60a5fa);
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: height 0.3s;
+}
+
+.bar:hover {
+    background: linear-gradient(180deg, #2563eb, #3b82f6);
+}
+
+.bar-label {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-top: 4px;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* Table */
+.products-table {
+    overflow-x: auto;
+}
+
+.products-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.products-table th,
+.products-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.products-table th {
+    font-weight: 600;
+    color: #374151;
+    background: #f8fafc;
+}
+
+.product-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.product-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #f1f5f9;
+}
+
+.product-title {
+    font-weight: 500;
+    color: #1f2937;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .stats-header {
         flex-direction: column;
-        align-items: center;
-        height: 100%;
+        align-items: flex-start;
     }
     
-    .stats-bar {
+    .period-selector {
         width: 100%;
-        max-width: 40px;
-        background: linear-gradient(180deg, #3b82f6, #2563eb);
-        border-radius: 4px 4px 0 0;
-        margin-top: auto;
-        transition: height 0.3s ease;
-        cursor: pointer;
+        justify-content: space-between;
     }
     
-    .stats-bar:hover { background: linear-gradient(180deg, #60a5fa, #3b82f6); }
-    
-    .stats-bar-label {
-        font-size: 10px;
-        color: #9ca3af;
-        margin-top: 8px;
-        white-space: nowrap;
+    .bar-chart {
+        overflow-x: auto;
+        padding-bottom: 10px;
     }
-    
-    .stats-two-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-    
-    .stats-table-wrap { overflow-x: auto; }
-    
-    .stats-table { width: 100%; border-collapse: collapse; }
-    
-    .stats-table th, .stats-table td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    
-    .stats-table th { font-weight: 600; color: #374151; background: #f9fafb; font-size: 13px; }
-    .stats-table td { font-size: 14px; }
-    
-    .stats-product-name {
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    
-    .stats-empty { text-align: center; padding: 32px; color: #9ca3af; }
-    
-    .stats-tips { display: flex; flex-direction: column; gap: 12px; }
-    
-    .stats-tip {
-        display: flex;
-        gap: 12px;
-        padding: 12px;
-        background: #f9fafb;
-        border-radius: 8px;
-    }
-    
-    .stats-tip-icon { font-size: 20px; }
-    .stats-tip-content strong { display: block; font-size: 14px; color: #1f2937; margin-bottom: 2px; }
-    .stats-tip-content p { margin: 0; font-size: 13px; color: #6b7280; }
-    
-    @media (max-width: 768px) {
-        .stats-cards { grid-template-columns: 1fr 1fr; }
-        .stats-bar-label { display: none; }
-        .stats-two-cols { grid-template-columns: 1fr; }
-    }
+}
 </style>
