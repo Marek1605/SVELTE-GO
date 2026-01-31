@@ -6,7 +6,7 @@
         { href: '/admin/products', label: 'Produkty', icon: '📦' },
         { href: '/admin/vendors', label: 'Predajcovia', icon: '👥' },
         { href: '/admin/vendor-offers', label: 'Ponuky vendorov', icon: '🏪' },
-        { href: '/admin/offers', label: 'Ponuky predajcov', icon: '🛒' },
+        { href: '/admin/offers', label: 'Feedy predajcov', icon: '📥' },
         { href: '/admin/feeds', label: 'Feed Import', icon: '📥' },
         { href: '/admin/categories', label: 'Kategórie', icon: '📁' },
         { href: '/admin/filters', label: 'Filtre', icon: '🎛️' },

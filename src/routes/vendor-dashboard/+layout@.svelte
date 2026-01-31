@@ -20,6 +20,7 @@
     
     $: vendor = $vendorStore;
     $: shop = $shopStore;
+    $: creditBalance = shop?.credit_balance || 0;
     
     onMount(async () => {
         if (!browser) return;
@@ -62,6 +63,14 @@
     
     function toggleSidebar() {
         sidebarOpen = !sidebarOpen;
+    }
+    
+    function formatCredit(amount) {
+        return new Intl.NumberFormat('sk-SK', { 
+            style: 'currency', 
+            currency: 'EUR',
+            minimumFractionDigits: 2 
+        }).format(amount || 0);
     }
     
     $: currentPath = $page.url.pathname;
@@ -129,17 +138,13 @@
                         <span class="mkma-nav-icon">📋</span>
                         <span class="mkma-nav-text">Reporty</span>
                     </a>
-                    <a href="/vendor-dashboard/analytika" class="mkma-nav-item" class:active={currentPath.includes('/analytika')} on:click={() => sidebarOpen = false}>
-                        <span class="mkma-nav-icon">🎯</span>
-                        <span class="mkma-nav-text">Analytika & Konverzie</span>
-                    </a>
                 </div>
                 
                 <div class="mkma-nav-divider"></div>
                 
                 <!-- Nastavenia -->
                 <div class="mkma-nav-section">
-                    <div class="mkma-nav-section-title">Nastavenia</div>
+                    <div class="mkma-nav-section-title">NASTAVENIA</div>
                     <a href="/vendor-dashboard/moj-ucet" class="mkma-nav-item" class:active={currentPath.includes('/moj-ucet')} on:click={() => sidebarOpen = false}>
                         <span class="mkma-nav-icon">👤</span>
                         <span class="mkma-nav-text">Môj účet</span>
@@ -183,6 +188,35 @@
         </aside>
         
         <main class="mkma-dashboard-content">
+            <!-- STICKY CREDIT HEADER -->
+            <div class="mkma-sticky-header">
+                <div class="mkma-header-left">
+                    <span class="mkma-page-indicator">
+                        {#if isOverview}
+                            📊 Prehľad
+                        {:else if currentPath.includes('/ppc')}
+                            💰 PPC & Kredit
+                        {:else if currentPath.includes('/produkty')}
+                            🛍️ Produkty
+                        {:else if currentPath.includes('/statistiky')}
+                            📈 Štatistiky
+                        {:else if currentPath.includes('/reporty')}
+                            📋 Reporty
+                        {:else if currentPath.includes('/moj-ucet')}
+                            👤 Môj účet
+                        {:else if currentPath.includes('/nastavenia-predaja')}
+                            🛒 Nastavenia predaja
+                        {:else if currentPath.includes('/xml-feedy')}
+                            📄 XML Feedy
+                        {/if}
+                    </span>
+                </div>
+                <a href="/vendor-dashboard/ppc" class="mkma-credit-badge" class:low={creditBalance < 5}>
+                    <span class="mkma-credit-label">Aktuálny kredit:</span>
+                    <span class="mkma-credit-value">{formatCredit(creditBalance)}</span>
+                </a>
+            </div>
+            
             <div class="mkma-dashboard-inner">
                 <slot />
             </div>
@@ -445,11 +479,84 @@
         flex: 1;
         margin-left: 280px;
         min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* STICKY CREDIT HEADER */
+    .mkma-sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: #fff;
+        border-bottom: 1px solid #E4E7EB;
+        padding: 12px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    
+    .mkma-header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .mkma-page-indicator {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1A202C;
+    }
+    
+    .mkma-credit-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        transition: all 0.2s;
+    }
+    
+    .mkma-credit-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
+    
+    .mkma-credit-badge.low {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        animation: pulse 2s infinite;
+    }
+    
+    .mkma-credit-badge.low:hover {
+        box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.85; }
+    }
+    
+    .mkma-credit-label {
+        font-size: 12px;
+        opacity: 0.9;
+    }
+    
+    .mkma-credit-value {
+        font-size: 18px;
+        font-weight: 700;
     }
     
     .mkma-dashboard-inner {
         padding: 32px;
         max-width: 1400px;
+        flex: 1;
     }
     
     /* Mobile */
@@ -500,8 +607,25 @@
             margin-left: 0;
         }
         
+        .mkma-sticky-header {
+            padding: 12px 16px;
+            padding-left: 70px;
+        }
+        
         .mkma-dashboard-inner {
-            padding: 80px 16px 32px;
+            padding: 24px 16px;
+        }
+        
+        .mkma-credit-badge {
+            padding: 8px 14px;
+        }
+        
+        .mkma-credit-label {
+            display: none;
+        }
+        
+        .mkma-credit-value {
+            font-size: 14px;
         }
     }
 </style>
