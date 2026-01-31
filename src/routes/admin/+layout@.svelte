@@ -18,8 +18,6 @@
     <meta name="robots" content="noindex">
 </svelte:head>
 
-<!-- This resets ALL parent layouts because of @ in filename -->
-
 <div class="admin-wrapper">
     <aside class="sidebar">
         <div class="logo">
