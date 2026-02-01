@@ -69,7 +69,6 @@
                 billing_country: vendor.billing_country || 'SK'
             };
             apiKey = vendor.api_key || '';
-        }
     });
     
     $: if (vendor) {
@@ -79,7 +78,6 @@
             phone: vendor.phone || '',
             email: vendor.email || ''
         };
-    }
     
     async function saveProfile() {
         loading = true;
@@ -103,13 +101,10 @@
                 vendorStore.update(v => ({ ...v, ...formData }));
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri ukladaní' };
-            }
         } catch (e) {
             message = { type: 'error', text: 'Chyba pri komunikácii so serverom' };
-        }
         
         loading = false;
-    }
     
     async function saveBilling() {
         loading = true;
@@ -133,24 +128,19 @@
                 vendorStore.update(v => ({ ...v, ...billingData }));
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri ukladaní' };
-            }
         } catch (e) {
             message = { type: 'error', text: 'Chyba pri komunikácii so serverom' };
-        }
         
         loading = false;
-    }
     
     async function changePassword() {
         if (passwordData.new.length < 6) {
             message = { type: 'error', text: 'Nové heslo musí mať minimálne 6 znakov' };
             return;
-        }
         
         if (passwordData.new !== passwordData.confirm) {
             message = { type: 'error', text: 'Heslá sa nezhodujú' };
             return;
-        }
         
         loading = true;
         message = null;
@@ -176,13 +166,10 @@
                 passwordData = { current: '', new: '', confirm: '' };
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri zmene hesla' };
-            }
         } catch (e) {
             message = { type: 'error', text: 'Chyba pri komunikácii so serverom' };
-        }
         
         loading = false;
-    }
     
     async function saveNotifications() {
         loading = true;
@@ -205,13 +192,10 @@
                 message = { type: 'success', text: 'Nastavenia notifikácií boli uložené' };
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri ukladaní' };
-            }
         } catch (e) {
             message = { type: 'error', text: 'Chyba pri komunikácii so serverom' };
-        }
         
         loading = false;
-    }
     
     async function regenerateApiKey() {
         if (!confirm('Naozaj chcete vygenerovať nový API kľúč? Starý kľúč prestane fungovať.')) return;
@@ -224,7 +208,6 @@
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
-                }
             });
             const data = await res.json();
             
@@ -233,27 +216,15 @@
                 message = { type: 'success', text: 'Nový API kľúč bol vygenerovaný' };
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri generovaní' };
-            }
         } catch (e) {
             message = { type: 'error', text: 'Chyba pri komunikácii so serverom' };
-        }
         
         loading = false;
-    }
     
     function copyApiKey() {
         navigator.clipboard.writeText(apiKey);
         message = { type: 'success', text: 'API kľúč bol skopírovaný' };
-    }
     
-    function getStatusBadge(status) {
-        const badges = {
-            'active': { class: 'success', text: 'Aktívny', icon: '✓' },
-            'pending': { class: 'warning', text: 'Čaká na schválenie', icon: '⏳' },
-            'suspended': { class: 'danger', text: 'Pozastavený', icon: '⚠' }
-        };
-        return badges[status] || badges['pending'];
-    }
 </script>
 
 <div class="account-page">
@@ -297,10 +268,13 @@
                 <div class="status-grid">
                     <div class="status-item">
                         <span class="status-label">Stav</span>
-                        {@const badge = getStatusBadge(vendor?.status)}
-                        <span class="status-badge badge-{badge.class}">
-                            {badge.icon} {badge.text}
-                        </span>
+                        {#if vendor?.status === 'active'}
+                            <span class="status-badge badge-success">✓ Aktívny</span>
+                        {:else if vendor?.status === 'suspended'}
+                            <span class="status-badge badge-danger">⚠ Pozastavený</span>
+                        {:else}
+                            <span class="status-badge badge-warning">⏳ Čaká na schválenie</span>
+                        {/if}
                     </div>
                     
                     <div class="status-item">
@@ -716,7 +690,6 @@
 <style>
     .account-page {
         padding: 0;
-    }
     
     .page-header {
         background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
@@ -724,13 +697,11 @@
         padding: 2rem;
         border-radius: 16px;
         margin-bottom: 1.5rem;
-    }
     
     .header-content {
         display: flex;
         align-items: center;
         gap: 1rem;
-    }
     
     .header-icon {
         width: 56px;
@@ -740,19 +711,16 @@
         display: flex;
         align-items: center;
         justify-content: center;
-    }
     
     .page-header h1 {
         margin: 0;
         font-size: 1.75rem;
         font-weight: 700;
-    }
     
     .subtitle {
         margin: 0.25rem 0 0 0;
         opacity: 0.85;
         font-size: 0.95rem;
-    }
     
     /* Alert */
     .alert {
@@ -763,21 +731,17 @@
         border-radius: 10px;
         margin-bottom: 1.5rem;
         font-weight: 500;
-    }
     
     .alert-success {
         background: #d4edda;
         color: #155724;
-    }
     
     .alert-error {
         background: #f8d7da;
         color: #721c24;
-    }
     
     .alert-icon {
         font-size: 1.25rem;
-    }
     
     .alert-close {
         margin-left: auto;
@@ -787,38 +751,31 @@
         cursor: pointer;
         opacity: 0.5;
         line-height: 1;
-    }
     
     .alert-close:hover {
         opacity: 1;
-    }
     
     /* Layout */
     .account-layout {
         display: grid;
         grid-template-columns: 280px 1fr;
         gap: 1.5rem;
-    }
     
     @media (max-width: 900px) {
         .account-layout {
             grid-template-columns: 1fr;
-        }
-    }
     
     /* Sidebar */
     .account-sidebar {
         display: flex;
         flex-direction: column;
         gap: 1rem;
-    }
     
     .status-card {
         background: white;
         border-radius: 12px;
         padding: 1.25rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
     
     .status-card h3 {
         display: flex;
@@ -827,41 +784,34 @@
         margin: 0 0 1rem 0;
         font-size: 1rem;
         color: #333;
-    }
     
     .status-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 0.75rem;
         margin-bottom: 1rem;
-    }
     
     .status-item {
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
-    }
     
     .status-label {
         font-size: 0.75rem;
         color: #666;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-    }
     
     .status-value {
         font-size: 1.1rem;
         font-weight: 600;
         color: #333;
-    }
     
     .status-value.credit {
         color: #0ea5e9;
-    }
     
     .status-value.small {
         font-size: 0.9rem;
-    }
     
     .status-badge {
         display: inline-flex;
@@ -871,27 +821,22 @@
         border-radius: 6px;
         font-size: 0.75rem;
         font-weight: 600;
-    }
     
     .badge-success {
         background: #d4edda;
         color: #155724;
-    }
     
     .badge-warning {
         background: #fff3cd;
         color: #856404;
-    }
     
     .badge-danger {
         background: #f8d7da;
         color: #721c24;
-    }
     
     .badge-info {
         background: #e3f2fd;
         color: #1565c0;
-    }
     
     .btn-upgrade {
         display: flex;
@@ -907,11 +852,9 @@
         font-weight: 600;
         cursor: pointer;
         text-decoration: none;
-    }
     
     .btn-upgrade:hover {
         background: linear-gradient(135deg, #0284c7, #0369a1);
-    }
     
     /* Navigation */
     .account-nav {
@@ -919,7 +862,6 @@
         border-radius: 12px;
         padding: 0.5rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
     
     .account-nav button {
         display: flex;
@@ -934,36 +876,30 @@
         color: #555;
         cursor: pointer;
         transition: all 0.2s;
-    }
     
     .account-nav button:hover {
         background: #f5f5f5;
         color: #333;
-    }
     
     .account-nav button.active {
         background: #e3f2fd;
         color: #1976d2;
         font-weight: 600;
-    }
     
     /* Content */
     .account-content {
         min-width: 0;
-    }
     
     .card {
         background: white;
         border-radius: 12px;
         padding: 1.5rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
     
     .card-header {
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
         border-bottom: 1px solid #eee;
-    }
     
     .card-header h2 {
         display: flex;
@@ -972,48 +908,39 @@
         margin: 0 0 0.25rem 0;
         font-size: 1.25rem;
         color: #333;
-    }
     
     .card-header p {
         margin: 0;
         color: #666;
         font-size: 0.9rem;
-    }
     
     /* Form */
     .form {
         display: flex;
         flex-direction: column;
         gap: 1.25rem;
-    }
     
     .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
-    }
     
     .form-row.three {
         grid-template-columns: repeat(3, 1fr);
-    }
     
     @media (max-width: 600px) {
         .form-row, .form-row.three {
             grid-template-columns: 1fr;
-        }
-    }
     
     .form-group {
         display: flex;
         flex-direction: column;
         gap: 0.4rem;
-    }
     
     .form-group label {
         font-size: 0.875rem;
         font-weight: 500;
         color: #444;
-    }
     
     .form-group input,
     .form-group select {
@@ -1022,28 +949,23 @@
         border-radius: 8px;
         font-size: 0.95rem;
         transition: border-color 0.2s, box-shadow 0.2s;
-    }
     
     .form-group input:focus,
     .form-group select:focus {
         outline: none;
         border-color: #1976d2;
         box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-    }
     
     .form-group input:disabled {
         background: #f5f5f5;
         color: #888;
-    }
     
     .form-hint {
         font-size: 0.8rem;
         color: #888;
-    }
     
     .form-actions {
         padding-top: 0.5rem;
-    }
     
     /* Buttons */
     .btn {
@@ -1057,31 +979,25 @@
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
-    }
     
     .btn-primary {
         background: #1976d2;
         color: white;
-    }
     
     .btn-primary:hover:not(:disabled) {
         background: #1565c0;
-    }
     
     .btn-secondary {
         background: #f5f5f5;
         color: #333;
         border: 1px solid #ddd;
-    }
     
     .btn-secondary:hover:not(:disabled) {
         background: #eee;
-    }
     
     .btn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-    }
     
     .btn-icon {
         display: flex;
@@ -1094,23 +1010,19 @@
         border-radius: 8px;
         cursor: pointer;
         color: #555;
-    }
     
     .btn-icon:hover {
         background: #eee;
         color: #333;
-    }
     
     .btn-link {
         background: none;
         color: #1976d2;
         padding: 0;
         text-decoration: none;
-    }
     
     .btn-link:hover {
         text-decoration: underline;
-    }
     
     .spinner {
         display: inline-block;
@@ -1120,18 +1032,15 @@
         border-top-color: white;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
-    }
     
     @keyframes spin {
         to { transform: rotate(360deg); }
-    }
     
     /* Toggle List */
     .toggle-list {
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
-    }
     
     .toggle-item {
         display: flex;
@@ -1142,32 +1051,26 @@
         border-radius: 10px;
         cursor: pointer;
         transition: background 0.2s;
-    }
     
     .toggle-item:hover {
         background: #f0f0f0;
-    }
     
     .toggle-info {
         flex: 1;
-    }
     
     .toggle-title {
         display: block;
         font-weight: 600;
         color: #333;
         margin-bottom: 0.15rem;
-    }
     
     .toggle-desc {
         display: block;
         font-size: 0.85rem;
         color: #666;
-    }
     
     .toggle-item input {
         display: none;
-    }
     
     .toggle-switch {
         position: relative;
@@ -1176,7 +1079,6 @@
         background: #ddd;
         border-radius: 13px;
         transition: background 0.2s;
-    }
     
     .toggle-switch::after {
         content: '';
@@ -1189,22 +1091,18 @@
         border-radius: 50%;
         transition: transform 0.2s;
         box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
     
     .toggle-item input:checked + .toggle-switch {
         background: #4caf50;
-    }
     
     .toggle-item input:checked + .toggle-switch::after {
         transform: translateX(22px);
-    }
     
     /* API Section */
     .api-section {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
-    }
     
     .api-key-box label {
         display: block;
@@ -1212,12 +1110,10 @@
         font-weight: 500;
         color: #444;
         margin-bottom: 0.5rem;
-    }
     
     .api-key-input {
         display: flex;
         gap: 0.5rem;
-    }
     
     .api-key-input input {
         flex: 1;
@@ -1227,25 +1123,21 @@
         font-family: monospace;
         font-size: 0.9rem;
         background: #f5f5f5;
-    }
     
     .api-docs {
         background: #f9f9f9;
         border-radius: 10px;
         padding: 1.25rem;
-    }
     
     .api-docs h4 {
         margin: 0 0 0.5rem 0;
         font-size: 1rem;
         color: #333;
-    }
     
     .api-docs > p {
         margin: 0 0 1rem 0;
         font-size: 0.9rem;
         color: #666;
-    }
     
     .endpoint {
         display: flex;
@@ -1255,7 +1147,6 @@
         background: white;
         border-radius: 6px;
         margin-bottom: 0.5rem;
-    }
     
     .endpoint code {
         font-family: monospace;
@@ -1264,14 +1155,11 @@
         background: #e3f2fd;
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
-    }
     
     .endpoint span {
         font-size: 0.85rem;
         color: #666;
-    }
     
     .api-docs .btn-link {
         margin-top: 0.5rem;
-    }
 </style>
