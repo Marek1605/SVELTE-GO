@@ -1,0 +1,33 @@
+{
+	"/": [
+		"src/routes/+page.server.ts"
+	],
+	"/admin": [],
+	"/admin/categories": [],
+	"/admin/feeds": [],
+	"/admin/feeds/new": [],
+	"/admin/filters": [],
+	"/admin/offers": [],
+	"/admin/products": [],
+	"/admin/vendor-offers": [],
+	"/admin/vendors": [],
+	"/hladat": [],
+	"/kategoria/[slug]": [
+		"src/routes/kategoria/[slug]/+page.server.ts"
+	],
+	"/prihlasenie-predajcu": [],
+	"/produkt/[slug]": [
+		"src/routes/produkt/[slug]/+page.server.ts"
+	],
+	"/registracia-predajcu": [],
+	"/vendor-dashboard": [],
+	"/vendor-dashboard/konverzie": [],
+	"/vendor-dashboard/moj-ucet": [],
+	"/vendor-dashboard/nastavenia-predaja": [],
+	"/vendor-dashboard/ppc": [],
+	"/vendor-dashboard/pridat-obchod": [],
+	"/vendor-dashboard/produkty": [],
+	"/vendor-dashboard/reporty": [],
+	"/vendor-dashboard/statistiky": [],
+	"/vendor-dashboard/xml-feedy": []
+}

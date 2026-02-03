@@ -335,14 +335,14 @@
 .content { min-width: 0; }
 .section-title { font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px; }
 
-.subcategories { margin-bottom: 24px; }
-.subcategories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-.subcat-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #f5f5f5; border-radius: 12px; text-decoration: none; transition: all 0.2s; }
-.subcat-card:hover { background: #eeeeee; }
-.subcat-image { width: 44px; height: 44px; background: #e8e8e8; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.subcat-image img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-.subcat-placeholder { font-size: 18px; color: #888; font-weight: 700; }
-.subcat-name { font-size: 14px; font-weight: 600; color: #1f2937; line-height: 1.3; }
+.subcategories { margin-bottom: 20px; }
+.subcategories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.subcat-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; text-decoration: none; transition: all 0.15s; }
+.subcat-card:hover { background: #fff; border-color: #c4956a; box-shadow: 0 2px 8px rgba(196,149,106,0.15); }
+.subcat-image { width: 32px; height: 32px; background: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+.subcat-image img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+.subcat-placeholder { font-size: 14px; color: #aaa; font-weight: 600; }
+.subcat-name { font-size: 13px; font-weight: 500; color: #374151; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .subcat-card:hover .subcat-name { color: #c4956a; }
 
 .products-header { margin-bottom: 16px; }
@@ -385,7 +385,9 @@
 
 @media (max-width: 600px) {
     .category-header h1 { font-size: 24px; }
-    .subcategories-grid { grid-template-columns: repeat(2, 1fr); }
+    .subcategories-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .subcat-card { padding: 8px 10px; }
+    .subcat-name { font-size: 12px; }
     .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .product-content { padding: 12px; }
     .price-value { font-size: 18px; }

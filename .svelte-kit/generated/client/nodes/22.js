@@ -1,0 +1,1 @@
+export { default as component } from "../../../../src/routes/vendor-dashboard/nastavenia-predaja/+page.svelte";
