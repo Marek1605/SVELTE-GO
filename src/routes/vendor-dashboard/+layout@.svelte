@@ -17,9 +17,10 @@
     setContext('API_BASE', API_BASE);
     
     let loading = true;
-    let sidebarOpen = false;
+    let sidebarCollapsed = false;
     let shopDropdownOpen = false;
     let accountDropdownOpen = false;
+    let mobileMenuOpen = false;
     
     $: vendor = $vendorStore;
     $: shop = $shopStore;
@@ -78,359 +79,483 @@
         return new Intl.NumberFormat('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount || 0);
     }
     
-    function toggleSidebar() { sidebarOpen = !sidebarOpen; }
-    
     function closeDropdowns(e) {
-        if (!e.target.closest('.mkv-shop-dropdown') && !e.target.closest('.mkv-account-dropdown')) {
+        if (!e.target.closest('.vp-dropdown')) {
             shopDropdownOpen = false;
             accountDropdownOpen = false;
         }
     }
     
     $: currentPath = $page.url.pathname;
-    $: isOverview = currentPath === '/vendor-dashboard' || currentPath === '/vendor-dashboard/';
+    
+    // Page titles mapping
+    $: pageTitle = getPageTitle(currentPath);
+    
+    function getPageTitle(path) {
+        if (path === '/vendor-dashboard' || path === '/vendor-dashboard/') return 'Prehľad';
+        if (path.includes('/produkty')) return 'Produkty';
+        if (path.includes('/ppc')) return 'PPC & Kredit';
+        if (path.includes('/statistiky')) return 'Štatistiky';
+        if (path.includes('/konverzie')) return 'Konverzie';
+        if (path.includes('/reporty')) return 'Reporty';
+        if (path.includes('/moj-ucet')) return 'Môj účet';
+        if (path.includes('/nastavenia-predaja')) return 'Nastavenia predaja';
+        if (path.includes('/xml-feedy') || path.includes('/feedy')) return 'XML Feedy';
+        return 'Dashboard';
+    }
     
     const menuItems = [
-        { href: '/vendor-dashboard', label: 'Prehľad', icon: '📊', exact: true },
-        { href: '/vendor-dashboard/produkty', label: 'Produkty', icon: '📦' },
-        { href: '/vendor-dashboard/ppc', label: 'PPC & Kredit', icon: '💰' },
-        { href: '/vendor-dashboard/statistiky', label: 'Štatistiky', icon: '📈' },
-        { href: '/vendor-dashboard/konverzie', label: 'Konverzie', icon: '✅' },
-        { href: '/vendor-dashboard/reporty', label: 'Reporty', icon: '📋' },
+        { href: '/vendor-dashboard', label: 'Prehľad', icon: 'dashboard' },
+        { href: '/vendor-dashboard/produkty', label: 'Produkty', icon: 'inventory' },
+        { href: '/vendor-dashboard/ppc', label: 'PPC & Kredit', icon: 'paid' },
+        { href: '/vendor-dashboard/statistiky', label: 'Štatistiky', icon: 'analytics' },
+        { href: '/vendor-dashboard/konverzie', label: 'Konverzie', icon: 'check_circle' },
+        { href: '/vendor-dashboard/reporty', label: 'Reporty', icon: 'description' },
     ];
     
     const settingsItems = [
-        { href: '/vendor-dashboard/moj-ucet', label: 'Môj účet', icon: '👤' },
-        { href: '/vendor-dashboard/nastavenia-predaja', label: 'Nastavenia predaja', icon: '⚙️' },
-        { href: '/vendor-dashboard/xml-feedy', label: 'XML Feedy', icon: '📄' },
+        { href: '/vendor-dashboard/moj-ucet', label: 'Môj účet', icon: 'person' },
+        { href: '/vendor-dashboard/nastavenia-predaja', label: 'Nastavenia', icon: 'settings' },
+        { href: '/vendor-dashboard/xml-feedy', label: 'XML Feedy', icon: 'rss_feed' },
     ];
+    
+    function isActive(href) {
+        if (href === '/vendor-dashboard') {
+            return currentPath === '/vendor-dashboard' || currentPath === '/vendor-dashboard/';
+        }
+        return currentPath.startsWith(href);
+    }
 </script>
 
 <svelte:head>
-    <title>{shop?.shop_name || 'Vendor Portal'} | MegaPrice</title>
+    <title>{pageTitle} | Vendor Portal</title>
     <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 </svelte:head>
 
 <svelte:window on:click={closeDropdowns} />
 
 {#if loading}
-    <div class="mkv-loading">
-        <div class="mkv-spinner"></div>
-        <p>Načítavam portál...</p>
+    <div class="vp-loading">
+        <div class="vp-loader"></div>
     </div>
 {:else if vendor}
-    <div class="mkv-layout">
-        <!-- TOP HEADER - Heureka style -->
-        <header class="mkv-header">
-            <div class="mkv-header-inner">
-                <div class="mkv-header-left">
-                    <button class="mkv-menu-toggle" on:click={toggleSidebar}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
-                        </svg>
-                    </button>
-                    <a href="/vendor-dashboard" class="mkv-logo">
-                        <span class="mkv-logo-mega">mega</span><span class="mkv-logo-shops">shops</span>
-                    </a>
+    <div class="vp-app" class:collapsed={sidebarCollapsed}>
+        <!-- SIDEBAR -->
+        <aside class="vp-sidebar" class:mobile-open={mobileMenuOpen}>
+            <div class="vp-sidebar-header">
+                <a href="/vendor-dashboard" class="vp-brand">
+                    <div class="vp-brand-icon">
+                        <span class="material-icons-round">storefront</span>
+                    </div>
+                    <div class="vp-brand-text">
+                        <span class="vp-brand-name">MegaShop</span>
+                        <span class="vp-brand-sub">Vendor Portal</span>
+                    </div>
+                </a>
+                <button class="vp-collapse-btn" on:click={() => sidebarCollapsed = !sidebarCollapsed}>
+                    <span class="material-icons-round">{sidebarCollapsed ? 'chevron_right' : 'chevron_left'}</span>
+                </button>
+            </div>
+            
+            <nav class="vp-nav">
+                <div class="vp-nav-group">
+                    {#each menuItems as item}
+                        <a href={item.href} class="vp-nav-item" class:active={isActive(item.href)} on:click={() => mobileMenuOpen = false}>
+                            <span class="material-icons-round">{item.icon}</span>
+                            <span class="vp-nav-label">{item.label}</span>
+                        </a>
+                    {/each}
                 </div>
                 
-                <div class="mkv-header-right">
-                    <!-- CREDIT BADGE - Very Prominent -->
-                    <a href="/vendor-dashboard/ppc" class="mkv-credit-badge" class:low={creditBalance < 5}>
-                        <div class="mkv-credit-icon">💳</div>
-                        <div class="mkv-credit-content">
-                            <span class="mkv-credit-label">Kredit:</span>
-                            <span class="mkv-credit-amount">{formatCredit(creditBalance)} €</span>
-                        </div>
+                <div class="vp-nav-divider"></div>
+                
+                <div class="vp-nav-group">
+                    <div class="vp-nav-title">Nastavenia</div>
+                    {#each settingsItems as item}
+                        <a href={item.href} class="vp-nav-item" class:active={isActive(item.href)} on:click={() => mobileMenuOpen = false}>
+                            <span class="material-icons-round">{item.icon}</span>
+                            <span class="vp-nav-label">{item.label}</span>
+                        </a>
+                    {/each}
+                </div>
+            </nav>
+            
+            <div class="vp-sidebar-footer">
+                <button class="vp-logout-btn" on:click={logout}>
+                    <span class="material-icons-round">logout</span>
+                    <span class="vp-nav-label">Odhlásiť sa</span>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- MOBILE OVERLAY -->
+        {#if mobileMenuOpen}
+            <div class="vp-overlay" on:click={() => mobileMenuOpen = false} on:keydown={() => {}} role="button" tabindex="0"></div>
+        {/if}
+        
+        <!-- MAIN CONTENT -->
+        <div class="vp-main">
+            <!-- TOP BAR -->
+            <header class="vp-topbar">
+                <div class="vp-topbar-left">
+                    <button class="vp-mobile-menu" on:click={() => mobileMenuOpen = !mobileMenuOpen}>
+                        <span class="material-icons-round">menu</span>
+                    </button>
+                    <h1 class="vp-page-title">{pageTitle}</h1>
+                </div>
+                
+                <div class="vp-topbar-right">
+                    <!-- Credit -->
+                    <a href="/vendor-dashboard/ppc" class="vp-credit" class:low={creditBalance < 5}>
+                        <span class="material-icons-round">account_balance_wallet</span>
+                        <span class="vp-credit-value">{formatCredit(creditBalance)} €</span>
                     </a>
                     
                     <!-- Shop Switcher -->
-                    <div class="mkv-shop-dropdown">
-                        <button class="mkv-shop-btn" on:click|stopPropagation={() => shopDropdownOpen = !shopDropdownOpen}>
-                            <span class="mkv-shop-name">{shop?.shop_name || 'Môj obchod'}</span>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
+                    <div class="vp-dropdown">
+                        <button class="vp-shop-btn" on:click|stopPropagation={() => shopDropdownOpen = !shopDropdownOpen}>
+                            <span class="vp-shop-name">{shop?.shop_name || 'Obchod'}</span>
+                            <span class="material-icons-round">expand_more</span>
                         </button>
-                        
                         {#if shopDropdownOpen}
-                            <div class="mkv-dropdown-menu">
-                                <div class="mkv-dropdown-header">Vaše obchody</div>
+                            <div class="vp-dropdown-menu">
+                                <div class="vp-dropdown-header">Vaše obchody</div>
                                 {#each shops as s}
-                                    <button class="mkv-dropdown-item" class:active={s.id === shop?.id} on:click={() => switchShop(s)}>
-                                        <span class="mkv-shop-icon">🏪</span>
-                                        <div class="mkv-shop-info">
-                                            <span class="mkv-shop-item-name">{s.shop_name}</span>
-                                            <span class="mkv-shop-item-url">{s.shop_url || 'Bez URL'}</span>
-                                        </div>
+                                    <button class="vp-dropdown-item" class:active={s.id === shop?.id} on:click={() => switchShop(s)}>
+                                        <span class="material-icons-round">store</span>
+                                        <span>{s.shop_name}</span>
                                         {#if s.id === shop?.id}
-                                            <svg class="mkv-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            <span class="material-icons-round vp-check">check</span>
                                         {/if}
                                     </button>
                                 {/each}
-                                <div class="mkv-dropdown-divider"></div>
-                                <a href="/vendor-dashboard/pridat-obchod" class="mkv-dropdown-item mkv-add-shop">
-                                    <span>➕</span>
-                                    <span>Pridať nový obchod</span>
+                                <div class="vp-dropdown-divider"></div>
+                                <a href="/vendor-dashboard/pridat-obchod" class="vp-dropdown-item vp-add">
+                                    <span class="material-icons-round">add</span>
+                                    <span>Pridať obchod</span>
                                 </a>
                             </div>
                         {/if}
                     </div>
                     
                     <!-- Account -->
-                    <div class="mkv-account-dropdown">
-                        <button class="mkv-account-btn" on:click|stopPropagation={() => accountDropdownOpen = !accountDropdownOpen}>
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
+                    <div class="vp-dropdown">
+                        <button class="vp-avatar-btn" on:click|stopPropagation={() => accountDropdownOpen = !accountDropdownOpen}>
+                            <span class="vp-avatar">{(vendor.company_name || vendor.email || 'V').charAt(0).toUpperCase()}</span>
                         </button>
-                        
                         {#if accountDropdownOpen}
-                            <div class="mkv-dropdown-menu mkv-account-menu">
-                                <div class="mkv-user-info">
-                                    <div class="mkv-user-avatar">
-                                        {(vendor.company_name || vendor.email || 'V').charAt(0).toUpperCase()}
-                                    </div>
-                                    <div class="mkv-user-details">
-                                        <div class="mkv-user-name">{vendor.company_name || 'Predajca'}</div>
-                                        <div class="mkv-user-email">{vendor.email}</div>
+                            <div class="vp-dropdown-menu vp-account-menu">
+                                <div class="vp-user-info">
+                                    <div class="vp-user-avatar">{(vendor.company_name || vendor.email || 'V').charAt(0).toUpperCase()}</div>
+                                    <div>
+                                        <div class="vp-user-name">{vendor.company_name || 'Predajca'}</div>
+                                        <div class="vp-user-email">{vendor.email}</div>
                                     </div>
                                 </div>
-                                <div class="mkv-dropdown-divider"></div>
-                                <a href="/vendor-dashboard/moj-ucet" class="mkv-dropdown-item">👤 Môj účet</a>
-                                <a href="/vendor-dashboard/nastavenia-predaja" class="mkv-dropdown-item">⚙️ Nastavenia</a>
-                                <div class="mkv-dropdown-divider"></div>
-                                <a href="/" class="mkv-dropdown-item" target="_blank">🌐 Zobraziť web</a>
-                                <div class="mkv-dropdown-divider"></div>
-                                <button class="mkv-dropdown-item mkv-logout" on:click={logout}>🚪 Odhlásiť sa</button>
+                                <div class="vp-dropdown-divider"></div>
+                                <a href="/vendor-dashboard/moj-ucet" class="vp-dropdown-item">
+                                    <span class="material-icons-round">person</span>
+                                    <span>Môj účet</span>
+                                </a>
+                                <a href="/vendor-dashboard/nastavenia-predaja" class="vp-dropdown-item">
+                                    <span class="material-icons-round">settings</span>
+                                    <span>Nastavenia</span>
+                                </a>
+                                <div class="vp-dropdown-divider"></div>
+                                <button class="vp-dropdown-item vp-logout" on:click={logout}>
+                                    <span class="material-icons-round">logout</span>
+                                    <span>Odhlásiť sa</span>
+                                </button>
                             </div>
                         {/if}
                     </div>
                 </div>
-            </div>
-        </header>
-        
-        <!-- Sidebar Overlay -->
-        {#if sidebarOpen}
-            <div class="mkv-overlay" on:click={() => sidebarOpen = false} on:keydown={() => {}} role="button" tabindex="0"></div>
-        {/if}
-        
-        <!-- SIDEBAR -->
-        <aside class="mkv-sidebar" class:open={sidebarOpen}>
-            <nav class="mkv-nav">
-                <div class="mkv-nav-section">
-                    {#each menuItems as item}
-                        <a 
-                            href={item.href} 
-                            class="mkv-nav-item" 
-                            class:active={item.exact ? isOverview : currentPath.startsWith(item.href) && item.href !== '/vendor-dashboard'}
-                            on:click={() => sidebarOpen = false}
-                        >
-                            <span class="mkv-nav-icon">{item.icon}</span>
-                            <span class="mkv-nav-text">{item.label}</span>
-                        </a>
-                    {/each}
-                </div>
-                
-                <div class="mkv-nav-divider"></div>
-                
-                <div class="mkv-nav-section">
-                    <div class="mkv-nav-title">Nastavenia</div>
-                    {#each settingsItems as item}
-                        <a 
-                            href={item.href} 
-                            class="mkv-nav-item" 
-                            class:active={currentPath.startsWith(item.href)}
-                            on:click={() => sidebarOpen = false}
-                        >
-                            <span class="mkv-nav-icon">{item.icon}</span>
-                            <span class="mkv-nav-text">{item.label}</span>
-                        </a>
-                    {/each}
-                </div>
-            </nav>
-        </aside>
-        
-        <!-- MAIN -->
-        <main class="mkv-main">
-            <div class="mkv-content">
+            </header>
+            
+            <!-- PAGE CONTENT -->
+            <div class="vp-content">
                 <slot />
             </div>
-        </main>
+        </div>
     </div>
 {/if}
 
 <style>
     :global(*) { margin: 0; padding: 0; box-sizing: border-box; }
-    :global(body) { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f7fa; }
+    :global(body) { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f8fafc; }
     
-    .mkv-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #f5f7fa; }
-    .mkv-spinner { width: 40px; height: 40px; border: 3px solid #e0e0e0; border-top-color: #0079bf; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    /* LOADING */
+    .vp-loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f8fafc; }
+    .vp-loader { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    .mkv-layout { min-height: 100vh; }
+    /* APP LAYOUT */
+    .vp-app { display: flex; min-height: 100vh; }
     
-    /* HEADER */
-    .mkv-header {
+    /* SIDEBAR */
+    .vp-sidebar {
+        width: 260px;
+        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+        display: flex;
+        flex-direction: column;
         position: fixed;
         top: 0;
         left: 0;
-        right: 0;
-        height: 64px;
-        background: #fff;
-        border-bottom: 1px solid #e5e7eb;
-        z-index: 1000;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        bottom: 0;
+        z-index: 100;
+        transition: width 0.2s ease;
     }
     
-    .mkv-header-inner {
-        max-width: 100%;
-        height: 100%;
+    .vp-app.collapsed .vp-sidebar { width: 72px; }
+    .vp-app.collapsed .vp-brand-text,
+    .vp-app.collapsed .vp-nav-label,
+    .vp-app.collapsed .vp-nav-title { display: none; }
+    .vp-app.collapsed .vp-nav-item { justify-content: center; padding: 12px; }
+    .vp-app.collapsed .vp-sidebar-header { justify-content: center; padding: 16px 12px; }
+    .vp-app.collapsed .vp-collapse-btn { position: static; }
+    
+    .vp-sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .vp-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+    }
+    
+    .vp-brand-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    
+    .vp-brand-icon .material-icons-round { font-size: 22px; }
+    
+    .vp-brand-text { display: flex; flex-direction: column; }
+    .vp-brand-name { font-size: 18px; font-weight: 700; color: #fff; }
+    .vp-brand-sub { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .vp-collapse-btn {
+        width: 28px;
+        height: 28px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        border-radius: 6px;
+        color: #94a3b8;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+    
+    .vp-collapse-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .vp-collapse-btn .material-icons-round { font-size: 18px; }
+    
+    /* NAV */
+    .vp-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+    .vp-nav-group { display: flex; flex-direction: column; gap: 4px; }
+    .vp-nav-title { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 12px 8px; }
+    .vp-nav-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 16px 0; }
+    
+    .vp-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        color: #94a3b8;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.15s;
+    }
+    
+    .vp-nav-item:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+    .vp-nav-item.active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .vp-nav-item .material-icons-round { font-size: 20px; }
+    
+    .vp-sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+    
+    .vp-logout-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 10px 12px;
+        background: none;
+        border: none;
+        color: #94a3b8;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    
+    .vp-logout-btn:hover { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    
+    /* MAIN */
+    .vp-main {
+        flex: 1;
+        margin-left: 260px;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        transition: margin-left 0.2s ease;
+    }
+    
+    .vp-app.collapsed .vp-main { margin-left: 72px; }
+    
+    /* TOPBAR */
+    .vp-topbar {
+        height: 64px;
+        background: #fff;
+        border-bottom: 1px solid #e2e8f0;
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0 24px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
     }
     
-    .mkv-header-left { display: flex; align-items: center; gap: 20px; }
+    .vp-topbar-left { display: flex; align-items: center; gap: 16px; }
     
-    .mkv-menu-toggle {
+    .vp-mobile-menu {
         display: none;
-        background: #f3f4f6;
+        width: 40px;
+        height: 40px;
+        background: #f1f5f9;
         border: none;
-        padding: 8px;
         border-radius: 8px;
+        color: #475569;
         cursor: pointer;
-        color: #374151;
     }
     
-    .mkv-logo { 
-        text-decoration: none; 
-        font-size: 26px; 
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-    }
-    .mkv-logo-mega { color: #10b981; }
-    .mkv-logo-shops { color: #1f2937; }
-    
-    .mkv-header-right { display: flex; align-items: center; gap: 16px; }
-    
-    /* CREDIT BADGE - PROMINENT */
-    .mkv-credit-badge {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 16px 8px 12px;
-        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-        border: 2px solid #10b981;
-        border-radius: 12px;
-        color: #047857;
-        text-decoration: none;
-        transition: all 0.2s;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    .vp-page-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1e293b;
     }
     
-    .mkv-credit-badge:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-    }
+    .vp-topbar-right { display: flex; align-items: center; gap: 12px; }
     
-    .mkv-credit-badge.low {
-        background: linear-gradient(135deg, #fef2f2, #fee2e2);
-        border-color: #ef4444;
-        color: #dc2626;
-        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-    }
-    
-    .mkv-credit-icon { font-size: 24px; }
-    
-    .mkv-credit-content { display: flex; flex-direction: column; line-height: 1.2; }
-    .mkv-credit-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
-    .mkv-credit-amount { font-size: 18px; font-weight: 700; }
-    
-    /* SHOP DROPDOWN */
-    .mkv-shop-dropdown { position: relative; }
-    
-    .mkv-shop-btn {
+    /* CREDIT */
+    .vp-credit {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 14px;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        cursor: pointer;
-        color: #374151;
+        padding: 8px 14px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        color: #059669;
+        text-decoration: none;
+        font-weight: 600;
         font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s;
+        transition: all 0.15s;
     }
     
-    .mkv-shop-btn:hover { background: #f3f4f6; border-color: #d1d5db; }
-    .mkv-shop-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .vp-credit:hover { background: #d1fae5; }
+    .vp-credit .material-icons-round { font-size: 18px; }
     
-    /* ACCOUNT */
-    .mkv-account-dropdown { position: relative; }
+    .vp-credit.low {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+    }
     
-    .mkv-account-btn {
+    /* SHOP BTN */
+    .vp-shop-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        color: #475569;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    
+    .vp-shop-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .vp-shop-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    
+    /* AVATAR */
+    .vp-avatar-btn {
+        width: 40px;
+        height: 40px;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+    }
+    
+    .vp-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 44px;
-        height: 44px;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 50%;
-        cursor: pointer;
-        color: #6b7280;
-        transition: all 0.2s;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
     }
     
-    .mkv-account-btn:hover { background: #f3f4f6; color: #374151; }
+    /* DROPDOWN */
+    .vp-dropdown { position: relative; }
     
-    /* DROPDOWN MENUS */
-    .mkv-dropdown-menu {
+    .vp-dropdown-menu {
         position: absolute;
         top: calc(100% + 8px);
         right: 0;
         background: #fff;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
         box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-        min-width: 260px;
+        min-width: 220px;
         overflow: hidden;
-        z-index: 1001;
+        z-index: 200;
     }
     
-    .mkv-dropdown-header {
-        padding: 12px 16px;
+    .vp-dropdown-header {
+        padding: 10px 14px;
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 600;
+        color: #64748b;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #9ca3af;
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
     }
     
-    .mkv-dropdown-divider { height: 1px; background: #e5e7eb; }
+    .vp-dropdown-divider { height: 1px; background: #e2e8f0; }
     
-    .mkv-dropdown-item {
+    .vp-dropdown-item {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        color: #374151;
+        gap: 10px;
+        padding: 10px 14px;
+        color: #475569;
         text-decoration: none;
         font-size: 14px;
         cursor: pointer;
@@ -441,95 +566,81 @@
         transition: all 0.15s;
     }
     
-    .mkv-dropdown-item:hover { background: #f9fafb; color: #0079bf; }
-    .mkv-dropdown-item.active { background: #f0f9ff; color: #0079bf; font-weight: 500; }
-    .mkv-dropdown-item.mkv-logout { color: #dc2626; }
-    .mkv-dropdown-item.mkv-logout:hover { background: #fef2f2; }
-    .mkv-dropdown-item.mkv-add-shop { color: #0079bf; font-weight: 500; }
+    .vp-dropdown-item:hover { background: #f8fafc; color: #1e293b; }
+    .vp-dropdown-item.active { background: #eff6ff; color: #3b82f6; }
+    .vp-dropdown-item .material-icons-round { font-size: 18px; }
+    .vp-dropdown-item .vp-check { margin-left: auto; color: #3b82f6; }
+    .vp-dropdown-item.vp-add { color: #3b82f6; font-weight: 500; }
+    .vp-dropdown-item.vp-logout { color: #dc2626; }
+    .vp-dropdown-item.vp-logout:hover { background: #fef2f2; }
     
-    .mkv-shop-icon { font-size: 18px; }
-    .mkv-shop-info { flex: 1; display: flex; flex-direction: column; }
-    .mkv-shop-item-name { font-weight: 500; color: #1f2937; }
-    .mkv-shop-item-url { font-size: 12px; color: #9ca3af; }
-    .mkv-check { color: #0079bf; }
-    
-    .mkv-user-info { display: flex; align-items: center; gap: 12px; padding: 16px; }
-    .mkv-user-avatar {
-        width: 44px; height: 44px; border-radius: 50%;
-        background: linear-gradient(135deg, #0079bf, #00a8e8);
-        color: #fff;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: 18px;
-    }
-    .mkv-user-details { flex: 1; }
-    .mkv-user-name { font-weight: 600; color: #1f2937; }
-    .mkv-user-email { font-size: 13px; color: #9ca3af; }
-    
-    /* SIDEBAR */
-    .mkv-sidebar {
-        position: fixed;
-        left: 0;
-        top: 64px;
-        width: 260px;
-        height: calc(100vh - 64px);
-        background: #fff;
-        border-right: 1px solid #e5e7eb;
-        overflow-y: auto;
-        z-index: 900;
-        transition: transform 0.3s ease;
+    /* ACCOUNT MENU */
+    .vp-user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
     }
     
-    .mkv-nav { padding: 16px 0; }
-    .mkv-nav-section { margin-bottom: 8px; }
-    .mkv-nav-title {
-        font-size: 11px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.5px; color: #9ca3af; padding: 12px 20px 8px;
+    .vp-user-avatar {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
     }
     
-    .mkv-nav-item {
-        display: flex; align-items: center; gap: 12px;
-        padding: 12px 20px;
-        color: #6b7280;
-        text-decoration: none;
-        font-size: 14px; font-weight: 500;
-        border-left: 3px solid transparent;
-        transition: all 0.15s;
+    .vp-user-name { font-weight: 600; color: #1e293b; }
+    .vp-user-email { font-size: 12px; color: #64748b; }
+    
+    /* CONTENT */
+    .vp-content {
+        flex: 1;
+        padding: 24px;
     }
-    
-    .mkv-nav-item:hover { background: #f9fafb; color: #0079bf; }
-    .mkv-nav-item.active { background: #f0f9ff; color: #0079bf; border-left-color: #0079bf; font-weight: 600; }
-    .mkv-nav-icon { font-size: 18px; width: 24px; text-align: center; }
-    .mkv-nav-divider { height: 1px; background: #e5e7eb; margin: 12px 20px; }
-    
-    .mkv-overlay { display: none; position: fixed; top: 64px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 899; }
-    
-    /* MAIN */
-    .mkv-main {
-        margin-left: 260px;
-        margin-top: 64px;
-        min-height: calc(100vh - 64px);
-        background: #f5f7fa;
-    }
-    
-    .mkv-content { padding: 24px; max-width: 1400px; }
     
     /* MOBILE */
+    .vp-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 90;
+    }
+    
     @media (max-width: 1024px) {
-        .mkv-menu-toggle { display: flex; }
-        .mkv-sidebar { transform: translateX(-100%); }
-        .mkv-sidebar.open { transform: translateX(0); }
-        .mkv-overlay { display: block; }
-        .mkv-main { margin-left: 0; }
-        .mkv-shop-name { max-width: 80px; }
+        .vp-sidebar {
+            transform: translateX(-100%);
+            width: 280px;
+        }
+        
+        .vp-sidebar.mobile-open { transform: translateX(0); }
+        .vp-overlay { display: block; }
+        
+        .vp-main { margin-left: 0; }
+        .vp-app.collapsed .vp-main { margin-left: 0; }
+        
+        .vp-mobile-menu { display: flex; align-items: center; justify-content: center; }
+        .vp-collapse-btn { display: none; }
+        
+        .vp-app.collapsed .vp-sidebar { width: 280px; }
+        .vp-app.collapsed .vp-brand-text,
+        .vp-app.collapsed .vp-nav-label,
+        .vp-app.collapsed .vp-nav-title { display: block; }
+        .vp-app.collapsed .vp-nav-item { justify-content: flex-start; padding: 10px 12px; }
+        .vp-app.collapsed .vp-sidebar-header { justify-content: space-between; padding: 20px 16px; }
     }
     
     @media (max-width: 640px) {
-        .mkv-header-inner { padding: 0 12px; }
-        .mkv-header-right { gap: 8px; }
-        .mkv-credit-badge { padding: 6px 10px 6px 8px; }
-        .mkv-credit-amount { font-size: 15px; }
-        .mkv-credit-label { display: none; }
-        .mkv-content { padding: 16px; }
-        .mkv-logo { font-size: 22px; }
+        .vp-topbar { padding: 0 16px; }
+        .vp-content { padding: 16px; }
+        .vp-page-title { font-size: 18px; }
+        .vp-credit-value { display: none; }
+        .vp-shop-name { max-width: 80px; }
     }
 </style>

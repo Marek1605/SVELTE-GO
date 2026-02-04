@@ -316,7 +316,7 @@
       "_stores.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.D3cqhzpV.css"
+      "_app/immutable/assets/_page.8UcdqEYZ.css"
     ]
   },
   "src/routes/prihlasenie-predajcu/+page.svelte": {
@@ -387,7 +387,7 @@
       "_state.svelte.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout@.CHcftjMx.css"
+      "_app/immutable/assets/_layout@.CcEupuWo.css"
     ]
   },
   "src/routes/vendor-dashboard/+page.svelte": {
