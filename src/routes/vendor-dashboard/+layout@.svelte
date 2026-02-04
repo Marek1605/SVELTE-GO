@@ -18,7 +18,6 @@
     
     let loading = true;
     let shopDropdownOpen = false;
-    let accountDropdownOpen = false;
     let mobileMenuOpen = false;
     
     $: vendor = $vendorStore;
@@ -81,27 +80,10 @@
     function closeDropdowns(e) {
         if (!e.target.closest('.vp-dropdown')) {
             shopDropdownOpen = false;
-            accountDropdownOpen = false;
         }
     }
     
     $: currentPath = $page.url.pathname;
-    
-    // Page titles mapping
-    $: pageTitle = getPageTitle(currentPath);
-    
-    function getPageTitle(path) {
-        if (path === '/vendor-dashboard' || path === '/vendor-dashboard/') return 'Prehľad';
-        if (path.includes('/produkty')) return 'Produkty';
-        if (path.includes('/ppc')) return 'PPC & Kredit';
-        if (path.includes('/statistiky')) return 'Štatistiky';
-        if (path.includes('/konverzie')) return 'Konverzie';
-        if (path.includes('/reporty')) return 'Reporty';
-        if (path.includes('/moj-ucet')) return 'Môj účet';
-        if (path.includes('/nastavenia-predaja')) return 'Nastavenia predaja';
-        if (path.includes('/xml-feedy') || path.includes('/feedy')) return 'XML Feedy';
-        return 'Dashboard';
-    }
     
     const menuItems = [
         { href: '/vendor-dashboard', label: 'Prehľad', icon: 'dashboard' },
@@ -127,7 +109,7 @@
 </script>
 
 <svelte:head>
-    <title>{pageTitle} | Vendor Portal</title>
+    <title>{shop?.shop_name || 'Vendor Portal'} | MegaShop</title>
     <meta name="robots" content="noindex, nofollow">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 </svelte:head>
@@ -190,27 +172,23 @@
             <div class="vp-overlay" on:click={() => mobileMenuOpen = false} on:keydown={() => {}} role="button" tabindex="0"></div>
         {/if}
         
-        <!-- MAIN CONTENT -->
+        <!-- MAIN -->
         <div class="vp-main">
-            <!-- TOP BAR -->
+            <!-- TOPBAR - compact, right aligned -->
             <header class="vp-topbar">
-                <div class="vp-topbar-left">
-                    <button class="vp-mobile-menu" on:click={() => mobileMenuOpen = !mobileMenuOpen}>
-                        <span class="material-icons-round">menu</span>
-                    </button>
-                </div>
+                <button class="vp-mobile-menu" on:click={() => mobileMenuOpen = !mobileMenuOpen}>
+                    <span class="material-icons-round">menu</span>
+                </button>
                 
-                <div class="vp-topbar-right">
-                    <!-- Credit -->
+                <div class="vp-topbar-actions">
                     <a href="/vendor-dashboard/ppc" class="vp-credit" class:low={creditBalance < 5}>
                         <span class="material-icons-round">account_balance_wallet</span>
-                        <span class="vp-credit-value">{formatCredit(creditBalance)} €</span>
+                        <span>{formatCredit(creditBalance)} €</span>
                     </a>
                     
-                    <!-- Shop Switcher -->
                     <div class="vp-dropdown">
                         <button class="vp-shop-btn" on:click|stopPropagation={() => shopDropdownOpen = !shopDropdownOpen}>
-                            <span class="vp-shop-name">{shop?.shop_name || 'Obchod'}</span>
+                            <span>{shop?.shop_name || 'Obchod'}</span>
                             <span class="material-icons-round">expand_more</span>
                         </button>
                         {#if shopDropdownOpen}
@@ -234,41 +212,11 @@
                         {/if}
                     </div>
                     
-                    <!-- Account -->
-                    <div class="vp-dropdown">
-                        <button class="vp-avatar-btn" on:click|stopPropagation={() => accountDropdownOpen = !accountDropdownOpen}>
-                            <span class="vp-avatar">{(vendor.company_name || vendor.email || 'V').charAt(0).toUpperCase()}</span>
-                        </button>
-                        {#if accountDropdownOpen}
-                            <div class="vp-dropdown-menu vp-account-menu">
-                                <div class="vp-user-info">
-                                    <div class="vp-user-avatar">{(vendor.company_name || vendor.email || 'V').charAt(0).toUpperCase()}</div>
-                                    <div>
-                                        <div class="vp-user-name">{vendor.company_name || 'Predajca'}</div>
-                                        <div class="vp-user-email">{vendor.email}</div>
-                                    </div>
-                                </div>
-                                <div class="vp-dropdown-divider"></div>
-                                <a href="/vendor-dashboard/moj-ucet" class="vp-dropdown-item">
-                                    <span class="material-icons-round">person</span>
-                                    <span>Môj účet</span>
-                                </a>
-                                <a href="/vendor-dashboard/nastavenia-predaja" class="vp-dropdown-item">
-                                    <span class="material-icons-round">settings</span>
-                                    <span>Nastavenia</span>
-                                </a>
-                                <div class="vp-dropdown-divider"></div>
-                                <button class="vp-dropdown-item vp-logout" on:click={logout}>
-                                    <span class="material-icons-round">logout</span>
-                                    <span>Odhlásiť sa</span>
-                                </button>
-                            </div>
-                        {/if}
-                    </div>
+                    <div class="vp-avatar">{(vendor.company_name || vendor.email || 'V').charAt(0).toUpperCase()}</div>
                 </div>
             </header>
             
-            <!-- PAGE CONTENT -->
+            <!-- CONTENT - no extra padding -->
             <div class="vp-content">
                 <slot />
             </div>
@@ -280,12 +228,10 @@
     :global(*) { margin: 0; padding: 0; box-sizing: border-box; }
     :global(body) { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f8fafc; }
     
-    /* LOADING */
-    .vp-loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f8fafc; }
-    .vp-loader { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .vp-loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .vp-loader { width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    /* APP LAYOUT */
     .vp-app { display: flex; min-height: 100vh; }
     
     /* SIDEBAR */
@@ -302,10 +248,7 @@
     }
     
     .vp-sidebar-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 16px;
+        padding: 16px;
         border-bottom: 1px solid rgba(255,255,255,0.08);
     }
     
@@ -317,8 +260,8 @@
     }
     
     .vp-brand-icon {
-        width: 40px;
-        height: 40px;
+        width: 38px;
+        height: 38px;
         background: linear-gradient(135deg, #3b82f6, #8b5cf6);
         border-radius: 10px;
         display: flex;
@@ -326,55 +269,51 @@
         justify-content: center;
         color: white;
     }
-    
-    .vp-brand-icon .material-icons-round { font-size: 22px; }
+    .vp-brand-icon .material-icons-round { font-size: 20px; }
     
     .vp-brand-text { display: flex; flex-direction: column; }
-    .vp-brand-name { font-size: 18px; font-weight: 700; color: #fff; }
-    .vp-brand-sub { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .vp-brand-name { font-size: 17px; font-weight: 700; color: #fff; }
+    .vp-brand-sub { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
     
-    /* NAV */
-    .vp-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
-    .vp-nav-group { display: flex; flex-direction: column; gap: 4px; }
-    .vp-nav-title { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 12px 8px; }
-    .vp-nav-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 16px 0; }
+    .vp-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+    .vp-nav-group { display: flex; flex-direction: column; gap: 2px; }
+    .vp-nav-title { font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px 6px; }
+    .vp-nav-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 10px 0; }
     
     .vp-nav-item {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 10px 12px;
+        gap: 10px;
+        padding: 9px 12px;
         color: #94a3b8;
         text-decoration: none;
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         transition: all 0.15s;
     }
-    
-    .vp-nav-item:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
-    .vp-nav-item.active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .vp-nav-item:hover { background: rgba(255,255,255,0.06); color: #e2e8f0; }
+    .vp-nav-item.active { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
     .vp-nav-item .material-icons-round { font-size: 20px; }
     
-    .vp-sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .vp-sidebar-footer { padding: 12px 8px; border-top: 1px solid rgba(255,255,255,0.08); }
     
     .vp-logout-btn {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         width: 100%;
-        padding: 10px 12px;
+        padding: 9px 12px;
         background: none;
         border: none;
         color: #94a3b8;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.15s;
     }
-    
-    .vp-logout-btn:hover { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .vp-logout-btn:hover { background: rgba(239, 68, 68, 0.12); color: #f87171; }
     
     /* MAIN */
     .vp-main {
@@ -387,98 +326,75 @@
     
     /* TOPBAR */
     .vp-topbar {
-        height: 56px;
-        background: #fff;
-        border-bottom: 1px solid #e2e8f0;
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        padding: 0 24px;
-        position: sticky;
-        top: 0;
-        z-index: 50;
+        gap: 12px;
+        padding: 12px 20px;
+        background: #fff;
+        border-bottom: 1px solid #e2e8f0;
     }
-    
-    .vp-topbar-left { display: flex; align-items: center; gap: 16px; }
     
     .vp-mobile-menu {
         display: none;
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         background: #f1f5f9;
         border: none;
         border-radius: 8px;
         color: #475569;
         cursor: pointer;
+        margin-right: auto;
     }
     
-    .vp-topbar-right { display: flex; align-items: center; gap: 12px; }
+    .vp-topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
     
-    /* CREDIT */
     .vp-credit {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 14px;
+        gap: 6px;
+        padding: 7px 12px;
         background: #ecfdf5;
         border: 1px solid #a7f3d0;
         border-radius: 8px;
         color: #059669;
         text-decoration: none;
         font-weight: 600;
-        font-size: 14px;
-        transition: all 0.15s;
+        font-size: 13px;
     }
-    
-    .vp-credit:hover { background: #d1fae5; }
     .vp-credit .material-icons-round { font-size: 18px; }
+    .vp-credit.low { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
     
-    .vp-credit.low {
-        background: #fef2f2;
-        border-color: #fecaca;
-        color: #dc2626;
-    }
-    
-    /* SHOP BTN */
     .vp-shop-btn {
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 8px 12px;
+        gap: 4px;
+        padding: 7px 10px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         color: #475569;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.15s;
     }
-    
-    .vp-shop-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
-    .vp-shop-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    
-    /* AVATAR */
-    .vp-avatar-btn {
-        width: 40px;
-        height: 40px;
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-    }
+    .vp-shop-btn:hover { background: #f1f5f9; }
     
     .vp-avatar {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        border-radius: 10px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-weight: 600;
-        font-size: 16px;
+        font-size: 14px;
     }
     
     /* DROPDOWN */
@@ -486,24 +402,23 @@
     
     .vp-dropdown-menu {
         position: absolute;
-        top: calc(100% + 8px);
+        top: calc(100% + 6px);
         right: 0;
         background: #fff;
         border: 1px solid #e2e8f0;
-        border-radius: 12px;
+        border-radius: 10px;
         box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-        min-width: 220px;
+        min-width: 200px;
         overflow: hidden;
         z-index: 200;
     }
     
     .vp-dropdown-header {
-        padding: 10px 14px;
-        font-size: 11px;
+        padding: 8px 12px;
+        font-size: 10px;
         font-weight: 600;
         color: #64748b;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
         background: #f8fafc;
         border-bottom: 1px solid #e2e8f0;
     }
@@ -513,58 +428,30 @@
     .vp-dropdown-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
+        gap: 8px;
+        padding: 9px 12px;
         color: #475569;
         text-decoration: none;
-        font-size: 14px;
+        font-size: 13px;
         cursor: pointer;
         background: none;
         border: none;
         width: 100%;
         text-align: left;
-        transition: all 0.15s;
     }
-    
-    .vp-dropdown-item:hover { background: #f8fafc; color: #1e293b; }
+    .vp-dropdown-item:hover { background: #f8fafc; }
     .vp-dropdown-item.active { background: #eff6ff; color: #3b82f6; }
     .vp-dropdown-item .material-icons-round { font-size: 18px; }
-    .vp-dropdown-item .vp-check { margin-left: auto; color: #3b82f6; }
+    .vp-dropdown-item .vp-check { margin-left: auto; }
     .vp-dropdown-item.vp-add { color: #3b82f6; font-weight: 500; }
-    .vp-dropdown-item.vp-logout { color: #dc2626; }
-    .vp-dropdown-item.vp-logout:hover { background: #fef2f2; }
-    
-    /* ACCOUNT MENU */
-    .vp-user-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 14px;
-    }
-    
-    .vp-user-avatar {
-        width: 44px;
-        height: 44px;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 18px;
-    }
-    
-    .vp-user-name { font-weight: 600; color: #1e293b; }
-    .vp-user-email { font-size: 12px; color: #64748b; }
     
     /* CONTENT */
     .vp-content {
         flex: 1;
-        padding: 20px 24px;
+        padding: 20px;
     }
     
-    /* MOBILE */
+    /* OVERLAY */
     .vp-overlay {
         display: none;
         position: fixed;
@@ -573,27 +460,18 @@
         z-index: 90;
     }
     
+    /* MOBILE */
     @media (max-width: 1024px) {
-        .vp-sidebar {
-            transform: translateX(-100%);
-            width: 260px;
-        }
-        
+        .vp-sidebar { transform: translateX(-100%); width: 260px; }
         .vp-sidebar.mobile-open { transform: translateX(0); }
         .vp-overlay { display: block; }
-        
         .vp-main { margin-left: 0; }
-        
         .vp-mobile-menu { display: flex; align-items: center; justify-content: center; }
-        
         .vp-topbar { justify-content: space-between; }
     }
     
     @media (max-width: 640px) {
-        .vp-topbar { padding: 0 16px; }
-        .vp-content { padding: 16px; }
-        .vp-page-title { font-size: 18px; }
-        .vp-credit-value { display: none; }
-        .vp-shop-name { max-width: 80px; }
+        .vp-content { padding: 16px 12px; }
+        .vp-topbar { padding: 10px 12px; }
     }
 </style>
