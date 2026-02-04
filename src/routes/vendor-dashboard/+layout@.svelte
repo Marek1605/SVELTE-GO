@@ -85,6 +85,21 @@
     
     $: currentPath = $page.url.pathname;
     
+    $: pageTitle = getPageTitle(currentPath);
+    
+    function getPageTitle(path) {
+        if (path === '/vendor-dashboard' || path === '/vendor-dashboard/') return 'Prehľad';
+        if (path.includes('/produkty')) return 'Produkty';
+        if (path.includes('/ppc')) return 'PPC & Kredit';
+        if (path.includes('/statistiky')) return 'Štatistiky';
+        if (path.includes('/konverzie')) return 'Konverzie';
+        if (path.includes('/reporty')) return 'Reporty';
+        if (path.includes('/moj-ucet')) return 'Môj účet';
+        if (path.includes('/nastavenia')) return 'Nastavenia';
+        if (path.includes('/xml-feedy') || path.includes('/feedy')) return 'XML Feedy';
+        return 'Dashboard';
+    }
+    
     const menuItems = [
         { href: '/vendor-dashboard', label: 'Prehľad', icon: 'dashboard' },
         { href: '/vendor-dashboard/produkty', label: 'Produkty', icon: 'inventory' },
@@ -174,11 +189,14 @@
         
         <!-- MAIN -->
         <div class="vp-main">
-            <!-- TOPBAR - compact, right aligned -->
+            <!-- TOPBAR -->
             <header class="vp-topbar">
-                <button class="vp-mobile-menu" on:click={() => mobileMenuOpen = !mobileMenuOpen}>
-                    <span class="material-icons-round">menu</span>
-                </button>
+                <div class="vp-topbar-left">
+                    <button class="vp-mobile-menu" on:click={() => mobileMenuOpen = !mobileMenuOpen}>
+                        <span class="material-icons-round">menu</span>
+                    </button>
+                    <h1 class="vp-page-title">{pageTitle}</h1>
+                </div>
                 
                 <div class="vp-topbar-actions">
                     <a href="/vendor-dashboard/ppc" class="vp-credit" class:low={creditBalance < 5}>
@@ -328,11 +346,23 @@
     .vp-topbar {
         display: flex;
         align-items: center;
-        justify-content: flex-end;
-        gap: 12px;
+        justify-content: space-between;
         padding: 12px 20px;
         background: #fff;
         border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .vp-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .vp-page-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
     }
     
     .vp-mobile-menu {
@@ -344,7 +374,6 @@
         border-radius: 8px;
         color: #475569;
         cursor: pointer;
-        margin-right: auto;
     }
     
     .vp-topbar-actions {
@@ -467,7 +496,6 @@
         .vp-overlay { display: block; }
         .vp-main { margin-left: 0; }
         .vp-mobile-menu { display: flex; align-items: center; justify-content: center; }
-        .vp-topbar { justify-content: space-between; }
     }
     
     @media (max-width: 640px) {
