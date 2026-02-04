@@ -17,7 +17,6 @@
     setContext('API_BASE', API_BASE);
     
     let loading = true;
-    let sidebarCollapsed = false;
     let shopDropdownOpen = false;
     let accountDropdownOpen = false;
     let mobileMenuOpen = false;
@@ -140,7 +139,7 @@
         <div class="vp-loader"></div>
     </div>
 {:else if vendor}
-    <div class="vp-app" class:collapsed={sidebarCollapsed}>
+    <div class="vp-app">
         <!-- SIDEBAR -->
         <aside class="vp-sidebar" class:mobile-open={mobileMenuOpen}>
             <div class="vp-sidebar-header">
@@ -153,9 +152,6 @@
                         <span class="vp-brand-sub">Vendor Portal</span>
                     </div>
                 </a>
-                <button class="vp-collapse-btn" on:click={() => sidebarCollapsed = !sidebarCollapsed}>
-                    <span class="material-icons-round">{sidebarCollapsed ? 'chevron_right' : 'chevron_left'}</span>
-                </button>
             </div>
             
             <nav class="vp-nav">
@@ -202,7 +198,6 @@
                     <button class="vp-mobile-menu" on:click={() => mobileMenuOpen = !mobileMenuOpen}>
                         <span class="material-icons-round">menu</span>
                     </button>
-                    <h1 class="vp-page-title">{pageTitle}</h1>
                 </div>
                 
                 <div class="vp-topbar-right">
@@ -295,7 +290,7 @@
     
     /* SIDEBAR */
     .vp-sidebar {
-        width: 260px;
+        width: 240px;
         background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
         display: flex;
         flex-direction: column;
@@ -304,16 +299,7 @@
         left: 0;
         bottom: 0;
         z-index: 100;
-        transition: width 0.2s ease;
     }
-    
-    .vp-app.collapsed .vp-sidebar { width: 72px; }
-    .vp-app.collapsed .vp-brand-text,
-    .vp-app.collapsed .vp-nav-label,
-    .vp-app.collapsed .vp-nav-title { display: none; }
-    .vp-app.collapsed .vp-nav-item { justify-content: center; padding: 12px; }
-    .vp-app.collapsed .vp-sidebar-header { justify-content: center; padding: 16px 12px; }
-    .vp-app.collapsed .vp-collapse-btn { position: static; }
     
     .vp-sidebar-header {
         display: flex;
@@ -346,23 +332,6 @@
     .vp-brand-text { display: flex; flex-direction: column; }
     .vp-brand-name { font-size: 18px; font-weight: 700; color: #fff; }
     .vp-brand-sub { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    .vp-collapse-btn {
-        width: 28px;
-        height: 28px;
-        background: rgba(255,255,255,0.1);
-        border: none;
-        border-radius: 6px;
-        color: #94a3b8;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.15s;
-    }
-    
-    .vp-collapse-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
-    .vp-collapse-btn .material-icons-round { font-size: 18px; }
     
     /* NAV */
     .vp-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
@@ -410,23 +379,20 @@
     /* MAIN */
     .vp-main {
         flex: 1;
-        margin-left: 260px;
+        margin-left: 240px;
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-        transition: margin-left 0.2s ease;
     }
-    
-    .vp-app.collapsed .vp-main { margin-left: 72px; }
     
     /* TOPBAR */
     .vp-topbar {
-        height: 64px;
+        height: 56px;
         background: #fff;
         border-bottom: 1px solid #e2e8f0;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-end;
         padding: 0 24px;
         position: sticky;
         top: 0;
@@ -444,12 +410,6 @@
         border-radius: 8px;
         color: #475569;
         cursor: pointer;
-    }
-    
-    .vp-page-title {
-        font-size: 20px;
-        font-weight: 600;
-        color: #1e293b;
     }
     
     .vp-topbar-right { display: flex; align-items: center; gap: 12px; }
@@ -601,7 +561,7 @@
     /* CONTENT */
     .vp-content {
         flex: 1;
-        padding: 24px;
+        padding: 20px 24px;
     }
     
     /* MOBILE */
@@ -616,24 +576,17 @@
     @media (max-width: 1024px) {
         .vp-sidebar {
             transform: translateX(-100%);
-            width: 280px;
+            width: 260px;
         }
         
         .vp-sidebar.mobile-open { transform: translateX(0); }
         .vp-overlay { display: block; }
         
         .vp-main { margin-left: 0; }
-        .vp-app.collapsed .vp-main { margin-left: 0; }
         
         .vp-mobile-menu { display: flex; align-items: center; justify-content: center; }
-        .vp-collapse-btn { display: none; }
         
-        .vp-app.collapsed .vp-sidebar { width: 280px; }
-        .vp-app.collapsed .vp-brand-text,
-        .vp-app.collapsed .vp-nav-label,
-        .vp-app.collapsed .vp-nav-title { display: block; }
-        .vp-app.collapsed .vp-nav-item { justify-content: flex-start; padding: 10px 12px; }
-        .vp-app.collapsed .vp-sidebar-header { justify-content: space-between; padding: 20px 16px; }
+        .vp-topbar { justify-content: space-between; }
     }
     
     @media (max-width: 640px) {
