@@ -87,12 +87,6 @@
         <div class="conv-toast">{toastMessage}</div>
     {/if}
     
-    <!-- Page Header -->
-    <div class="conv-header">
-        <h1>✅ Konverzie & Meranie</h1>
-        <p>Nastavte tracking konverzií a sledujte úspešné predaje z MegaPrice.sk</p>
-    </div>
-    
     <!-- Stats Cards -->
     <div class="conv-stats">
         <div class="conv-stat conv-stat-success">

@@ -242,20 +242,6 @@
 </script>
 
 <div class="account-page">
-    <div class="page-header">
-        <div class="header-content">
-            <div class="header-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-            </div>
-            <div>
-                <h1>Môj účet</h1>
-                <p class="subtitle">Správa vášho účtu a nastavení</p>
-            </div>
-        </div>
-    </div>
     
     {#if message}
         <div class="alert alert-{message.type}">

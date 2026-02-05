@@ -51,11 +51,6 @@
 </script>
 
 <div class="mkma-dashboard-overview">
-    <!-- Minimalist header -->
-    <div class="mkma-page-header-slim">
-        <span class="mkma-welcome">👋 {vendor?.company_name || 'Predajca'}</span>
-    </div>
-    
     <!-- Stats Grid - Biele karty s ikonami -->
     <div class="mkma-stats-grid">
         <div class="mkma-stat-card">
