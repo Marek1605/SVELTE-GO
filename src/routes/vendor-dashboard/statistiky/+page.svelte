@@ -73,7 +73,6 @@
 
 <div class="stats-container">
     <div class="stats-header">
-        <h1>📈 Štatistiky</h1>
         <div class="period-selector">
             <button class:active={period === '7days'} on:click={() => changePeriod('7days')}>7 dní</button>
             <button class:active={period === '30days'} on:click={() => changePeriod('30days')}>30 dní</button>
@@ -201,18 +200,11 @@
 
 .stats-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
     gap: 16px;
-}
-
-.stats-header h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0;
 }
 
 .period-selector {
