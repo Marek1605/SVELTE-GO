@@ -213,10 +213,14 @@
                             <div class="vp-dropdown-menu">
                                 <div class="vp-dropdown-header">Vaše obchody</div>
                                 {#each shops as s}
-                                    <button class="vp-dropdown-item" class:active={s.id === shop?.id} on:click={() => switchShop(s)}>
+                                    <button class="vp-dropdown-item" class:active={s.id === shop?.id} on:click={() => switchShop(s)} disabled={s.shop_status === 'pending' || s.shop_status === 'rejected'}>
                                         <span class="material-icons-round">store</span>
                                         <span>{s.shop_name}</span>
-                                        {#if s.id === shop?.id}
+                                        {#if s.shop_status === 'pending'}
+                                            <span class="vp-shop-status pending">čaká</span>
+                                        {:else if s.shop_status === 'rejected'}
+                                            <span class="vp-shop-status rejected">zamietnutý</span>
+                                        {:else if s.id === shop?.id}
                                             <span class="material-icons-round vp-check">check</span>
                                         {/if}
                                     </button>
@@ -502,4 +506,17 @@
         .vp-content { padding: 16px 12px; }
         .vp-topbar { padding: 10px 12px; }
     }
+    
+    /* Shop status badges */
+    .vp-shop-status {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: auto;
+        text-transform: uppercase;
+    }
+    .vp-shop-status.pending { background: #fef3c7; color: #92400e; }
+    .vp-shop-status.rejected { background: #fee2e2; color: #dc2626; }
+    .vp-dropdown-item:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>

@@ -5,6 +5,7 @@
         { href: '/admin', label: 'Dashboard', icon: '📊' },
         { href: '/admin/products', label: 'Produkty', icon: '📦' },
         { href: '/admin/vendors', label: 'Predajcovia', icon: '👥' },
+        { href: '/admin/pending-shops', label: 'Nové obchody', icon: '⏳' },
         { href: '/admin/vendor-offers', label: 'Ponuky vendorov', icon: '🏪' },
         { href: '/admin/offers', label: 'Feedy predajcov', icon: '📥' },
         { href: '/admin/feeds', label: 'Feed Import', icon: '📥' },
