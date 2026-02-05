@@ -176,7 +176,10 @@
 
 <div class="feeds-container">
     <div class="feeds-header">
-        <div></div>
+        <div>
+            <h1>📄 XML Feedy</h1>
+            <p>Spravujte vaše produktové feedy pre automatický import</p>
+        </div>
         <button class="btn-primary" on:click={() => showNewFeedModal = true}>
             + Pridať feed
         </button>
@@ -344,9 +347,21 @@
 
 .feeds-header {
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin-bottom: 20px;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.feeds-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 8px 0;
+}
+
+.feeds-header p {
+    color: #6b7280;
+    margin: 0;
 }
 
 .message {

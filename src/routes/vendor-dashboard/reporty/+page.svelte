@@ -107,6 +107,7 @@
 
 <div class="reports-container">
     <div class="reports-header">
+        <h1>📋 Reporty</h1>
         <button class="export-btn" on:click={exportCSV}>
             📥 Exportovať CSV
         </button>
@@ -233,9 +234,16 @@
 
 .reports-header {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+}
+
+.reports-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
 }
 
 .export-btn {
