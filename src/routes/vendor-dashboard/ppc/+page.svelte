@@ -161,7 +161,7 @@
 <div class="ppc-container">
     <!-- Header - BEZ duplicitného kreditu -->
     <div class="ppc-header">
-        
+        <h1>💰 PPC & Kredit</h1>
     </div>
     
     {#if message}

@@ -107,6 +107,7 @@
 
 <div class="reports-container">
     <div class="reports-header">
+        <h1>📋 Reporty</h1>
         <button class="export-btn" on:click={exportCSV}>
             📥 Exportovať CSV
         </button>

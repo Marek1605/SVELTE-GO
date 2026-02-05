@@ -73,6 +73,7 @@
 
 <div class="stats-container">
     <div class="stats-header">
+        <h1>📈 Štatistiky</h1>
         <div class="period-selector">
             <button class:active={period === '7days'} on:click={() => changePeriod('7days')}>7 dní</button>
             <button class:active={period === '30days'} on:click={() => changePeriod('30days')}>30 dní</button>

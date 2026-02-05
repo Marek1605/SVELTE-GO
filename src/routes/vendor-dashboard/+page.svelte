@@ -52,6 +52,8 @@
 
 <div class="mkma-dashboard-overview">
     <!-- Minimalist header -->
+    <div class="mkma-page-header-slim">
+        <span class="mkma-welcome">👋 {vendor?.company_name || 'Predajca'}</span>
     </div>
     
     <!-- Stats Grid - Biele karty s ikonami -->
@@ -221,9 +223,11 @@
     }
     
     /* Slim Header */
+    .mkma-page-header-slim {
         margin-bottom: 20px;
     }
     
+    .mkma-welcome {
         font-size: 16px;
         color: #718096;
     }

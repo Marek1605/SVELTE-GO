@@ -177,6 +177,8 @@
 <div class="feeds-container">
     <div class="feeds-header">
         <div>
+            <h1>📄 XML Feedy</h1>
+            <p>Spravujte vaše produktové feedy pre automatický import</p>
         </div>
         <button class="btn-primary" on:click={() => showNewFeedModal = true}>
             + Pridať feed
