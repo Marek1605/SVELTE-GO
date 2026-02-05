@@ -195,6 +195,7 @@
                     <button class="vp-mobile-menu" on:click={() => mobileMenuOpen = !mobileMenuOpen}>
                         <span class="material-icons-round">menu</span>
                     </button>
+                    <h1 class="vp-page-title">{pageTitle}</h1>
                 </div>
                 
                 <div class="vp-topbar-actions">
