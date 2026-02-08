@@ -104,9 +104,10 @@
             });
             const data = await res.json();
             if (data.success) {
-                previewData = data;
-                sourceFields = data.fields || [];
-                if (data.auto_mappings) data.auto_mappings.forEach(m => { fieldMapping[m.target_field] = m.source_field; });
+                const d = data.data || data;
+                previewData = d;
+                sourceFields = d.fields || [];
+                if (d.auto_mappings) d.auto_mappings.forEach(m => { fieldMapping[m.target_field] = m.source_field; });
             } else previewData = { error: data.error };
         } catch (e) { previewData = { error: e.message }; }
         previewLoading = false;
@@ -386,8 +387,8 @@
                                     </select>
                                 </td>
                                 <td class="preview-val">
-                                    {#if fieldMapping[t.key] && previewData?.preview?.[0]}
-                                        {String(previewData.preview[0][fieldMapping[t.key]] || '—').substring(0, 50)}
+                                    {#if fieldMapping[t.key] && previewData?.sample?.[0]}
+                                        {String(previewData.sample[0][fieldMapping[t.key]] || '—').substring(0, 50)}
                                     {:else}
                                         <span class="empty-val">—</span>
                                     {/if}
@@ -396,14 +397,14 @@
                         {/each}
                     </tbody>
                 </table>
-                {#if previewData?.preview?.length}
+                {#if previewData?.sample?.length}
                     <details class="preview-section">
-                        <summary>📋 Ukážka dát ({previewData.preview.length} položiek)</summary>
+                        <summary>📋 Ukážka dát ({previewData.sample.length} položiek)</summary>
                         <div class="preview-wrap">
                             <table>
                                 <thead><tr>{#each sourceFields.slice(0, 8) as f}<th>{f}</th>{/each}</tr></thead>
                                 <tbody>
-                                    {#each previewData.preview.slice(0, 5) as item}
+                                    {#each previewData.sample.slice(0, 5) as item}
                                         <tr>{#each sourceFields.slice(0, 8) as f}<td>{String(item[f] || '').substring(0, 40)}</td>{/each}</tr>
                                     {/each}
                                 </tbody>
