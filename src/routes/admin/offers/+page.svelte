@@ -201,13 +201,14 @@
             <div class="empty">📭 Žiadne feedy<br><button class="btn primary" on:click={() => showNewFeedModal = true}>➕ Pridať</button></div>
         {:else}
             <table>
-                <thead><tr><th>Feed</th><th>Obchod</th><th>Typ</th><th>Stav</th><th>Ponúk</th><th>Import</th><th>Akcie</th></tr></thead>
+                <thead><tr><th>Feed</th><th>Obchod</th><th>Typ</th><th>Režim</th><th>Stav</th><th>Ponúk</th><th>Import</th><th>Akcie</th></tr></thead>
                 <tbody>
                     {#each feeds as f}
                         <tr>
                             <td><strong>{f.name}</strong><br><small>{f.feed_url?.substring(0,40)}...</small></td>
                             <td>{f.shop_name || '—'}</td>
                             <td><span class="badge">{f.feed_type?.toUpperCase()}</span></td>
+                            <td><span class="badge" class:mode-fulltext={f.match_mode === 'fulltext'} class:mode-ean={!f.match_mode || f.match_mode === 'ean'} class:mode-ai={f.match_mode === 'ai'}>{f.match_mode === 'ai' ? '🤖 AI' : f.match_mode === 'fulltext' ? '🔍 Fulltext' : '📦 EAN'}</span></td>
                             <td>{getStatus(f.sync_status)} {f.sync_status}</td>
                             <td>{f.total_offers || 0} {#if f.matched_offers}<span class="green">({f.matched_offers})</span>{/if}</td>
                             <td>{formatDate(f.last_import_at)}</td>
@@ -443,6 +444,9 @@
     td.actions button { margin-right: 4px; }
     
     .badge { background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge.mode-fulltext { background: #fef3c7; color: #92400e; }
+    .badge.mode-ean { background: #dbeafe; color: #1d4ed8; }
+    .badge.mode-ai { background: #d1fae5; color: #065f46; }
     .green { color: #22c55e; }
     .blue { color: #3b82f6; }
     .purple { color: #8b5cf6; }
