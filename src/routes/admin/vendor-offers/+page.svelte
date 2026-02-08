@@ -111,6 +111,47 @@
         } catch (e) { alert('Chyba: ' + e.message); }
     }
 
+    let processing = false;
+    let processMsg = '';
+
+    async function bulkAction(mode) {
+        if (selectedOffers.size === 0) { alert('Vyberte ponuky'); return; }
+        const labels = { ean: 'EAN párovanie', ai: 'AI kategorizáciu', fulltext: 'Fulltext (odpárovať)' };
+        if (!confirm(`Spustiť ${labels[mode]} pre ${selectedOffers.size} ponúk?`)) return;
+        processing = true; processMsg = `Spracovávam ${selectedOffers.size} ponúk (${labels[mode]})...`;
+        try {
+            const res = await fetch(`${API_BASE}/admin/vendor-offers/bulk-action`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ offer_ids: [...selectedOffers], mode })
+            });
+            const data = await res.json();
+            if (data.success) {
+                processMsg = `✅ Hotovo! Spárovaných: ${data.matched || 0}, Nových produktov: ${data.created || 0}, Chýb: ${data.errors || 0}`;
+                await loadOffers();
+            } else { processMsg = '❌ ' + (data.error || 'Chyba'); }
+        } catch (e) { processMsg = '❌ ' + e.message; }
+        processing = false;
+    }
+    async function bulkActionAll(mode) {
+        if (!selectedShop && mode !== 'fulltext') { alert('Najprv vyberte obchod'); return; }
+        const labels = { ean: 'EAN párovanie', ai: 'AI kategorizáciu', fulltext: 'Fulltext (odpárovať)' };
+        const filterDesc = matchFilter === 'unmatched' ? ' nespárovaných' : matchFilter === 'matched' ? ' spárovaných' : '';
+        if (!confirm(`Spustiť ${labels[mode]} pre VŠETKÝCH${filterDesc} ${fmt(total)} ponúk?\n\nToto môže trvať dlhšie.`)) return;
+        processing = true; processMsg = `Spracovávam ${fmt(total)} ponúk (${labels[mode]})...`;
+        try {
+            const res = await fetch(`${API_BASE}/admin/vendor-offers/bulk-action-all`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shop_id: selectedShop, mode, match_filter: matchFilter, status_filter: statusFilter })
+            });
+            const data = await res.json();
+            if (data.success) {
+                processMsg = `✅ Hotovo! Spárovaných: ${data.matched || 0}, Nových: ${data.created || 0}, Chýb: ${data.errors || 0}`;
+                await loadOffers();
+            } else { processMsg = '❌ ' + (data.error || 'Chyba'); }
+        } catch (e) { processMsg = '❌ ' + e.message; }
+        processing = false;
+    }
+
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
     function fmtPrice(p) { return p ? Number(p).toFixed(2).replace('.', ',') + ' €' : '-'; }
     function truncate(s, len = 60) { return s && s.length > len ? s.substring(0, len) + '...' : (s || '-'); }
@@ -158,12 +199,24 @@
         <div class="bulk-row">
             {#if selectedOffers.size > 0}
                 <span class="selected-count">Vybraných: <b>{selectedOffers.size}</b></span>
-                <button class="btn sm red" on:click={bulkDelete}>🗑️ Zmazať vybrané</button>
+                <div class="action-group">
+                    <button class="btn sm ean" on:click={() => bulkAction('ean')} disabled={processing}>📦 EAN párovanie</button>
+                    <button class="btn sm ai" on:click={() => bulkAction('ai')} disabled={processing}>🤖 AI kategorizácia</button>
+                    <button class="btn sm fulltext" on:click={() => bulkAction('fulltext')} disabled={processing}>🔍 Fulltext only</button>
+                </div>
+                <button class="btn sm red" on:click={bulkDelete} disabled={processing}>🗑️ Zmazať</button>
             {/if}
             {#if selectedShop}
-                <button class="btn sm red outline" on:click={bulkDeleteAll}>
-                    🗑️ Zmazať všetky {matchFilter === 'unmatched' ? 'nespárované' : matchFilter === 'matched' ? 'spárované' : ''} ({fmt(total)})
-                </button>
+                <div class="action-group-all">
+                    <span class="all-label">Všetky ({fmt(total)}):</span>
+                    <button class="btn sm ean" on:click={() => bulkActionAll('ean')} disabled={processing}>📦 EAN</button>
+                    <button class="btn sm ai" on:click={() => bulkActionAll('ai')} disabled={processing}>🤖 AI</button>
+                    <button class="btn sm fulltext" on:click={() => bulkActionAll('fulltext')} disabled={processing}>🔍 Fulltext</button>
+                    <button class="btn sm red outline" on:click={bulkDeleteAll} disabled={processing}>🗑️ Zmazať</button>
+                </div>
+            {/if}
+            {#if processMsg}
+                <div class="process-msg" class:done={!processing}>{processMsg}</div>
             {/if}
         </div>
     </div>
@@ -232,7 +285,15 @@
     .btn.blue{background:#3b82f6;color:#fff}.btn.blue:hover{background:#2563eb}
     .btn.red{background:#ef4444;color:#fff}.btn.red:hover{background:#dc2626}
     .btn.outline{background:#fff;border:1px solid #ef4444;color:#ef4444}.btn.outline:hover{background:#fef2f2}
+    .btn.ean{background:#3b82f6;color:#fff}.btn.ean:hover{background:#2563eb}
+    .btn.ai{background:#059669;color:#fff}.btn.ai:hover{background:#047857}
+    .btn.fulltext{background:#d97706;color:#fff}.btn.fulltext:hover{background:#b45309}
     .btn:disabled{opacity:.4;cursor:not-allowed}
+    .action-group{display:flex;gap:6px;padding:4px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px}
+    .action-group-all{display:flex;gap:6px;padding:4px 8px;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;align-items:center}
+    .all-label{font-size:11px;font-weight:600;color:#92400e;white-space:nowrap}
+    .process-msg{font-size:12px;color:#475569;padding:4px 10px;background:#f0f9ff;border-radius:6px;border:1px solid #bae6fd}
+    .process-msg.done{background:#ecfdf5;border-color:#a7f3d0}
     .loading,.error,.empty{text-align:center;padding:40px;color:#64748b;background:#fff;border:1px solid #e2e8f0;border-radius:10px}
     .error{color:#ef4444}
     .table-wrap{overflow-x:auto;background:#fff;border:1px solid #e2e8f0;border-radius:10px}
