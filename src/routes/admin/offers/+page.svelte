@@ -24,7 +24,7 @@
     let importProgress = null;
     let progressInterval = null;
     
-    let newFeed = { shop_id: '', name: '', feed_url: '', feed_type: 'xml', xml_item_path: 'SHOPITEM', csv_delimiter: ';', match_by: 'ean', is_active: true };
+    let newFeed = { shop_id: '', name: '', feed_url: '', feed_type: 'xml', xml_item_path: 'SHOPITEM', csv_delimiter: ';', match_by: 'ean', match_mode: 'ean', is_active: true };
     let newShop = { shop_name: '', shop_url: '', display_mode: 'free', cpc_rate: 0.05 };
     
     const targetFields = [
@@ -67,7 +67,7 @@
                 body: JSON.stringify(newFeed)
             });
             const data = await res.json();
-            if (data.success) { showNewFeedModal = false; newFeed = { shop_id: '', name: '', feed_url: '', feed_type: 'xml', xml_item_path: 'SHOPITEM', csv_delimiter: ';', match_by: 'ean', is_active: true }; await loadData(); }
+            if (data.success) { showNewFeedModal = false; newFeed = { shop_id: '', name: '', feed_url: '', feed_type: 'xml', xml_item_path: 'SHOPITEM', csv_delimiter: ';', match_by: 'ean', match_mode: 'ean', is_active: true }; await loadData(); }
             else alert('Chyba: ' + (data.error || 'Neznáma'));
         } catch (e) { alert('Chyba: ' + e.message); }
     }
@@ -241,6 +241,7 @@
             <div class="row">
                 <label>Typ<select bind:value={newFeed.feed_type}><option value="xml">XML</option><option value="csv">CSV</option><option value="json">JSON</option></select></label>
                 <label>Match<select bind:value={newFeed.match_by}><option value="ean">EAN</option><option value="sku">SKU</option></select></label>
+                <label>Režim<select bind:value={newFeed.match_mode}><option value="fulltext">🔍 Len fulltext</option><option value="ean">📦 EAN + Fuzzy</option><option value="ai">🤖 EAN + Fuzzy + AI</option></select></label>
             </div>
             {#if newFeed.feed_type === 'xml'}
                 <label>XPath<input bind:value={newFeed.xml_item_path} placeholder="SHOP/SHOPITEM">
@@ -266,6 +267,7 @@
             <div class="row">
                 <label>Typ<select bind:value={currentFeed.feed_type}><option value="xml">XML</option><option value="csv">CSV</option><option value="json">JSON</option></select></label>
                 <label>Match<select bind:value={currentFeed.match_by}><option value="ean">EAN</option><option value="sku">SKU</option></select></label>
+                <label>Režim<select bind:value={currentFeed.match_mode}><option value="fulltext">🔍 Len fulltext</option><option value="ean">📦 EAN + Fuzzy</option><option value="ai">🤖 EAN + Fuzzy + AI</option></select></label>
             </div>
             {#if currentFeed.feed_type === 'xml'}<label>XPath<input bind:value={currentFeed.xml_item_path}></label>{/if}
             <label class="check"><input type="checkbox" bind:checked={currentFeed.is_active}> Aktívny</label>
