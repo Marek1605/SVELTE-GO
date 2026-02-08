@@ -177,13 +177,13 @@
         
         try {
             // 1. Update match_mode on feed
-            await fetch(API_BASE + '/api/v1/admin/offer-feeds/' + feed.id, {
+            await fetch(API_BASE + '/admin/offer-feeds/' + feed.id, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...feed, match_mode: mode })
             });
             
             // 2. Start import (uses match_mode from feed)
-            const res = await fetch(API_BASE + '/api/v1/admin/offer-feeds/' + feed.id + '/import', { method: 'POST' });
+            const res = await fetch(API_BASE + '/admin/offer-feeds/' + feed.id + '/import', { method: 'POST' });
             const data = await res.json();
             
             if (data.success) {
@@ -205,7 +205,7 @@
         let polls = 0;
         const interval = setInterval(async () => {
             try {
-                const res = await fetch(API_BASE + '/api/v1/admin/offer-feeds/' + feedId + '/progress');
+                const res = await fetch(API_BASE + '/admin/offer-feeds/' + feedId + '/progress');
                 const data = await res.json();
                 if (data.success && data.data) {
                     const p = data.data;
