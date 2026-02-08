@@ -167,32 +167,62 @@
     }
     
     let feedProcessing = null;
-    let feedResult = {}; // { feedId: 'message' }
+    let feedResult = {};
 
     async function feedAction(feed, mode) {
-        const labels = { ean: 'EAN párovanie', ai: 'AI kategorizáciu', fulltext: 'Fulltext (odpárovať)' };
-        const totalOffers = feed.total_offers || 0;
-        if (totalOffers === 0) {
-            feedResult = { ...feedResult, [feed.id]: '⚠️ Žiadne ponuky – najprv importujte feed (▶)' };
-            return;
-        }
-        if (!confirm(`Spustiť ${labels[mode]} pre ${totalOffers} ponúk feedu "${feed.name}"?`)) return;
+        const labels = { ean: 'EAN párovanie', ai: 'AI kategorizáciu', fulltext: 'Fulltext (len import)' };
+        if (!confirm(`Spustiť import + ${labels[mode]} pre feed "${feed.name}"?`)) return;
         feedProcessing = feed.id;
-        feedResult = { ...feedResult, [feed.id]: `⏳ Spracovávam ${totalOffers} ponúk (${labels[mode]})...` };
+        feedResult = { ...feedResult, [feed.id]: `⏳ Nastavujem režim a spúšťam import...` };
+        
         try {
-            const res = await fetch(GO_API + '/api/v1/admin/vendor-offers/bulk-action-all', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ shop_id: feed.shop_id, mode })
+            // 1. Update match_mode on feed
+            await fetch(GO_API + '/api/v1/admin/offer-feeds/' + feed.id, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...feed, match_mode: mode })
             });
+            
+            // 2. Start import (uses match_mode from feed)
+            const res = await fetch(GO_API + '/api/v1/admin/offer-feeds/' + feed.id + '/import', { method: 'POST' });
             const data = await res.json();
+            
             if (data.success) {
-                feedResult = { ...feedResult, [feed.id]: `✅ Spárovaných: ${data.matched || 0}, Nových: ${data.created || 0}, Chýb: ${data.errors || 0} (z ${data.total || 0})` };
+                feedResult = { ...feedResult, [feed.id]: `⏳ Import beží (režim: ${labels[mode]})...` };
+                // Poll progress
+                pollFeedAction(feed.id, mode);
             } else {
-                feedResult = { ...feedResult, [feed.id]: '❌ ' + (data.error || 'Chyba') };
+                feedResult = { ...feedResult, [feed.id]: '❌ ' + (data.error || 'Chyba pri štarte') };
+                feedProcessing = null;
             }
-        } catch (e) { feedResult = { ...feedResult, [feed.id]: '❌ ' + e.message }; }
-        feedProcessing = null;
-        await loadData();
+        } catch (e) {
+            feedResult = { ...feedResult, [feed.id]: '❌ ' + e.message };
+            feedProcessing = null;
+        }
+    }
+
+    async function pollFeedAction(feedId, mode) {
+        const labels = { ean: 'EAN', ai: 'AI', fulltext: 'Fulltext' };
+        let polls = 0;
+        const interval = setInterval(async () => {
+            try {
+                const res = await fetch(GO_API + '/api/v1/admin/offer-feeds/' + feedId + '/progress');
+                const data = await res.json();
+                if (data.success && data.data) {
+                    const p = data.data;
+                    if (p.status === 'completed' || p.status === 'error' || p.status === 'cancelled') {
+                        feedResult = { ...feedResult, [feedId]: `✅ ${labels[mode]}: ${p.processed || 0} spracovaných, ${p.created || 0} nových, ${p.matched || 0} spárovaných, ${p.errors || 0} chýb` };
+                        feedProcessing = null;
+                        clearInterval(interval);
+                        await loadData();
+                    } else {
+                        const pct = p.percent || 0;
+                        feedResult = { ...feedResult, [feedId]: `⏳ ${labels[mode]}: ${pct}% (${p.processed || 0}/${p.total || '?'}) – ${p.message || ''}` };
+                    }
+                }
+            } catch (e) { /* retry */ }
+            polls++;
+            if (polls > 600) { clearInterval(interval); feedProcessing = null; } // 10min timeout
+        }, 1000);
     }
 
     function formatDate(d) { return d ? new Date(d).toLocaleString('sk-SK') : 'Nikdy'; }
