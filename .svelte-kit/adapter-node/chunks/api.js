@@ -53,6 +53,10 @@ function formatPrice(price) {
 }
 api.deleteAllCategories = () => fetchApi("/admin/categories/all", { method: "DELETE" });
 api.deleteAllProducts = () => fetchApi("/admin/products/all", { method: "DELETE" });
+api.get = (endpoint) => fetchApi(endpoint);
+api.post = (endpoint, data) => fetchApi(endpoint, { method: "POST", body: JSON.stringify(data) });
+api.put = (endpoint, data) => fetchApi(endpoint, { method: "PUT", body: JSON.stringify(data) });
+api.delete = (endpoint) => fetchApi(endpoint, { method: "DELETE" });
 export {
   api as a,
   formatPrice as f

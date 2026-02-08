@@ -1,1 +1,1 @@
-export { default as component } from "../../../../src/routes/vendor-dashboard/xml-feedy/+page.svelte";
+export { default as component } from "../../../../src/routes/vendor-dashboard/reporty/+page.svelte";

@@ -3,11 +3,13 @@
 		"src/routes/+page.server.ts"
 	],
 	"/admin": [],
+	"/admin/ai-settings": [],
 	"/admin/categories": [],
 	"/admin/feeds": [],
 	"/admin/feeds/new": [],
 	"/admin/filters": [],
 	"/admin/offers": [],
+	"/admin/pending-shops": [],
 	"/admin/products": [],
 	"/admin/vendor-offers": [],
 	"/admin/vendors": [],

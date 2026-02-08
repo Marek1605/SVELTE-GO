@@ -11,6 +11,7 @@
         { href: '/admin/feeds', label: 'Feed Import', icon: '📥' },
         { href: '/admin/categories', label: 'Kategórie', icon: '📁' },
         { href: '/admin/filters', label: 'Filtre', icon: '🎛️' },
+        { href: '/admin/ai-settings', label: 'AI Kategorizácia', icon: '🤖' },
     ];
 </script>
 

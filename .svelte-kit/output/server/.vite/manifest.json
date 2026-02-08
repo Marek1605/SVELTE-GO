@@ -182,6 +182,19 @@
       "_app/immutable/assets/_page.dm4t25-O.css"
     ]
   },
+  "src/routes/admin/ai-settings/+page.svelte": {
+    "file": "entries/pages/admin/ai-settings/_page.svelte.js",
+    "name": "entries/pages/admin/ai-settings/_page.svelte",
+    "src": "src/routes/admin/ai-settings/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_api.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.Bmsb_kSq.css"
+    ]
+  },
   "src/routes/admin/categories/+page.svelte": {
     "file": "entries/pages/admin/categories/_page.svelte.js",
     "name": "entries/pages/admin/categories/_page.svelte",
@@ -244,6 +257,18 @@
       "_app/immutable/assets/_page.CxllXuat.css"
     ]
   },
+  "src/routes/admin/pending-shops/+page.svelte": {
+    "file": "entries/pages/admin/pending-shops/_page.svelte.js",
+    "name": "entries/pages/admin/pending-shops/_page.svelte",
+    "src": "src/routes/admin/pending-shops/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.BcqpuVHc.css"
+    ]
+  },
   "src/routes/admin/products/+page.svelte": {
     "file": "entries/pages/admin/products/_page.svelte.js",
     "name": "entries/pages/admin/products/_page.svelte",
@@ -263,9 +288,6 @@
     "isEntry": true,
     "imports": [
       "_ssr.js"
-    ],
-    "css": [
-      "_app/immutable/assets/_page.Uz6b80ec.css"
     ]
   },
   "src/routes/admin/vendors/+page.svelte": {
@@ -387,7 +409,7 @@
       "_state.svelte.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout@.CH3KdbxC.css"
+      "_app/immutable/assets/_layout@.BQkyf-eN.css"
     ]
   },
   "src/routes/vendor-dashboard/+page.svelte": {
@@ -399,7 +421,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.C2WqMKlJ.css"
+      "_app/immutable/assets/_page.B_EsPlkX.css"
     ]
   },
   "src/routes/vendor-dashboard/konverzie/+page.svelte": {
@@ -411,7 +433,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.5bNpOr3d.css"
+      "_app/immutable/assets/_page.CSmPO_Pf.css"
     ]
   },
   "src/routes/vendor-dashboard/moj-ucet/+page.svelte": {
@@ -423,7 +445,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CFxxtsEk.css"
+      "_app/immutable/assets/_page.jM6gesfU.css"
     ]
   },
   "src/routes/vendor-dashboard/nastavenia-predaja/+page.svelte": {
@@ -435,7 +457,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.DF4z9Bun.css"
+      "_app/immutable/assets/_page.zXIjoNF3.css"
     ]
   },
   "src/routes/vendor-dashboard/ppc/+page.svelte": {
@@ -447,7 +469,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.D-jJSJdQ.css"
+      "_app/immutable/assets/_page.DVUl78rT.css"
     ]
   },
   "src/routes/vendor-dashboard/pridat-obchod/+page.svelte": {
@@ -462,7 +484,7 @@
       "_state.svelte.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CqkKlOUR.css"
+      "_app/immutable/assets/_page.lMDMB-Db.css"
     ]
   },
   "src/routes/vendor-dashboard/produkty/+page.svelte": {
@@ -486,7 +508,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.D4NIvKoM.css"
+      "_app/immutable/assets/_page.DpzoBcDN.css"
     ]
   },
   "src/routes/vendor-dashboard/statistiky/+page.svelte": {
@@ -498,7 +520,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.BG8iLZsb.css"
+      "_app/immutable/assets/_page.Cwk5O_0_.css"
     ]
   },
   "src/routes/vendor-dashboard/xml-feedy/+page.svelte": {
@@ -510,7 +532,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.pnCnkuk2.css"
+      "_app/immutable/assets/_page.BFpNtFKD.css"
     ]
   }
 }

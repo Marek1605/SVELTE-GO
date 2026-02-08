@@ -27,7 +27,7 @@ export {};
 
 declare module "$app/types" {
 	export interface AppTypes {
-		RouteId(): "/" | "/admin" | "/admin/categories" | "/admin/feeds" | "/admin/feeds/new" | "/admin/filters" | "/admin/offers" | "/admin/products" | "/admin/vendor-offers" | "/admin/vendors" | "/hladat" | "/kategoria" | "/kategoria/[slug]" | "/prihlasenie-predajcu" | "/produkt" | "/produkt/[slug]" | "/registracia-predajcu" | "/vendor-dashboard" | "/vendor-dashboard/konverzie" | "/vendor-dashboard/moj-ucet" | "/vendor-dashboard/nastavenia-predaja" | "/vendor-dashboard/ppc" | "/vendor-dashboard/pridat-obchod" | "/vendor-dashboard/produkty" | "/vendor-dashboard/reporty" | "/vendor-dashboard/statistiky" | "/vendor-dashboard/xml-feedy";
+		RouteId(): "/" | "/admin" | "/admin/ai-settings" | "/admin/categories" | "/admin/feeds" | "/admin/feeds/new" | "/admin/filters" | "/admin/offers" | "/admin/pending-shops" | "/admin/products" | "/admin/vendor-offers" | "/admin/vendors" | "/hladat" | "/kategoria" | "/kategoria/[slug]" | "/prihlasenie-predajcu" | "/produkt" | "/produkt/[slug]" | "/registracia-predajcu" | "/vendor-dashboard" | "/vendor-dashboard/konverzie" | "/vendor-dashboard/moj-ucet" | "/vendor-dashboard/nastavenia-predaja" | "/vendor-dashboard/ppc" | "/vendor-dashboard/pridat-obchod" | "/vendor-dashboard/produkty" | "/vendor-dashboard/reporty" | "/vendor-dashboard/statistiky" | "/vendor-dashboard/xml-feedy";
 		RouteParams(): {
 			"/kategoria/[slug]": { slug: string };
 			"/produkt/[slug]": { slug: string }
@@ -35,11 +35,13 @@ declare module "$app/types" {
 		LayoutParams(): {
 			"/": { slug?: string };
 			"/admin": Record<string, never>;
+			"/admin/ai-settings": Record<string, never>;
 			"/admin/categories": Record<string, never>;
 			"/admin/feeds": Record<string, never>;
 			"/admin/feeds/new": Record<string, never>;
 			"/admin/filters": Record<string, never>;
 			"/admin/offers": Record<string, never>;
+			"/admin/pending-shops": Record<string, never>;
 			"/admin/products": Record<string, never>;
 			"/admin/vendor-offers": Record<string, never>;
 			"/admin/vendors": Record<string, never>;
@@ -61,7 +63,7 @@ declare module "$app/types" {
 			"/vendor-dashboard/statistiky": Record<string, never>;
 			"/vendor-dashboard/xml-feedy": Record<string, never>
 		};
-		Pathname(): "/" | "/admin" | "/admin/" | "/admin/categories" | "/admin/categories/" | "/admin/feeds" | "/admin/feeds/" | "/admin/feeds/new" | "/admin/feeds/new/" | "/admin/filters" | "/admin/filters/" | "/admin/offers" | "/admin/offers/" | "/admin/products" | "/admin/products/" | "/admin/vendor-offers" | "/admin/vendor-offers/" | "/admin/vendors" | "/admin/vendors/" | "/hladat" | "/hladat/" | "/kategoria" | "/kategoria/" | `/kategoria/${string}` & {} | `/kategoria/${string}/` & {} | "/prihlasenie-predajcu" | "/prihlasenie-predajcu/" | "/produkt" | "/produkt/" | `/produkt/${string}` & {} | `/produkt/${string}/` & {} | "/registracia-predajcu" | "/registracia-predajcu/" | "/vendor-dashboard" | "/vendor-dashboard/" | "/vendor-dashboard/konverzie" | "/vendor-dashboard/konverzie/" | "/vendor-dashboard/moj-ucet" | "/vendor-dashboard/moj-ucet/" | "/vendor-dashboard/nastavenia-predaja" | "/vendor-dashboard/nastavenia-predaja/" | "/vendor-dashboard/ppc" | "/vendor-dashboard/ppc/" | "/vendor-dashboard/pridat-obchod" | "/vendor-dashboard/pridat-obchod/" | "/vendor-dashboard/produkty" | "/vendor-dashboard/produkty/" | "/vendor-dashboard/reporty" | "/vendor-dashboard/reporty/" | "/vendor-dashboard/statistiky" | "/vendor-dashboard/statistiky/" | "/vendor-dashboard/xml-feedy" | "/vendor-dashboard/xml-feedy/";
+		Pathname(): "/" | "/admin" | "/admin/" | "/admin/ai-settings" | "/admin/ai-settings/" | "/admin/categories" | "/admin/categories/" | "/admin/feeds" | "/admin/feeds/" | "/admin/feeds/new" | "/admin/feeds/new/" | "/admin/filters" | "/admin/filters/" | "/admin/offers" | "/admin/offers/" | "/admin/pending-shops" | "/admin/pending-shops/" | "/admin/products" | "/admin/products/" | "/admin/vendor-offers" | "/admin/vendor-offers/" | "/admin/vendors" | "/admin/vendors/" | "/hladat" | "/hladat/" | "/kategoria" | "/kategoria/" | `/kategoria/${string}` & {} | `/kategoria/${string}/` & {} | "/prihlasenie-predajcu" | "/prihlasenie-predajcu/" | "/produkt" | "/produkt/" | `/produkt/${string}` & {} | `/produkt/${string}/` & {} | "/registracia-predajcu" | "/registracia-predajcu/" | "/vendor-dashboard" | "/vendor-dashboard/" | "/vendor-dashboard/konverzie" | "/vendor-dashboard/konverzie/" | "/vendor-dashboard/moj-ucet" | "/vendor-dashboard/moj-ucet/" | "/vendor-dashboard/nastavenia-predaja" | "/vendor-dashboard/nastavenia-predaja/" | "/vendor-dashboard/ppc" | "/vendor-dashboard/ppc/" | "/vendor-dashboard/pridat-obchod" | "/vendor-dashboard/pridat-obchod/" | "/vendor-dashboard/produkty" | "/vendor-dashboard/produkty/" | "/vendor-dashboard/reporty" | "/vendor-dashboard/reporty/" | "/vendor-dashboard/statistiky" | "/vendor-dashboard/statistiky/" | "/vendor-dashboard/xml-feedy" | "/vendor-dashboard/xml-feedy/";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
 		Asset(): string & {};
 	}

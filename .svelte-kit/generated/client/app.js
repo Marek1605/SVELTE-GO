@@ -29,7 +29,9 @@ export const nodes = [
 	() => import('./nodes/25'),
 	() => import('./nodes/26'),
 	() => import('./nodes/27'),
-	() => import('./nodes/28')
+	() => import('./nodes/28'),
+	() => import('./nodes/29'),
+	() => import('./nodes/30')
 ];
 
 export const server_loads = [];
@@ -37,29 +39,31 @@ export const server_loads = [];
 export const dictionary = {
 		"/": [~4],
 		"/admin": [5,[2]],
-		"/admin/categories": [6,[2]],
-		"/admin/feeds": [7,[2]],
-		"/admin/feeds/new": [8,[2]],
-		"/admin/filters": [9,[2]],
-		"/admin/offers": [10,[2]],
-		"/admin/products": [11,[2]],
-		"/admin/vendor-offers": [12,[2]],
-		"/admin/vendors": [13,[2]],
-		"/hladat": [14],
-		"/kategoria/[slug]": [~15],
-		"/prihlasenie-predajcu": [16],
-		"/produkt/[slug]": [~17],
-		"/registracia-predajcu": [18],
-		"/vendor-dashboard": [19,[3]],
-		"/vendor-dashboard/konverzie": [20,[3]],
-		"/vendor-dashboard/moj-ucet": [21,[3]],
-		"/vendor-dashboard/nastavenia-predaja": [22,[3]],
-		"/vendor-dashboard/ppc": [23,[3]],
-		"/vendor-dashboard/pridat-obchod": [24,[3]],
-		"/vendor-dashboard/produkty": [25,[3]],
-		"/vendor-dashboard/reporty": [26,[3]],
-		"/vendor-dashboard/statistiky": [27,[3]],
-		"/vendor-dashboard/xml-feedy": [28,[3]]
+		"/admin/ai-settings": [6,[2]],
+		"/admin/categories": [7,[2]],
+		"/admin/feeds": [8,[2]],
+		"/admin/feeds/new": [9,[2]],
+		"/admin/filters": [10,[2]],
+		"/admin/offers": [11,[2]],
+		"/admin/pending-shops": [12,[2]],
+		"/admin/products": [13,[2]],
+		"/admin/vendor-offers": [14,[2]],
+		"/admin/vendors": [15,[2]],
+		"/hladat": [16],
+		"/kategoria/[slug]": [~17],
+		"/prihlasenie-predajcu": [18],
+		"/produkt/[slug]": [~19],
+		"/registracia-predajcu": [20],
+		"/vendor-dashboard": [21,[3]],
+		"/vendor-dashboard/konverzie": [22,[3]],
+		"/vendor-dashboard/moj-ucet": [23,[3]],
+		"/vendor-dashboard/nastavenia-predaja": [24,[3]],
+		"/vendor-dashboard/ppc": [25,[3]],
+		"/vendor-dashboard/pridat-obchod": [26,[3]],
+		"/vendor-dashboard/produkty": [27,[3]],
+		"/vendor-dashboard/reporty": [28,[3]],
+		"/vendor-dashboard/statistiky": [29,[3]],
+		"/vendor-dashboard/xml-feedy": [30,[3]]
 	};
 
 export const hooks = {

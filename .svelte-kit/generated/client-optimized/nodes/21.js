@@ -1,1 +1,1 @@
-export { default as component } from "../../../../src/routes/vendor-dashboard/moj-ucet/+page.svelte";
+export { default as component } from "../../../../src/routes/vendor-dashboard/+page.svelte";

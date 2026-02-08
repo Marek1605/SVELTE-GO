@@ -13,7 +13,7 @@ type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends 
 export type Snapshot<T = any> = Kit.Snapshot<T>;
 type PageServerParentData = EnsureDefined<LayoutServerData>;
 type PageParentData = EnsureDefined<LayoutData>;
-type LayoutRouteId = RouteId | "/" | "/admin" | "/admin/categories" | "/admin/feeds" | "/admin/feeds/new" | "/admin/filters" | "/admin/offers" | "/admin/products" | "/admin/vendor-offers" | "/admin/vendors" | "/hladat" | "/kategoria/[slug]" | "/prihlasenie-predajcu" | "/produkt/[slug]" | "/registracia-predajcu" | "/vendor-dashboard" | "/vendor-dashboard/konverzie" | "/vendor-dashboard/moj-ucet" | "/vendor-dashboard/nastavenia-predaja" | "/vendor-dashboard/ppc" | "/vendor-dashboard/pridat-obchod" | "/vendor-dashboard/produkty" | "/vendor-dashboard/reporty" | "/vendor-dashboard/statistiky" | "/vendor-dashboard/xml-feedy" | null
+type LayoutRouteId = RouteId | "/" | "/admin" | "/admin/ai-settings" | "/admin/categories" | "/admin/feeds" | "/admin/feeds/new" | "/admin/filters" | "/admin/offers" | "/admin/pending-shops" | "/admin/products" | "/admin/vendor-offers" | "/admin/vendors" | "/hladat" | "/kategoria/[slug]" | "/prihlasenie-predajcu" | "/produkt/[slug]" | "/registracia-predajcu" | "/vendor-dashboard" | "/vendor-dashboard/konverzie" | "/vendor-dashboard/moj-ucet" | "/vendor-dashboard/nastavenia-predaja" | "/vendor-dashboard/ppc" | "/vendor-dashboard/pridat-obchod" | "/vendor-dashboard/produkty" | "/vendor-dashboard/reporty" | "/vendor-dashboard/statistiky" | "/vendor-dashboard/xml-feedy" | null
 type LayoutParams = RouteParams & { slug?: string }
 type LayoutParentData = EnsureDefined<{}>;
 
