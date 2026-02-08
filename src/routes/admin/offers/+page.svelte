@@ -166,6 +166,26 @@
         } catch (e) { alert('Chyba: ' + e.message); }
     }
     
+    let feedProcessing = null;
+    let feedProcessMsg = '';
+
+    async function feedAction(feed, mode) {
+        const labels = { ean: 'EAN párovanie', ai: 'AI kategorizáciu', fulltext: 'Fulltext (odpárovať)' };
+        if (!confirm(`Spustiť ${labels[mode]} pre všetky ponuky feedu "${feed.name}"?`)) return;
+        feedProcessing = feed.id; feedProcessMsg = `Spracovávam (${labels[mode]})...`;
+        try {
+            const res = await fetch(GO_API + '/api/v1/admin/vendor-offers/bulk-action-all', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shop_id: feed.shop_id, mode })
+            });
+            const data = await res.json();
+            if (data.success) feedProcessMsg = `✅ Spárovaných: ${data.matched || 0}, Nových: ${data.created || 0}`;
+            else feedProcessMsg = '❌ ' + (data.error || 'Chyba');
+        } catch (e) { feedProcessMsg = '❌ ' + e.message; }
+        feedProcessing = null;
+        await loadData();
+    }
+
     function formatDate(d) { return d ? new Date(d).toLocaleString('sk-SK') : 'Nikdy'; }
     function getStatus(s) { return { active: '🟢', idle: '⚪', running: '🔵', error: '🔴', completed: '✅', cancelled: '🟡' }[s] || '⚪'; }
 </script>
@@ -213,14 +233,21 @@
                             <td>{f.total_offers || 0} {#if f.matched_offers}<span class="green">({f.matched_offers})</span>{/if}</td>
                             <td>{formatDate(f.last_import_at)}</td>
                             <td class="actions">
-                                {#if f.sync_status === 'running'}
-                                    <button class="btn small warning" on:click={stopImport}>⏹</button>
+                                {#if feedProcessing === f.id}
+                                    <span class="proc-msg">{feedProcessMsg}</span>
                                 {:else}
-                                    <button class="btn small success" on:click={() => startImport(f)}>▶</button>
+                                    {#if f.sync_status === 'running'}
+                                        <button class="btn small warning" on:click={stopImport}>⏹</button>
+                                    {:else}
+                                        <button class="btn small success" on:click={() => startImport(f)} title="Import">▶</button>
+                                    {/if}
+                                    <button class="btn small ean-btn" on:click={() => feedAction(f, 'ean')} title="EAN párovanie">📦</button>
+                                    <button class="btn small ai-btn" on:click={() => feedAction(f, 'ai')} title="AI kategorizácia">🤖</button>
+                                    <button class="btn small ft-btn" on:click={() => feedAction(f, 'fulltext')} title="Fulltext only">🔍</button>
+                                    <button class="btn small" on:click={() => openMapping(f)} title="Mapovanie">🔗</button>
+                                    <button class="btn small" on:click={() => editFeed(f)} title="Upraviť">✏️</button>
+                                    <button class="btn small danger" on:click={() => deleteFeed(f)} title="Zmazať">🗑️</button>
                                 {/if}
-                                <button class="btn small" on:click={() => openMapping(f)}>🔗</button>
-                                <button class="btn small" on:click={() => editFeed(f)}>✏️</button>
-                                <button class="btn small danger" on:click={() => deleteFeed(f)}>🗑️</button>
                             </td>
                         </tr>
                     {/each}
@@ -448,6 +475,10 @@
     .badge.mode-ean { background: #dbeafe; color: #1d4ed8; }
     .badge.mode-ai { background: #d1fae5; color: #065f46; }
     .green { color: #22c55e; }
+    .ean-btn { background: #dbeafe !important; color: #1d4ed8 !important; }
+    .ai-btn { background: #d1fae5 !important; color: #065f46 !important; }
+    .ft-btn { background: #fef3c7 !important; color: #92400e !important; }
+    .proc-msg { font-size: 11px; color: #475569; padding: 2px 6px; background: #f0f9ff; border-radius: 4px; }
     .blue { color: #3b82f6; }
     .purple { color: #8b5cf6; }
     .red { color: #ef4444; }
