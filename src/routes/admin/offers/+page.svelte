@@ -167,21 +167,30 @@
     }
     
     let feedProcessing = null;
-    let feedProcessMsg = '';
+    let feedResult = {}; // { feedId: 'message' }
 
     async function feedAction(feed, mode) {
         const labels = { ean: 'EAN párovanie', ai: 'AI kategorizáciu', fulltext: 'Fulltext (odpárovať)' };
-        if (!confirm(`Spustiť ${labels[mode]} pre všetky ponuky feedu "${feed.name}"?`)) return;
-        feedProcessing = feed.id; feedProcessMsg = `Spracovávam (${labels[mode]})...`;
+        const totalOffers = feed.total_offers || 0;
+        if (totalOffers === 0) {
+            feedResult = { ...feedResult, [feed.id]: '⚠️ Žiadne ponuky – najprv importujte feed (▶)' };
+            return;
+        }
+        if (!confirm(`Spustiť ${labels[mode]} pre ${totalOffers} ponúk feedu "${feed.name}"?`)) return;
+        feedProcessing = feed.id;
+        feedResult = { ...feedResult, [feed.id]: `⏳ Spracovávam ${totalOffers} ponúk (${labels[mode]})...` };
         try {
             const res = await fetch(GO_API + '/api/v1/admin/vendor-offers/bulk-action-all', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ shop_id: feed.shop_id, mode })
             });
             const data = await res.json();
-            if (data.success) feedProcessMsg = `✅ Spárovaných: ${data.matched || 0}, Nových: ${data.created || 0}`;
-            else feedProcessMsg = '❌ ' + (data.error || 'Chyba');
-        } catch (e) { feedProcessMsg = '❌ ' + e.message; }
+            if (data.success) {
+                feedResult = { ...feedResult, [feed.id]: `✅ Spárovaných: ${data.matched || 0}, Nových: ${data.created || 0}, Chýb: ${data.errors || 0} (z ${data.total || 0})` };
+            } else {
+                feedResult = { ...feedResult, [feed.id]: '❌ ' + (data.error || 'Chyba') };
+            }
+        } catch (e) { feedResult = { ...feedResult, [feed.id]: '❌ ' + e.message }; }
         feedProcessing = null;
         await loadData();
     }
@@ -234,7 +243,7 @@
                             <td>{formatDate(f.last_import_at)}</td>
                             <td class="actions">
                                 {#if feedProcessing === f.id}
-                                    <span class="proc-msg">{feedProcessMsg}</span>
+                                    <span class="proc-msg">{feedResult[f.id] || '⏳...'}</span>
                                 {:else}
                                     {#if f.sync_status === 'running'}
                                         <button class="btn small warning" on:click={stopImport}>⏹</button>
@@ -250,6 +259,9 @@
                                 {/if}
                             </td>
                         </tr>
+                        {#if feedResult[f.id]}
+                            <tr class="result-row"><td colspan="9"><span class="proc-msg">{feedResult[f.id]}</span></td></tr>
+                        {/if}
                     {/each}
                 </tbody>
             </table>
@@ -479,6 +491,7 @@
     .ai-btn { background: #d1fae5 !important; color: #065f46 !important; }
     .ft-btn { background: #fef3c7 !important; color: #92400e !important; }
     .proc-msg { font-size: 11px; color: #475569; padding: 2px 6px; background: #f0f9ff; border-radius: 4px; }
+    .result-row td { padding: 4px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
     .blue { color: #3b82f6; }
     .purple { color: #8b5cf6; }
     .red { color: #ef4444; }
