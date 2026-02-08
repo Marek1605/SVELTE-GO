@@ -67,11 +67,11 @@
                 const s = data.data.stats;
                 stats = {
                     total: s.total_products || 0,
-                    paired: s.active_offers || 0,
-                    unpaired: Math.max(0, (s.total_products || 0) - (s.active_offers || 0)),
+                    paired: s.matched_offers || 0,
+                    unpaired: s.unmatched_offers || 0,
                     withoutCategories: 0,
                     pendingApprovals: 0,
-                    pairingRate: s.total_products > 0 ? Math.round((s.active_offers / s.total_products) * 100) : 0
+                    pairingRate: s.total_products > 0 ? Math.round(((s.matched_offers || 0) / s.total_products) * 100) : 0
                 };
             }
         } catch (e) { console.error(e); }
@@ -257,12 +257,12 @@
             <span class="num">{formatNumber(stats.total)}</span>
             <span class="lbl">Celkom produktov</span>
         </button>
-        <button class="stat" class:active={filter === 'paired'} on:click={() => handleFilterChange('paired')} class:disabled={isFree}>
-            <span class="num">{isFree ? '—' : formatNumber(stats.paired)}</span>
-            <span class="lbl">Spárované {#if !isFree}({stats.pairingRate}%){/if}</span>
+        <button class="stat" class:active={filter === 'paired'} on:click={() => handleFilterChange('paired')}>
+            <span class="num">{formatNumber(stats.paired)}</span>
+            <span class="lbl">Spárované ({stats.pairingRate}%)</span>
         </button>
-        <button class="stat" class:active={filter === 'unpaired'} on:click={() => handleFilterChange('unpaired')} class:disabled={isFree}>
-            <span class="num">{isFree ? '—' : formatNumber(stats.unpaired)}</span>
+        <button class="stat" class:active={filter === 'unpaired'} on:click={() => handleFilterChange('unpaired')}>
+            <span class="num">{formatNumber(stats.unpaired)}</span>
             <span class="lbl">Nespárované</span>
         </button>
         <button class="stat" class:active={filter === 'no_category'} on:click={() => handleFilterChange('no_category')} class:disabled={isFree}>
