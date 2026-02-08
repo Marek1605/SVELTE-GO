@@ -96,20 +96,29 @@
         const type = feed?.feed_type || currentFeed?.feed_type || newFeed.feed_type;
         const xmlPath = feed?.xml_item_path || currentFeed?.xml_item_path || newFeed.xml_item_path;
         if (!url) { alert('Zadajte URL'); return; }
-        previewLoading = true; previewData = null;
+        previewLoading = true; previewData = null; sourceFields = [];
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 2min timeout
             const res = await fetch(`${API_BASE}/admin/offer-feeds/preview`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url, type, xml_item_path: xmlPath, limit: 5 })
+                body: JSON.stringify({ url, type, xml_item_path: xmlPath, limit: 5 }),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
             const data = await res.json();
             if (data.success) {
                 const d = data.data || data;
                 previewData = d;
                 sourceFields = d.fields || [];
                 if (d.auto_mappings) d.auto_mappings.forEach(m => { fieldMapping[m.target_field] = m.source_field; });
-            } else previewData = { error: data.error };
-        } catch (e) { previewData = { error: e.message }; }
+                if (sourceFields.length === 0 && d.auto_mappings?.length > 0) {
+                    sourceFields = d.auto_mappings.map(m => m.source_field);
+                }
+            } else { previewData = { error: data.error || 'Neznáma chyba' }; }
+        } catch (e) { 
+            previewData = { error: e.name === 'AbortError' ? 'Timeout – feed je príliš veľký alebo pomalý' : e.message }; 
+        }
         previewLoading = false;
     }
     
