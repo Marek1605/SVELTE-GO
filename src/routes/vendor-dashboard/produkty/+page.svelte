@@ -213,7 +213,18 @@
     function handleSearch() { currentPage = 1; loadProducts(); }
     function handleFilterChange(f) { filter = f; currentPage = 1; loadProducts(); }
     function handlePerPageChange() { currentPage = 1; loadProducts(); }
-    function goToPage(p) { currentPage = p; loadProducts(); }
+    function goToPage(p) { if (p >= 1 && p <= totalPages) { currentPage = p; loadProducts(); } }
+    
+    function getPaginationPages(current, total) {
+        if (total <= 9) return Array.from({length: total}, (_, i) => i + 1);
+        const pages = [];
+        pages.push(1);
+        if (current > 4) pages.push('...');
+        for (let i = Math.max(2, current - 2); i <= Math.min(total - 1, current + 2); i++) pages.push(i);
+        if (current < total - 3) pages.push('...');
+        pages.push(total);
+        return pages;
+    }
     function refresh() { searchQuery = ''; filter = 'all'; currentPage = 1; loadStats(); loadProducts(); }
     function openConnectModal() { masterSearchQuery = ''; masterResults = []; showConnectModal = true; }
     function openAddManualModal() { manualEan = ''; manualPrice = ''; manualUrl = ''; eanProduct = null; eanError = ''; showAddManualModal = true; }
@@ -291,6 +302,7 @@
             <option value={10}>10 / strana</option>
             <option value={25}>25 / strana</option>
             <option value={50}>50 / strana</option>
+            <option value={100}>100 / strana</option>
         </select>
     </div>
     
@@ -383,11 +395,18 @@
         
         {#if totalPages > 1}
         <div class="pagination">
+            <button disabled={currentPage === 1} on:click={() => goToPage(1)}>««</button>
             <button disabled={currentPage === 1} on:click={() => goToPage(currentPage - 1)}>‹</button>
-            {#each Array(Math.min(totalPages, 7)) as _, i}
-                <button class:active={currentPage === i + 1} on:click={() => goToPage(i + 1)}>{i + 1}</button>
+            {#each getPaginationPages(currentPage, totalPages) as p}
+                {#if p === '...'}
+                    <span class="dots">…</span>
+                {:else}
+                    <button class:active={currentPage === p} on:click={() => goToPage(p)}>{p}</button>
+                {/if}
             {/each}
             <button disabled={currentPage === totalPages} on:click={() => goToPage(currentPage + 1)}>›</button>
+            <button disabled={currentPage === totalPages} on:click={() => goToPage(totalPages)}>»»</button>
+            <span class="page-info">Str. {currentPage} z {totalPages}</span>
         </div>
         {/if}
     {/if}
@@ -608,10 +627,12 @@
     .actions button:hover { background: #f1f5f9; border-color: #3b82f6; }
     .actions button.red:hover { background: #fef2f2; border-color: #ef4444; color: #dc2626; }
     
-    .pagination { display: flex; gap: 4px; justify-content: center; padding: 16px; }
+    .pagination { display: flex; gap: 4px; justify-content: center; align-items: center; padding: 16px; flex-wrap: wrap; }
     .pagination button { padding: 8px 12px; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; cursor: pointer; }
     .pagination button.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
-    .pagination button:disabled { opacity: 0.5; }
+    .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pagination .dots { padding: 8px 4px; color: #94a3b8; }
+    .pagination .page-info { margin-left: 12px; font-size: 13px; color: #64748b; }
     
     /* Modals */
     .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; }
