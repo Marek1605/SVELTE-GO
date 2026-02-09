@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+    import { PUBLIC_API_URL } from '$env/static/public';
+    const API_BASE = PUBLIC_API_URL || '';
     let products = [], categories = [], loading = true, totalCount = 0, currentPage = 1, perPage = 20;
     let searchQuery = '', selectedCategory = '', priceMin = '', priceMax = '', sortBy = 'created_at', sortOrder = 'desc';
     let selectedIds = new Set(), selectAll = false, showEditModal = false, editProduct = null;
