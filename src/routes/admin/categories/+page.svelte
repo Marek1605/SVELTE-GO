@@ -143,31 +143,26 @@
         await loadCategories();
     }
     function exportCSV() {
-        window.open(`${API}/admin/categories/export`, "_blank");
+        window.open(API + "/admin/categories/export", "_blank");
     }
     function exportExcel() {
-        window.open(`${API}/admin/categories/export-excel`, "_blank");
+        window.open(API + "/admin/categories/export-excel", "_blank");
     }
     async function importTranslations(event) {
         const file = event.target.files?.[0];
         if (!file) return;
-        const formData = new FormData();
-        formData.append("file", file);
-        const file = event.target.files?.[0];
-        if (!file) return;
         importingTranslations = true;
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append("file", file);
         try {
-            const res = await fetch(`${API}/admin/categories/import-translations`, { method: 'POST', body: formData });
+            const res = await fetch(API + "/admin/categories/import-translations", { method: "POST", body: formData });
             const data = await res.json();
-            alert(data.message || `Preložených: ${data.updated}, preskočených: ${data.skipped}`);
+            alert(data.message || "Hotovo");
             await loadCategories();
-        } catch (e) { alert('Chyba pri importe: ' + e.message); }
+        } catch (e) { alert("Chyba: " + e.message); }
         importingTranslations = false;
-        if (fileInput) fileInput.value = '';
+        if (fileInput) fileInput.value = "";
     }
-</script>
 
 <svelte:head><title>Kategórie | Admin</title></svelte:head>
 
