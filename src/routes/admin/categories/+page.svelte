@@ -16,6 +16,8 @@
     let regeneratingId = null;
     let regeneratingAll = false;
     let deleting = false;
+    let importingTranslations = false;
+    let fileInput;
 
     onMount(loadCategories);
 
@@ -140,6 +142,26 @@
         await fetch(`${API}/admin/categories/${id}`, { method: 'DELETE' });
         await loadCategories();
     }
+
+    function exportCSV() {
+        window.open(`${API}/admin/categories/export`, '_blank');
+    }
+
+    async function importTranslations(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        importingTranslations = true;
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const res = await fetch(`${API}/admin/categories/import-translations`, { method: 'POST', body: formData });
+            const data = await res.json();
+            alert(data.message || `Preložených: ${data.updated}, preskočených: ${data.skipped}`);
+            await loadCategories();
+        } catch (e) { alert('Chyba pri importe: ' + e.message); }
+        importingTranslations = false;
+        if (fileInput) fileInput.value = '';
+    }
 </script>
 
 <svelte:head><title>Kategórie | Admin</title></svelte:head>
@@ -151,6 +173,11 @@
             <p class="sub">{stats.total} kategórií · {stats.withImage} s obrázkom · {stats.noImage} bez · {stats.empty} prázdnych</p>
         </div>
         <div class="actions">
+            <button class="btn sm" on:click={exportCSV}>📥 Export CSV</button>
+            <label class="btn sm" style="cursor:pointer">
+                📤 Import prekladov
+                <input type="file" accept=".csv,.xlsx" bind:this={fileInput} on:change={importTranslations} style="display:none">
+            </label>
             <button class="btn sm" on:click={regenAll} disabled={regeneratingAll}>{regeneratingAll ? '⏳...' : '🖼️ Pregenerovať'}</button>
             <button class="btn sm red outline" on:click={deleteAll} disabled={deleting}>🗑️ Zmazať všetky</button>
         </div>
