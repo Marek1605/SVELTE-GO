@@ -278,7 +278,7 @@
                             <td>{f.shop_name || '—'}</td>
                             <td><span class="badge">{f.feed_type?.toUpperCase()}</span></td>
                             <td><span class="badge" class:mode-fulltext={f.match_mode === 'fulltext'} class:mode-ean={!f.match_mode || f.match_mode === 'ean'} class:mode-ai={f.match_mode === 'ai'}>{f.match_mode === 'ai' ? '🤖 AI' : f.match_mode === 'fulltext' ? '🔍 Fulltext' : '📦 EAN'}</span></td>
-                            <td>{getStatus(f.sync_status)} {f.sync_status}</td>
+                            <td>{getStatus(f.sync_status)} {f.sync_status || 'čaká'}</td>
                             <td>{f.total_offers || 0} {#if f.matched_offers}<span class="green">({f.matched_offers})</span>{/if}</td>
                             <td>{formatDate(f.last_import_at)}</td>
                             <td class="actions">

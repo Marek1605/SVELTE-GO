@@ -195,7 +195,15 @@
                 <span>📁 Kategórií: <b>{fmt(job.new_categories)}</b></span>
                 <span>❌ Chýb: <b>{fmt(job.errors)}</b></span>
             </div>
-            {#if job.error_log}<div class="error-log">{job.error_log}</div>{/if}
+            {#if job.error_log}
+            <div class="log-section">
+                <div class="log-header">
+                    <span>📋 Priebeh / Logy</span>
+                    <button class="btn-sm" on:click={() => { const el = document.querySelector('.log-content'); if(el) el.scrollTop = el.scrollHeight; }}>↓ Najnovšie</button>
+                </div>
+                <div class="log-content">{job.error_log}</div>
+            </div>
+            {/if}
         </div>
         {/if}
 
@@ -268,7 +276,11 @@
     .progress-fill{height:100%;background:#3b82f6;border-radius:4px;transition:width .3s}
     .progress-text{text-align:center;font-size:13px;color:#475569;margin-bottom:12px}
     .job-stats{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#475569}.job-stats b{color:#1e293b}
-    .error-log{margin-top:12px;padding:10px;background:#fef2f2;border-radius:6px;font-size:12px;color:#991b1b;font-family:monospace;max-height:100px;overflow-y:auto}
+    .log-section{margin-top:16px;border:1px solid #334155;border-radius:8px;overflow:hidden}
+    .log-header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1e293b;color:#94a3b8;font-size:12px;font-weight:600}
+    .btn-sm{padding:3px 8px;background:#334155;color:#94a3b8;border:none;border-radius:4px;font-size:11px;cursor:pointer}
+    .btn-sm:hover{background:#475569;color:#fff}
+    .log-content{padding:12px;background:#0f172a;color:#a5f3fc;font-size:12px;font-family:'SF Mono',Monaco,Consolas,monospace;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6}
     .info-section{background:#f8fafc}
     .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px}
     .info-card{background:#fff;padding:16px;border-radius:8px;border:1px solid #e2e8f0}
