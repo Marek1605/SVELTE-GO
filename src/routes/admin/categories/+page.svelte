@@ -142,15 +142,17 @@
         await fetch(`${API}/admin/categories/${id}`, { method: 'DELETE' });
         await loadCategories();
     }
-
     function exportCSV() {
+        window.open(`${API}/admin/categories/export`, "_blank");
+    }
     function exportExcel() {
         window.open(`${API}/admin/categories/export-excel`, "_blank");
     }
-        window.open(`${API}/admin/categories/export`, '_blank');
-    }
-
     async function importTranslations(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append("file", file);
         const file = event.target.files?.[0];
         if (!file) return;
         importingTranslations = true;
