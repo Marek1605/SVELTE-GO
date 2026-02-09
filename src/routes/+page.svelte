@@ -4,6 +4,8 @@
     export let data;
     
     let searchQuery = '';
+    let showMoreCats = false;
+    let moreRef;
     
     $: stats = data.stats || {
         products: 4998,
@@ -14,8 +16,37 @@
     
     $: categories = data.categories || [];
     $: topProducts = data.products || [];
+    $: visibleCats = categories.slice(0, 8);
+    $: overflowCats = categories.slice(8);
     
     const popularSearches = ['notebook', 'iPhone', 'televízor', 'slúchadlá', 'tablet'];
+    
+    const categoryEmojis = {
+        'dom': '🏡', 'záhrada': '🌿', 'domác': '🏠', 'spotrebič': '⚡',
+        'elektronik': '📱', 'hračk': '🧸', 'kancelár': '📎', 'kuchyn': '🍳',
+        'ostatn': '📦', 'šport': '⚽', 'zdravi': '💊', 'krás': '💄',
+        'zvierat': '🐾', 'bazén': '🏊', 'auto': '🚗', 'cestov': '✈️',
+        'doplnk': '✨', 'filter': '🔧', 'hry': '🎮', 'hygiena': '🧴',
+        'batéri': '🔋', 'pre deti': '👶', 'bublifuk': '🫧', 'kempov': '⛺'
+    };
+    
+    function getCatEmoji(name) {
+        const lower = (name || '').toLowerCase();
+        for (const [key, emoji] of Object.entries(categoryEmojis)) {
+            if (lower.includes(key)) return emoji;
+        }
+        return '📦';
+    }
+    
+    function totalProducts(cat) {
+        let count = cat.product_count || 0;
+        if (cat.children) {
+            for (const child of cat.children) {
+                count += totalProducts(child);
+            }
+        }
+        return count;
+    }
     
     function handleSearch(e) {
         e.preventDefault();
@@ -23,6 +54,21 @@
             window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`;
         }
     }
+    
+    function toggleMore() {
+        showMoreCats = !showMoreCats;
+    }
+    
+    function handleClickOutside(e) {
+        if (moreRef && !moreRef.contains(e.target)) {
+            showMoreCats = false;
+        }
+    }
+    
+    onMount(() => {
+        document.addEventListener('click', handleClickOutside, true);
+        return () => document.removeEventListener('click', handleClickOutside, true);
+    });
 </script>
 
 <svelte:head>
@@ -102,18 +148,74 @@
             </div>
             
             {#if categories.length > 0}
-                <div class="mp-categories-grid">
-                    {#each categories as cat}
-                        <a href="/kategoria/{cat.slug}" class="mp-category-card">
-                            <div class="mp-category-card__icon">
-                                {cat.icon || '📦'}
+                <div class="mp-cat-row">
+                    {#each visibleCats as cat}
+                        <a href="/kategoria/{cat.slug}" class="mp-cat-card">
+                            <div class="mp-cat-card__visual">
+                                {#if cat.image_url}
+                                    <img src={cat.image_url} alt={cat.name} />
+                                {:else}
+                                    <span class="mp-cat-card__emoji">{cat.icon || getCatEmoji(cat.name)}</span>
+                                {/if}
                             </div>
-                            <div class="mp-category-card__content">
-                                <h3 class="mp-category-card__name">{cat.name}</h3>
-                                <span class="mp-category-card__count">{cat.product_count || 0} produktov</span>
-                            </div>
+                            <span class="mp-cat-card__name">{cat.name}</span>
+                            {#if totalProducts(cat) > 0}
+                                <span class="mp-cat-card__count">{totalProducts(cat)}</span>
+                            {/if}
                         </a>
                     {/each}
+                    
+                    {#if overflowCats.length > 0}
+                        <div class="mp-cat-more-wrap" bind:this={moreRef}>
+                            <button class="mp-cat-card mp-cat-card--more" on:click={toggleMore} class:is-open={showMoreCats}>
+                                <div class="mp-cat-card__visual mp-cat-card__visual--more">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                        {#if showMoreCats}
+                                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                        {:else}
+                                            <line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="14" x2="20" y2="14"/><line x1="4" y1="20" x2="14" y2="20"/>
+                                        {/if}
+                                    </svg>
+                                </div>
+                                <span class="mp-cat-card__name">{showMoreCats ? 'Zavrieť' : 'Viac'}</span>
+                            </button>
+                            
+                            {#if showMoreCats}
+                                <div class="mp-cat-dropdown">
+                                    <div class="mp-cat-dropdown__grid">
+                                        {#each overflowCats as cat}
+                                            <a href="/kategoria/{cat.slug}" class="mp-cat-dropdown__item">
+                                                <span class="mp-cat-dropdown__icon">
+                                                    {#if cat.image_url}
+                                                        <img src={cat.image_url} alt="" />
+                                                    {:else}
+                                                        {cat.icon || getCatEmoji(cat.name)}
+                                                    {/if}
+                                                </span>
+                                                <div class="mp-cat-dropdown__info">
+                                                    <span class="mp-cat-dropdown__name">{cat.name}</span>
+                                                    {#if cat.children && cat.children.length > 0}
+                                                        <span class="mp-cat-dropdown__sub">
+                                                            {cat.children.slice(0, 3).map(c => c.name).join(' · ')}
+                                                            {#if cat.children.length > 3}
+                                                                <span class="mp-cat-dropdown__sub-more"> +{cat.children.length - 3}</span>
+                                                            {/if}
+                                                        </span>
+                                                    {/if}
+                                                </div>
+                                                {#if totalProducts(cat) > 0}
+                                                    <span class="mp-cat-dropdown__count">{totalProducts(cat)}</span>
+                                                {/if}
+                                            </a>
+                                        {/each}
+                                    </div>
+                                    <a href="/kategorie" class="mp-cat-dropdown__all">
+                                        Zobraziť všetky kategórie →
+                                    </a>
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
                 </div>
             {:else}
                 <p class="mp-empty-text">Načítavam kategórie...</p>
@@ -392,51 +494,228 @@
     padding: 0 24px;
 }
 
-.mp-categories-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-}
-
-.mp-category-card {
+/* Category Row - horizontal scrollable on mobile */
+.mp-cat-row {
     display: flex;
+    gap: 12px;
+    align-items: stretch;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px 0 8px;
+}
+.mp-cat-row::-webkit-scrollbar { display: none; }
+
+/* Category Card */
+.mp-cat-card {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 16px;
-    padding: 20px;
+    gap: 10px;
+    min-width: 120px;
+    max-width: 120px;
+    padding: 20px 12px 16px;
     background: #fff;
-    border-radius: 14px;
     border: 1px solid #e5e7eb;
-    transition: all 0.2s;
+    border-radius: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    scroll-snap-align: start;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
 }
-
-.mp-category-card:hover {
+.mp-cat-card:hover {
     border-color: #c4956a;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(196,149,106,0.15);
+    transform: translateY(-4px);
 }
 
-.mp-category-card__icon {
+.mp-cat-card__visual {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-    border-radius: 12px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #f8fafc, #eef2f7);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    overflow: hidden;
+    transition: all 0.22s ease;
+}
+.mp-cat-card:hover .mp-cat-card__visual {
+    background: linear-gradient(145deg, #fff5f0, #fef0e7);
+    transform: scale(1.08);
+}
+.mp-cat-card__visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 6px;
+}
+.mp-cat-card__emoji {
+    font-size: 26px;
+    line-height: 1;
+}
+
+.mp-cat-card__visual--more {
+    background: linear-gradient(145deg, #f0f4ff, #e8ecf4);
+    color: #6b7280;
+}
+.mp-cat-card.is-open .mp-cat-card__visual--more,
+.mp-cat-card--more:hover .mp-cat-card__visual--more {
+    background: linear-gradient(145deg, #c4956a, #b8875c);
+    color: #fff;
+}
+
+.mp-cat-card__name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.mp-cat-card__count {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: #c4956a;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+}
+
+/* More Wrap (relative anchor for dropdown) */
+.mp-cat-more-wrap {
+    position: relative;
     flex-shrink: 0;
 }
 
-.mp-category-card__name {
-    font-size: 15px;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 4px;
+/* Dropdown */
+.mp-cat-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 420px;
+    max-height: 460px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.03);
+    z-index: 100;
+    overflow: hidden;
+    animation: dropIn 0.2s ease;
+}
+@keyframes dropIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.mp-category-card__count {
-    font-size: 13px;
+.mp-cat-dropdown__grid {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}
+
+.mp-cat-dropdown__item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    transition: all 0.15s;
+    text-decoration: none;
+    color: inherit;
+}
+.mp-cat-dropdown__item:hover {
+    background: #fef7f0;
+}
+
+.mp-cat-dropdown__icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #f8fafc, #eef2f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.mp-cat-dropdown__item:hover .mp-cat-dropdown__icon {
+    background: linear-gradient(145deg, #fff5f0, #fef0e7);
+}
+.mp-cat-dropdown__icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 4px;
+}
+
+.mp-cat-dropdown__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mp-cat-dropdown__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    display: block;
+    line-height: 1.3;
+}
+
+.mp-cat-dropdown__sub {
+    font-size: 11px;
+    color: #9ca3af;
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.mp-cat-dropdown__sub-more {
+    color: #c4956a;
+    font-weight: 600;
+}
+
+.mp-cat-dropdown__count {
+    font-size: 11px;
+    font-weight: 700;
     color: #6b7280;
+    background: #f3f4f6;
+    padding: 3px 8px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.mp-cat-dropdown__all {
+    display: block;
+    text-align: center;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #c4956a;
+    border-top: 1px solid #f3f4f6;
+    transition: background 0.15s;
+}
+.mp-cat-dropdown__all:hover {
+    background: #fef7f0;
 }
 
 /* Products Section */
@@ -654,8 +933,8 @@
     .mp-stats__grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    .mp-categories-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .mp-cat-dropdown {
+        width: 360px;
     }
     .mp-products-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -702,13 +981,35 @@
 }
 
 @media (max-width: 480px) {
-    .mp-stats__grid,
-    .mp-categories-grid,
+    .mp-stats__grid {
+        grid-template-columns: 1fr;
+    }
     .mp-products-grid {
         grid-template-columns: 1fr;
     }
-    .mp-category-card {
-        padding: 16px;
+    .mp-cat-card {
+        min-width: 100px;
+        max-width: 100px;
+        padding: 16px 10px 14px;
+    }
+    .mp-cat-card__visual {
+        width: 48px;
+        height: 48px;
+    }
+    .mp-cat-dropdown {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 70vh;
+        border-radius: 20px 20px 0 0;
+        animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
     }
 }
 </style>

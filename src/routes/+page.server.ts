@@ -6,9 +6,9 @@ export async function load() {
         let categories = [];
         const catResult = await api.getCategoriesTree();
         if (catResult?.success && catResult?.data) {
-            categories = Array.isArray(catResult.data) ? catResult.data.slice(0, 8) : [];
+            categories = Array.isArray(catResult.data) ? catResult.data : [];
         } else if (Array.isArray(catResult)) {
-            categories = catResult.slice(0, 8);
+            categories = catResult;
         }
         
         // Load products
