@@ -144,6 +144,9 @@
     }
 
     function exportCSV() {
+    function exportExcel() {
+        window.open(`${API}/admin/categories/export-excel`, "_blank");
+    }
         window.open(`${API}/admin/categories/export`, '_blank');
     }
 
@@ -173,7 +176,8 @@
             <p class="sub">{stats.total} kategórií · {stats.withImage} s obrázkom · {stats.noImage} bez · {stats.empty} prázdnych</p>
         </div>
         <div class="actions">
-            <button class="btn sm" on:click={exportCSV}>📥 Export CSV</button>
+            <button class="btn sm" on:click={exportCSV}>📥 CSV</button>
+            <button class="btn sm" on:click={exportExcel}>📊 Excel</button>
             <label class="btn sm" style="cursor:pointer">
                 📤 Import prekladov
                 <input type="file" accept=".csv,.xlsx" bind:this={fileInput} on:change={importTranslations} style="display:none">
