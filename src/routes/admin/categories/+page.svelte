@@ -54,7 +54,7 @@
     }
 
     $: allFlat = flattenAll(categories);
-    $: treeFlat = flatten(categories);
+    $: treeFlat = (expandedIds, flatten(categories));
 
     $: filtered = (() => {
         let list = searchQuery ? allFlat : treeFlat;
