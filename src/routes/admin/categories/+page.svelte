@@ -164,6 +164,8 @@
         if (fileInput) fileInput.value = "";
     }
 
+</script>
+
 <svelte:head><title>Kategórie | Admin</title></svelte:head>
 
 <div class="page">
