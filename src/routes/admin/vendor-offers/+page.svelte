@@ -9,8 +9,6 @@
     let stats={total:0,matched:0,unmatched:0,active:0};
     let processing=false, processMsg='';
     let showFilters=true;
-
-    // Edit master product modal
     let showEditProduct=false, editingProduct=null, savingProduct=false;
 
     $: totalPages = Math.ceil(total/limit)||1;
@@ -18,12 +16,8 @@
 
     onMount(async()=>{ await loadShops(); await loadCategories(); await loadOffers(); });
 
-    async function loadShops() {
-        try { const d=await(await fetch(`${API}/admin/shops`)).json(); if(d.success) shops=d.data||[]; } catch(e){}
-    }
-    async function loadCategories() {
-        try { const r=await(await fetch(`${API}/categories`)).json(); categories=r?.data?.items||(Array.isArray(r?.data)?r.data:[]); } catch(e){}
-    }
+    async function loadShops() { try { const d=await(await fetch(`${API}/admin/shops`)).json(); if(d.success) shops=d.data||[]; } catch(e){} }
+    async function loadCategories() { try { const r=await(await fetch(`${API}/categories`)).json(); categories=r?.data?.items||(Array.isArray(r?.data)?r.data:[]); } catch(e){} }
     async function loadOffers() {
         loading=true; error=null;
         let p=`?page=${page}&limit=${limit}&sort=${sortBy}&order=${sortOrder}`;
@@ -40,9 +34,7 @@
         } catch(e){error=e.message;}
         await loadStats(); loading=false; selectedOffers=new Set(); selectAll=false;
     }
-    async function loadStats() {
-        try { let p=selectedShop?`?shop_id=${selectedShop}`:''; const d=await(await fetch(`${API}/admin/vendor-offers/stats${p}`)).json(); if(d.success) stats=d.data||stats; } catch(e){}
-    }
+    async function loadStats() { try { let p=selectedShop?`?shop_id=${selectedShop}`:''; const d=await(await fetch(`${API}/admin/vendor-offers/stats${p}`)).json(); if(d.success) stats=d.data||stats; } catch(e){} }
 
     function applyFilters(){page=1;loadOffers();}
     function resetFilters(){searchQuery='';selectedShop='';statusFilter='';matchFilter='';priceMin='';priceMax='';categoryFilter='';sortBy='created_at';sortOrder='desc';applyFilters();}
@@ -88,7 +80,6 @@
         processing=false;
     }
 
-    // Master product edit
     function openProductEdit(offer) {
         if(!offer.product_id) return;
         editingProduct = { id:offer.product_id, title:offer.product_title, ean:offer.ean, brand:offer.brand, image_url:offer.image_url, category_name:offer.category_name, category_id:offer.category_id };
@@ -106,6 +97,7 @@
     function fmt(n){return(n||0).toLocaleString('sk-SK');}
     function fmtPrice(p){return p?Number(p).toFixed(2)+' €':'—';}
     function trunc(s,l=55){return s&&s.length>l?s.substring(0,l)+'…':(s||'—');}
+    function productUrl(o){return '/produkt/'+(o.product_slug||o.product_id);}
 </script>
 
 <svelte:head><title>Ponuky vendorov | Admin</title></svelte:head>
@@ -116,7 +108,6 @@
         <button class="btn outline" on:click={()=>showFilters=!showFilters}>{showFilters?'▲ Skryť filtre':'▼ Zobraziť filtre'}</button>
     </div>
 
-    <!-- STATS -->
     <div class="stats-row">
         <div class="stat"><span class="n">{fmt(stats.total)}</span><span class="l">CELKOM</span></div>
         <div class="stat ok"><span class="n">{fmt(stats.matched)}</span><span class="l">SPÁROVANÝCH</span></div>
@@ -125,7 +116,6 @@
         <div class="stat"><span class="n">{shopCount}</span><span class="l">OBCHODOV</span></div>
     </div>
 
-    <!-- FILTERS -->
     {#if showFilters}
     <div class="filter-panel">
         <div class="filter-grid">
@@ -149,7 +139,6 @@
     </div>
     {/if}
 
-    <!-- BULK ACTIONS -->
     <div class="bulk-bar">
         {#if selectedCount>0}
             <span class="sel-info">✓ {selectedCount} vybraných</span>
@@ -172,7 +161,6 @@
         {#if processMsg}<div class="process-msg" class:done={!processing}>{processMsg}</div>{/if}
     </div>
 
-    <!-- TABLE -->
     {#if loading}<div class="state">⏳ Načítavam ponuky...</div>
     {:else if error}<div class="state error">❌ {error}</div>
     {:else if !offers.length}<div class="state">📭 Žiadne ponuky</div>
@@ -193,7 +181,11 @@
                 <tr class:selected={selectedOffers.has(o.id)}>
                     <td><input type="checkbox" checked={selectedOffers.has(o.id)} on:change={()=>toggleSel(o.id)}></td>
                     <td class="offer-cell">
-                        <div class="offer-title">{trunc(o.title, 50)}</div>
+                        {#if o.product_id}
+                            <a href={productUrl(o)} target="_blank" class="offer-link">{trunc(o.title, 50)}</a>
+                        {:else}
+                            <div class="offer-title">{trunc(o.title, 50)}</div>
+                        {/if}
                         <div class="offer-id">{(o.id||'').substring(0,8)}</div>
                     </td>
                     <td class="master-cell">
@@ -201,7 +193,7 @@
                             <div class="master-card">
                                 {#if o.image_url}<img src={o.image_url} alt="" class="master-img">{/if}
                                 <div class="master-info">
-                                    <div class="master-title">{trunc(o.product_title,40)}</div>
+                                    <a href={productUrl(o)} target="_blank" class="master-link">{trunc(o.product_title,40)}</a>
                                     <div class="master-meta">
                                         {#if o.category_name}<span class="tag blue">{o.category_name}</span>{/if}
                                         {#if o.brand}<span class="tag yellow">{o.brand}</span>{/if}
@@ -239,7 +231,6 @@
     {/if}
 </div>
 
-<!-- EDIT MASTER PRODUCT MODAL -->
 {#if showEditProduct && editingProduct}
 <div class="overlay" on:click={()=>showEditProduct=false} role="dialog">
     <div class="dialog" on:click|stopPropagation>
@@ -276,12 +267,10 @@
     .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
     .toolbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
     h1{font-size:22px;margin:0;font-weight:700}.subtitle{color:#64748b;font-size:13px}
-
     .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
     .stat{padding:12px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;text-align:center}
     .stat .n{display:block;font-size:22px;font-weight:700;color:#1e293b}.stat .l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
     .stat.ok{border-color:#10b981;background:#ecfdf5}.stat.warn{border-color:#f59e0b;background:#fffbeb}
-
     .filter-panel{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:14px}
     .filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:12px}
     .fg{display:flex;flex-direction:column;gap:3px}.fg.narrow{max-width:90px}
@@ -291,7 +280,6 @@
     .search-box{display:flex;gap:4px;flex:1;min-width:200px}.search-box input{flex:1;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px}
     .per-page{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:11px;color:#64748b}
     .per-page select{padding:5px;border:1px solid #d1d5db;border-radius:4px;font-size:12px}
-
     .bulk-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;min-height:36px}
     .sel-info{font-size:13px;color:#1e293b;font-weight:600;padding:4px 10px;background:#eff6ff;border-radius:6px}
     .action-group{display:flex;gap:4px;padding:4px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px}
@@ -299,7 +287,6 @@
     .all-label{font-size:10px;font-weight:700;color:#92400e;white-space:nowrap}
     .process-msg{font-size:12px;padding:6px 12px;background:#f0f9ff;border-radius:6px;border:1px solid #bae6fd;color:#0369a1}
     .process-msg.done{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}
-
     .btn{padding:7px 14px;border:1px solid #d1d5db;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s}
     .btn:hover{background:#f1f5f9}.btn.sm{padding:5px 10px;font-size:11px}
     .btn.primary{background:#3b82f6;color:#fff;border-color:#3b82f6}.btn.primary:hover{background:#2563eb}
@@ -310,7 +297,6 @@
     .btn.ai{background:#059669;color:#fff;border-color:#059669}
     .btn.fulltext{background:#d97706;color:#fff;border-color:#d97706}
     .btn:disabled{opacity:.4;cursor:not-allowed}
-
     .table-wrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
     table{width:100%;border-collapse:collapse;font-size:13px}
     thead{background:#f1f5f9}
@@ -318,17 +304,17 @@
     td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
     tr:hover{background:#f8fafc}tr.selected{background:#eff6ff}
     .w30{width:30px}.w70{width:70px}.w80{width:80px}
-
     .offer-cell .offer-title{font-weight:600;color:#1e293b;line-height:1.3}
+    .offer-cell .offer-link{font-weight:600;color:#2563eb;line-height:1.3;text-decoration:none;display:block}
+    .offer-cell .offer-link:hover{text-decoration:underline;color:#1d4ed8}
     .offer-cell .offer-id{font-size:10px;color:#94a3b8;font-family:monospace;margin-top:1px}
-
     .master-cell{min-width:200px}
     .master-card{display:flex;align-items:center;gap:8px;padding:4px 6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px}
     .master-img{width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0}
     .master-info{flex:1;min-width:0}
-    .master-title{font-size:12px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .master-link{display:block;font-size:12px;font-weight:600;color:#2563eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+    .master-link:hover{text-decoration:underline;color:#1d4ed8}
     .master-meta{display:flex;gap:4px;margin-top:2px;flex-wrap:wrap}
-
     .tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500}
     .tag.blue{background:#dbeafe;color:#1d4ed8}.tag.yellow{background:#fef3c7;color:#92400e}
     .tag.green{background:#d1fae5;color:#065f46}.tag.orange{background:#ffedd5;color:#c2410c}
@@ -340,16 +326,13 @@
     .actions{white-space:nowrap;display:flex;gap:2px}
     .icon-btn{background:none;border:1px solid transparent;cursor:pointer;padding:3px 5px;border-radius:4px;font-size:13px;transition:all .15s}
     .icon-btn:hover{background:#f1f5f9;border-color:#e2e8f0}
-
     .pagination{display:flex;gap:4px;justify-content:center;align-items:center;padding:14px;flex-wrap:wrap}
     .pagination button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer;font-size:11px}
     .pagination button:hover:not(:disabled){background:#f1f5f9}.pagination button.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
     .pagination button:disabled{opacity:.3;cursor:not-allowed}
     .ellipsis{padding:0 4px;color:#94a3b8}.page-label{margin-left:10px;font-size:12px;color:#64748b}
-
     .state{text-align:center;padding:50px;color:#94a3b8;font-size:15px;background:#fff;border:1px solid #e2e8f0;border-radius:10px}
     .state.error{color:#ef4444}
-
     .overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(2px)}
     .dialog{background:#fff;border-radius:14px;width:92%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
     .dialog-header{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid #e2e8f0}
