@@ -1,58 +1,148 @@
 <script>
     import { page } from '$app/stores';
+    import { api } from '$lib/api';
     import { onMount } from 'svelte';
     import '../app.css';
-
-    export let data;
-
+    
     let searchQuery = '';
     let isCollapsed = false;
     let wishlistCount = 0;
     let compareCount = 0;
+    let navCategories = [];
     let mobileMenuOpen = false;
+    
     let megaMenuOpen = false;
     let activeCategoryId = null;
     let activeCategoryData = null;
     let closeTimeout = null;
     let showAllCats = false;
+
+    // Category nav style: 'pills' | 'icons' | 'minimal' | 'cards'
     let catNavStyle = 'pills';
     const MAX_VISIBLE = 10;
 
-    $: navCategories = (data?.navCategories || []).map(cat => {
-        const children = (cat.children || []).map(child => {
-            const grandchildren = (child.children || []).slice(0, 15);
-            return { ...child, grandchildren };
-        });
-        return { ...cat, children };
+    function handleSearch(e) {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`;
+        }
+    }
+
+    function closeMobileMenu() {
+        mobileMenuOpen = false;
+        document.body.style.overflow = '';
+    }
+
+    function openMegaMenu(cat) {
+        if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; }
+        if (cat.children && cat.children.length > 0) {
+            activeCategoryId = cat.id;
+            activeCategoryData = cat;
+            megaMenuOpen = true;
+        }
+    }
+
+    function scheduleMegaClose() {
+        closeTimeout = setTimeout(() => {
+            megaMenuOpen = false;
+            activeCategoryId = null;
+            activeCategoryData = null;
+        }, 200);
+    }
+
+    function cancelMegaClose() {
+        if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; }
+    }
+
+    function handleCatEnter(cat) {
+        if (window.innerWidth > 768) openMegaMenu(cat);
+    }
+    function handleCatLeave() {
+        if (window.innerWidth > 768) scheduleMegaClose();
+    }
+
+    function toggleAllCats() {
+        showAllCats = !showAllCats;
+    }
+    function closeAllCats() {
+        showAllCats = false;
+    }
+    
+    onMount(() => {
+        const SCROLL_THRESHOLD = 200;
+        const HYSTERESIS = 50;
+        let collapsed = false;
+        let ticking = false;
+
+        const update = () => {
+            const y = window.scrollY || 0;
+            if (y > SCROLL_THRESHOLD && !collapsed) { collapsed = true; isCollapsed = true; }
+            else if (y < (SCROLL_THRESHOLD - HYSTERESIS) && collapsed) { collapsed = false; isCollapsed = false; }
+            ticking = false;
+        };
+        const onScroll = () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } };
+        update();
+        window.addEventListener('scroll', onScroll, { passive: true });
+
+        // Load categories
+        (async () => {
+            try {
+                const res = await api.getCategoriesTree();
+                if (res?.success && Array.isArray(res.data)) {
+                    navCategories = res.data.map(cat => {
+                        const children = (cat.children || []).map(child => {
+                            const grandchildren = (child.children || []).slice(0, 15);
+                            return { ...child, grandchildren };
+                        });
+                        return { ...cat, children };
+                    });
+                }
+            } catch (e) { console.error('Failed to load categories', e); }
+        })();
+
+        // Load saved nav style
+        try {
+            const saved = localStorage.getItem('mp_catnav_style');
+            if (saved && ['pills','icons','minimal','cards'].includes(saved)) catNavStyle = saved;
+        } catch(e) {}
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            if (closeTimeout) clearTimeout(closeTimeout);
+        };
     });
+
+    // Save style on change
+    $: if (typeof window !== 'undefined' && catNavStyle) {
+        try { localStorage.setItem('mp_catnav_style', catNavStyle); } catch(e) {}
+    }
+
+    const catEmojis = {
+        'uncategorized': '📦', 'dom': '🏡', 'záhrada': '🏡', 'domáce': '🔌',
+        'spotrebiče': '🔌', 'elektronika': '📱', 'hračky': '🧸', 'kancelárske': '📎',
+        'kostýmy': '🎭', 'kuchynské': '🍳', 'ostatné': '📦', 'šport': '⚽',
+        'zdravie': '💊', 'krása': '💄', 'zvieratá': '🐾', 'vonkajšie': '🌳',
+        'auto': '🚗', 'dieťa': '👶', 'oblečenie': '👕', 'nábytok': '🪑',
+        'foto': '📸', 'audio': '🎧', 'digitál': '💻', 'hobby': '🎨',
+        'hry': '🎮', 'camping': '⛺', 'barbecue': '🔥', 'baby': '👶',
+        'beveilig': '🔒', 'accessoire': '👜'
+    };
+
+    function getCatEmoji(name) {
+        const lower = (name || '').toLowerCase();
+        for (const [key, emoji] of Object.entries(catEmojis)) {
+            if (lower.includes(key)) return emoji;
+        }
+        return '📦';
+    }
+
+    function getInitial(name) {
+        return (name || 'K').charAt(0).toUpperCase();
+    }
+
     $: visibleCats = navCategories.slice(0, MAX_VISIBLE);
     $: hiddenCats = navCategories.slice(MAX_VISIBLE);
     $: hasMore = hiddenCats.length > 0;
-
-    function handleSearch(e) { e.preventDefault(); if (searchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`; }
-    function closeMobileMenu() { mobileMenuOpen = false; document.body.style.overflow = ''; }
-    function openMegaMenu(cat) { if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; } if (cat.children && cat.children.length > 0) { activeCategoryId = cat.id; activeCategoryData = cat; megaMenuOpen = true; } }
-    function scheduleMegaClose() { closeTimeout = setTimeout(() => { megaMenuOpen = false; activeCategoryId = null; activeCategoryData = null; }, 200); }
-    function cancelMegaClose() { if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; } }
-    function handleCatEnter(cat) { if (window.innerWidth > 768) openMegaMenu(cat); }
-    function handleCatLeave() { if (window.innerWidth > 768) scheduleMegaClose(); }
-    function toggleAllCats() { showAllCats = !showAllCats; }
-    function closeAllCats() { showAllCats = false; }
-
-    onMount(() => {
-        const SCROLL_THRESHOLD = 200; const HYSTERESIS = 50; let collapsed = false; let ticking = false;
-        const update = () => { const y = window.scrollY || 0; if (y > SCROLL_THRESHOLD && !collapsed) { collapsed = true; isCollapsed = true; } else if (y < (SCROLL_THRESHOLD - HYSTERESIS) && collapsed) { collapsed = false; isCollapsed = false; } ticking = false; };
-        const onScroll = () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } };
-        update(); window.addEventListener('scroll', onScroll, { passive: true });
-        try { const saved = localStorage.getItem('mp_catnav_style'); if (saved && ['pills','icons','minimal','cards'].includes(saved)) catNavStyle = saved; } catch(e) {}
-        return () => { window.removeEventListener('scroll', onScroll); if (closeTimeout) clearTimeout(closeTimeout); };
-    });
-
-    $: if (typeof window !== 'undefined' && catNavStyle) { try { localStorage.setItem('mp_catnav_style', catNavStyle); } catch(e) {} }
-
-    const catEmojis = { 'uncategorized': '📦', 'dom': '🏡', 'záhrada': '🏡', 'domáce': '🔌', 'spotrebiče': '🔌', 'elektronika': '📱', 'hračky': '🧸', 'kancelárske': '📎', 'kostýmy': '🎭', 'kuchynské': '🍳', 'ostatné': '📦', 'šport': '⚽', 'zdravie': '💊', 'krása': '💄', 'zvieratá': '🐾', 'vonkajšie': '🌳', 'auto': '🚗', 'dieťa': '👶', 'oblečenie': '👕', 'nábytok': '🪑', 'foto': '📸', 'audio': '🎧', 'digitál': '💻', 'hobby': '🎨', 'hry': '🎮', 'camping': '⛺', 'barbecue': '🔥', 'baby': '👶', 'beveilig': '🔒', 'accessoire': '👜' };
-    function getCatEmoji(name) { const lower = (name || '').toLowerCase(); for (const [key, emoji] of Object.entries(catEmojis)) { if (lower.includes(key)) return emoji; } return '📦'; }
-    function getInitial(name) { return (name || 'K').charAt(0).toUpperCase(); }
 </script>
 
 {#if $page.url.pathname.startsWith('/admin') || $page.url.pathname.startsWith('/vendor-dashboard')}
