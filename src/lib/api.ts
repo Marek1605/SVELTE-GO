@@ -1,9 +1,9 @@
-import { PUBLIC_API_URL } from "$env/static/public";
-import { browser } from "$app/environment";
-const API_URL = browser ? "/api/v1" : (PUBLIC_API_URL || "http://localhost:8080/api/v1");
-// replaced
-// replaced
-// replaced
+import { PUBLIC_API_URL } from '$env/static/public';
+import { browser } from '$app/environment';
+
+// Server-side: use full backend URL for direct SSR calls
+// Client-side: use relative /api/v1 which goes through hooks.server.ts proxy (no CORS issues)
+const API_URL = browser ? '/api/v1' : (PUBLIC_API_URL || 'http://localhost:8080/api/v1');
 
 async function fetchApi(endpoint, options = {}) {
     const url = API_URL + endpoint;

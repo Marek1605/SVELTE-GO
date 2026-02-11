@@ -19,7 +19,28 @@
     let importingTranslations = false;
     let fileInput;
 
-    onMount(loadCategories);
+    // Category nav style switcher
+    let catNavStyle = 'pills';
+    const navStyles = [
+        { id: 'pills', name: '💊 Pills', desc: 'Zaoblené čipy s ikonami — moderný Heureka štýl' },
+        { id: 'icons', name: '⭕ Ikony', desc: 'Kruhy s obrázkami a názvom pod nimi — Instagram/Allegro štýl' },
+        { id: 'minimal', name: '✏️ Minimal', desc: 'Čistý text s podčiarknutím — Apple/Adidas štýl' },
+        { id: 'cards', name: '🃏 Karty', desc: 'Malé kartičky s obrázkom — Amazon/Temu štýl' }
+    ];
+
+    function loadNavStyle() {
+        try {
+            const saved = localStorage.getItem('mp_catnav_style');
+            if (saved) catNavStyle = saved;
+        } catch(e) {}
+    }
+
+    function setNavStyle(style) {
+        catNavStyle = style;
+        try { localStorage.setItem('mp_catnav_style', style); } catch(e) {}
+    }
+
+    onMount(() => { loadNavStyle(); loadCategories(); });
 
     async function loadCategories() {
         loading = true;
@@ -186,6 +207,25 @@
         </div>
     </div>
 
+    <div class="nav-switcher">
+        <div class="nav-switcher__title">
+            <span>🎨 Štýl navigácie kategórií</span>
+            <span class="nav-switcher__badge">{navStyles.find(s => s.id === catNavStyle)?.name || 'Pills'}</span>
+        </div>
+        <div class="nav-switcher__grid">
+            {#each navStyles as style}
+                <button 
+                    class="nav-switcher__opt" 
+                    class:nav-switcher__opt--active={catNavStyle === style.id}
+                    on:click={() => setNavStyle(style.id)}
+                >
+                    <span class="nav-switcher__opt-name">{style.name}</span>
+                    <span class="nav-switcher__opt-desc">{style.desc}</span>
+                </button>
+            {/each}
+        </div>
+    </div>
+
     <div class="toolbar">
         <div class="left">
             <input type="text" placeholder="Hľadať..." bind:value={searchQuery} class="search">
@@ -322,4 +362,16 @@
     .modal-b input{padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px}
     .preview-img{max-width:100px;max-height:60px;border-radius:4px;margin-top:4px}
     .modal-f{display:flex;justify-content:flex-end;gap:8px;padding:16px 20px;border-top:1px solid #e2e8f0}
+
+    /* Nav Style Switcher */
+    .nav-switcher{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin-bottom:16px}
+    .nav-switcher__title{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;color:#1f2937;margin-bottom:12px}
+    .nav-switcher__badge{font-size:11px;font-weight:600;background:#ff6b35;color:#fff;padding:2px 10px;border-radius:100px}
+    .nav-switcher__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .nav-switcher__opt{background:#f8fafc;border:2px solid #e5e7eb;border-radius:10px;padding:12px;text-align:left;transition:all .2s;cursor:pointer}
+    .nav-switcher__opt:hover{border-color:#ff6b35;background:#fff5f0}
+    .nav-switcher__opt--active{border-color:#ff6b35;background:#fff5f0;box-shadow:0 0 0 3px rgba(255,107,53,.15)}
+    .nav-switcher__opt-name{display:block;font-size:13px;font-weight:700;color:#1f2937;margin-bottom:4px}
+    .nav-switcher__opt-desc{display:block;font-size:11px;color:#6b7280;line-height:1.3}
+    @media(max-width:768px){.nav-switcher__grid{grid-template-columns:repeat(2,1fr)}}
 </style>
