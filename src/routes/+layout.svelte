@@ -29,9 +29,15 @@
     $: hiddenCats = navCategories.slice(MAX_VISIBLE);
     $: hasMore = hiddenCats.length > 0;
 
-    function handleSearch(e) { e.preventDefault(); if (searchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`; }
+    function handleSearch(e) {
+        e.preventDefault();
+        if (searchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`;
+    }
     function closeMobileMenu() { mobileMenuOpen = false; document.body.style.overflow = ''; }
-    function openMegaMenu(cat) { if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; } if (cat.children && cat.children.length > 0) { activeCategoryId = cat.id; activeCategoryData = cat; megaMenuOpen = true; } }
+    function openMegaMenu(cat) {
+        if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; }
+        if (cat.children && cat.children.length > 0) { activeCategoryId = cat.id; activeCategoryData = cat; megaMenuOpen = true; }
+    }
     function scheduleMegaClose() { closeTimeout = setTimeout(() => { megaMenuOpen = false; activeCategoryId = null; activeCategoryData = null; }, 200); }
     function cancelMegaClose() { if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; } }
     function handleCatEnter(cat) { if (window.innerWidth > 768) openMegaMenu(cat); }
@@ -40,18 +46,47 @@
     function closeAllCats() { showAllCats = false; }
 
     onMount(() => {
-        const SCROLL_THRESHOLD = 200; const HYSTERESIS = 50; let collapsed = false; let ticking = false;
-        const update = () => { const y = window.scrollY || 0; if (y > SCROLL_THRESHOLD && !collapsed) { collapsed = true; isCollapsed = true; } else if (y < (SCROLL_THRESHOLD - HYSTERESIS) && collapsed) { collapsed = false; isCollapsed = false; } ticking = false; };
+        const SCROLL_THRESHOLD = 200;
+        const HYSTERESIS = 50;
+        let collapsed = false;
+        let ticking = false;
+        const update = () => {
+            const y = window.scrollY || 0;
+            if (y > SCROLL_THRESHOLD && !collapsed) { collapsed = true; isCollapsed = true; }
+            else if (y < (SCROLL_THRESHOLD - HYSTERESIS) && collapsed) { collapsed = false; isCollapsed = false; }
+            ticking = false;
+        };
         const onScroll = () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } };
-        update(); window.addEventListener('scroll', onScroll, { passive: true });
-        try { const saved = localStorage.getItem('mp_catnav_style'); if (saved && ['pills','icons','minimal','cards'].includes(saved)) catNavStyle = saved; } catch(e) {}
+        update();
+        window.addEventListener('scroll', onScroll, { passive: true });
+
+        try {
+            const saved = localStorage.getItem('mp_catnav_style');
+            if (saved && ['pills','icons','minimal','cards'].includes(saved)) catNavStyle = saved;
+        } catch(e) {}
+
         return () => { window.removeEventListener('scroll', onScroll); if (closeTimeout) clearTimeout(closeTimeout); };
     });
 
-    $: if (typeof window !== 'undefined' && catNavStyle) { try { localStorage.setItem('mp_catnav_style', catNavStyle); } catch(e) {} }
+    $: if (typeof window !== 'undefined' && catNavStyle) {
+        try { localStorage.setItem('mp_catnav_style', catNavStyle); } catch(e) {}
+    }
 
-    const catEmojis = { 'uncategorized': '📦', 'dom': '🏡', 'záhrada': '🏡', 'domáce': '🔌', 'spotrebiče': '🔌', 'elektronika': '📱', 'hračky': '🧸', 'kancelárske': '📎', 'kostýmy': '🎭', 'kuchynské': '🍳', 'ostatné': '📦', 'šport': '⚽', 'zdravie': '💊', 'krása': '💄', 'zvieratá': '🐾', 'vonkajšie': '🌳', 'auto': '🚗', 'dieťa': '👶', 'oblečenie': '👕', 'nábytok': '🪑', 'foto': '📸', 'audio': '🎧', 'digitál': '💻', 'hobby': '🎨', 'hry': '🎮', 'camping': '⛺', 'barbecue': '🔥', 'baby': '👶', 'beveilig': '🔒', 'accessoire': '👜' };
-    function getCatEmoji(name) { const lower = (name || '').toLowerCase(); for (const [key, emoji] of Object.entries(catEmojis)) { if (lower.includes(key)) return emoji; } return '📦'; }
+    const catEmojis = {
+        'uncategorized': '📦', 'dom': '🏡', 'záhrada': '🏡', 'domáce': '🔌',
+        'spotrebiče': '🔌', 'elektronika': '📱', 'hračky': '🧸', 'kancelárske': '📎',
+        'kostýmy': '🎭', 'kuchynské': '🍳', 'ostatné': '📦', 'šport': '⚽',
+        'zdravie': '💊', 'krása': '💄', 'zvieratá': '🐾', 'vonkajšie': '🌳',
+        'auto': '🚗', 'dieťa': '👶', 'oblečenie': '👕', 'nábytok': '🪑',
+        'foto': '📸', 'audio': '🎧', 'digitál': '💻', 'hobby': '🎨',
+        'hry': '🎮', 'camping': '⛺', 'barbecue': '🔥', 'baby': '👶',
+        'beveilig': '🔒', 'accessoire': '👜'
+    };
+    function getCatEmoji(name) {
+        const lower = (name || '').toLowerCase();
+        for (const [key, emoji] of Object.entries(catEmojis)) { if (lower.includes(key)) return emoji; }
+        return '📦';
+    }
     function getInitial(name) { return (name || 'K').charAt(0).toUpperCase(); }
 </script>
 
@@ -100,91 +135,77 @@
     <!-- CATEGORY NAV -->
     <nav class="cn" class:cn--collapsed={isCollapsed}>
         <div class="cn__wrap">
+            <div class="cn__scroll">
 
-            <!-- ═══ PILLS ═══ -->
-            {#if catNavStyle === 'pills'}
-            <div class="cn__row">
-                {#each visibleCats as cat}
-                    <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-pill"
-                        class:cn-pill--active={activeCategoryId === cat.id}
-                        on:mouseenter={() => handleCatEnter(cat)} on:mouseleave={handleCatLeave}>
-                        <span class="cn-pill__ico">
-                            {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCatEmoji(cat.name)}</span>{/if}
-                        </span>
-                        <span class="cn-pill__txt">{cat.name}</span>
-                    </a>
-                {/each}
-                {#if hasMore}
-                    <button class="cn-pill cn-pill--more" on:click={toggleAllCats}>
-                        <span class="cn-pill__ico"><span class="cn-pill__plus">+{hiddenCats.length}</span></span>
-                        <span class="cn-pill__txt">Viac</span>
-                        <svg class="cn-pill__chevron" class:cn-pill__chevron--open={showAllCats} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
+                <!-- PILLS -->
+                {#if catNavStyle === 'pills'}
+                <div class="cn__row">
+                    {#each visibleCats as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-pill"
+                            class:cn-pill--active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCatEnter(cat)} on:mouseleave={handleCatLeave}>
+                            <span class="cn-pill__ico">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCatEmoji(cat.name)}</span>{/if}
+                            </span>
+                            <span class="cn-pill__txt">{cat.name}</span>
+                        </a>
+                    {/each}
+                </div>
+
+                <!-- ICONS -->
+                {:else if catNavStyle === 'icons'}
+                <div class="cn__row cn__row--icons">
+                    {#each visibleCats as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-ico"
+                            class:cn-ico--active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCatEnter(cat)} on:mouseleave={handleCatLeave}>
+                            <div class="cn-ico__circle">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCatEmoji(cat.name)}</span>{/if}
+                            </div>
+                            <span class="cn-ico__name">{cat.name}</span>
+                        </a>
+                    {/each}
+                </div>
+
+                <!-- MINIMAL -->
+                {:else if catNavStyle === 'minimal'}
+                <div class="cn__row cn__row--min">
+                    {#each visibleCats as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-min"
+                            class:cn-min--active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCatEnter(cat)} on:mouseleave={handleCatLeave}>
+                            {cat.name}
+                        </a>
+                    {/each}
+                </div>
+
+                <!-- CARDS -->
+                {:else if catNavStyle === 'cards'}
+                <div class="cn__row cn__row--cards">
+                    {#each visibleCats as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-card"
+                            class:cn-card--active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCatEnter(cat)} on:mouseleave={handleCatLeave}>
+                            <div class="cn-card__img">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCatEmoji(cat.name)}</span>{/if}
+                            </div>
+                            <span class="cn-card__name">{cat.name}</span>
+                        </a>
+                    {/each}
+                </div>
                 {/if}
+
             </div>
 
-            <!-- ═══ ICONS ═══ -->
-            {:else if catNavStyle === 'icons'}
-            <div class="cn__row cn__row--icons">
-                {#each visibleCats as cat}
-                    <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-ico"
-                        class:cn-ico--active={activeCategoryId === cat.id}
-                        on:mouseenter={() => handleCatEnter(cat)} on:mouseleave={handleCatLeave}>
-                        <div class="cn-ico__circle">
-                            {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCatEmoji(cat.name)}</span>{/if}
-                        </div>
-                        <span class="cn-ico__name">{cat.name}</span>
-                    </a>
-                {/each}
-                {#if hasMore}
-                    <button class="cn-ico cn-ico--more" on:click={toggleAllCats}>
-                        <div class="cn-ico__circle cn-ico__circle--more">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><line x1="12" y1="5" x2="12" y2="19"/></svg>
-                        </div>
-                        <span class="cn-ico__name">Všetky</span>
-                    </button>
-                {/if}
-            </div>
-
-            <!-- ═══ MINIMAL ═══ -->
-            {:else if catNavStyle === 'minimal'}
-            <div class="cn__row cn__row--min">
-                {#each visibleCats as cat}
-                    <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-min"
-                        class:cn-min--active={activeCategoryId === cat.id}
-                        on:mouseenter={() => handleCatEnter(cat)} on:mouseleave={handleCatLeave}>
-                        {cat.name}
-                    </a>
-                {/each}
-                {#if hasMore}
-                    <button class="cn-min cn-min--more" on:click={toggleAllCats}>
-                        Viac →
-                    </button>
-                {/if}
-            </div>
-
-            <!-- ═══ CARDS ═══ -->
-            {:else if catNavStyle === 'cards'}
-            <div class="cn__row cn__row--cards">
-                {#each visibleCats as cat}
-                    <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-card"
-                        class:cn-card--active={activeCategoryId === cat.id}
-                        on:mouseenter={() => handleCatEnter(cat)} on:mouseleave={handleCatLeave}>
-                        <div class="cn-card__img">
-                            {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCatEmoji(cat.name)}</span>{/if}
-                        </div>
-                        <span class="cn-card__name">{cat.name}</span>
-                    </a>
-                {/each}
-                {#if hasMore}
-                    <button class="cn-card cn-card--more" on:click={toggleAllCats}>
-                        <div class="cn-card__img"><span>+{hiddenCats.length}</span></div>
-                        <span class="cn-card__name">Viac</span>
-                    </button>
-                {/if}
-            </div>
+            <!-- VIAC BUTTON - FIXED RIGHT -->
+            {#if hasMore}
+                <div class="cn__fade"></div>
+                <button class="cn__more-btn" on:click={toggleAllCats}>
+                    <span class="cn__more-badge">+{hiddenCats.length}</span>
+                    <span class="cn__more-txt">Viac</span>
+                    <svg class="cn__more-chev" class:cn__more-chev--open={showAllCats} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
             {/if}
-
         </div>
 
         <!-- MEGA MENU -->
@@ -288,7 +309,7 @@
 {/if}
 
 <style>
-/* ═══ GLOBALS ═══ */
+/* GLOBALS */
 :global(*){box-sizing:border-box;margin:0;padding:0}
 :global(body){font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8fafc;color:#1f2937;line-height:1.5}
 :global(a){text-decoration:none;color:inherit}
@@ -296,7 +317,7 @@
 :global(button){cursor:pointer;font-family:inherit}
 .mp-site{min-height:100vh;display:flex;flex-direction:column}
 
-/* ═══ HEADER ═══ */
+/* HEADER */
 .mp-header{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08);position:relative;z-index:1000}
 .mp-header__inner{display:flex;align-items:center;gap:24px;padding:12px 20px;max-width:1400px;margin:0 auto}
 .mp-header__logo{flex-shrink:0}
@@ -323,19 +344,24 @@
     .mp-header__action span:last-child{display:none}
 }
 
-/* ═══════════════════════════════════════════ */
-/* CATEGORY NAV - CORE                         */
-/* ═══════════════════════════════════════════ */
+/* ═══ CATEGORY NAV ═══ */
 .cn{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:998;transition:all .3s cubic-bezier(.4,0,.2,1)}
 .cn--collapsed{box-shadow:0 2px 12px rgba(0,0,0,.06)}
-.cn__wrap{max-width:1400px;margin:0 auto;padding:0 20px;position:relative}
-
+.cn__wrap{max-width:1400px;margin:0 auto;padding:0 20px;position:relative;display:flex;align-items:center}
+.cn__scroll{flex:1;overflow:hidden;position:relative}
 .cn__row{display:flex;gap:6px;padding:10px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .cn__row::-webkit-scrollbar{display:none}
 
-/* ═══════════════════════════════════════════ */
-/* PILLS — rounded chip-style (default)        */
-/* ═══════════════════════════════════════════ */
+/* FADE + VIAC BUTTON - fixed right */
+.cn__fade{width:40px;background:linear-gradient(to right,transparent,#fff);flex-shrink:0}
+.cn__more-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;background:transparent;border:1.5px dashed #ff6b35;border-radius:100px;color:#ff6b35;font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0;margin-left:4px;transition:all .2s}
+.cn__more-btn:hover{background:#fff5f0;border-style:solid}
+.cn__more-badge{font-size:11px;font-weight:700;background:#fff5f0;padding:2px 6px;border-radius:10px}
+.cn__more-txt{line-height:1}
+.cn__more-chev{transition:transform .2s;flex-shrink:0}
+.cn__more-chev--open{transform:rotate(180deg)}
+
+/* PILLS */
 .cn-pill{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;background:#f3f4f6;border:1.5px solid transparent;border-radius:100px;font-size:13px;font-weight:600;color:#374151;white-space:nowrap;transition:all .2s cubic-bezier(.4,0,.2,1);flex-shrink:0}
 .cn-pill:hover{background:#fff5f0;border-color:#ff6b35;color:#ff6b35;transform:translateY(-1px);box-shadow:0 3px 10px rgba(255,107,53,.12)}
 .cn-pill--active{background:#ff6b35 !important;color:#fff !important;border-color:#ff6b35 !important;box-shadow:0 3px 10px rgba(255,107,53,.25)}
@@ -344,16 +370,8 @@
 .cn-pill__ico span{font-size:14px}
 .cn-pill--active .cn-pill__ico{background:rgba(255,255,255,.25)}
 .cn-pill__txt{line-height:1}
-.cn-pill__plus{font-size:11px;font-weight:700;color:#ff6b35}
-.cn-pill--more{background:transparent;border:1.5px dashed #ff6b35;color:#ff6b35;cursor:pointer;gap:6px}
-.cn-pill--more:hover{background:#fff5f0;border-style:solid}
-.cn-pill--more .cn-pill__ico{background:#fff5f0}
-.cn-pill__chevron{transition:transform .2s;flex-shrink:0}
-.cn-pill__chevron--open{transform:rotate(180deg)}
 
-/* ═══════════════════════════════════════════ */
-/* ICONS — circle image + label below          */
-/* ═══════════════════════════════════════════ */
+/* ICONS */
 .cn__row--icons{gap:2px;padding:10px 0 8px}
 .cn-ico{display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;transition:all .2s;flex-shrink:0;border:none;background:transparent;cursor:pointer;text-decoration:none;color:inherit}
 .cn-ico:hover{background:#fef7f0}
@@ -362,96 +380,75 @@
 .cn-ico:hover .cn-ico__circle{border-color:#ff6b35;transform:scale(1.08)}
 .cn-ico__circle img{width:100%;height:100%;object-fit:cover}
 .cn-ico__circle span{font-size:18px}
-.cn-ico__circle--more{border-style:dashed;border-color:#ff6b35;color:#ff6b35}
 .cn-ico__name{font-size:11px;font-weight:500;color:#6b7280;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
 .cn-ico:hover .cn-ico__name{color:#ff6b35}
-.cn-ico--more{border:none;background:none}
 
-/* ═══════════════════════════════════════════ */
-/* MINIMAL — clean text-only with underline    */
-/* ═══════════════════════════════════════════ */
+/* MINIMAL */
 .cn__row--min{gap:0;padding:0}
-.cn-min{position:relative;padding:14px 18px;font-size:13.5px;font-weight:600;color:#4b5563;white-space:nowrap;transition:color .2s;flex-shrink:0;background:none;border:none;display:flex;align-items:center;gap:4px;cursor:pointer}
-.cn-min::after{content:'';position:absolute;bottom:0;left:18px;right:18px;height:2.5px;background:#ff6b35;border-radius:2px 2px 0 0;transform:scaleX(0);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.cn-min{padding:12px 18px;font-size:14px;font-weight:500;color:#4b5563;position:relative;white-space:nowrap;transition:color .2s;flex-shrink:0;border:none;background:none;cursor:pointer;text-decoration:none}
+.cn-min::after{content:'';position:absolute;bottom:0;left:18px;right:18px;height:2px;background:#ff6b35;transform:scaleX(0);transition:transform .2s}
 .cn-min:hover{color:#ff6b35}
-.cn-min:hover::after{transform:scaleX(1)}
-.cn-min--active{color:#ff6b35}
-.cn-min--active::after{transform:scaleX(1)}
-.cn-min--more{color:#ff6b35;font-weight:700;cursor:pointer}
-.cn-min--more::after{display:none}
+.cn-min:hover::after,.cn-min--active::after{transform:scaleX(1)}
+.cn-min--active{color:#ff6b35;font-weight:600}
 
-/* ═══════════════════════════════════════════ */
-/* CARDS — small bordered cards                */
-/* ═══════════════════════════════════════════ */
+/* CARDS */
 .cn__row--cards{gap:8px;padding:10px 0}
-.cn-card{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;flex-shrink:0;transition:all .2s;cursor:pointer}
-.cn-card:hover{border-color:#ff6b35;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06);transform:translateY(-2px)}
-.cn-card--active{border-color:#ff6b35;background:#fff5f0}
-.cn-card__img{width:34px;height:34px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
-.cn-card__img img{width:100%;height:100%;object-fit:cover;border-radius:8px}
-.cn-card__img span{font-size:15px}
-.cn-card__name{font-size:13px;font-weight:600;color:#374151;white-space:nowrap}
-.cn-card:hover .cn-card__name{color:#ff6b35}
-.cn-card--more{border-style:dashed;border-color:#ff6b35;background:transparent}
-.cn-card--more .cn-card__img{background:#fff5f0;color:#ff6b35;font-weight:700;font-size:12px}
-.cn-card--more .cn-card__name{color:#ff6b35}
+.cn-card{display:flex;align-items:center;gap:8px;padding:7px 14px 7px 7px;background:rgba(243,244,246,.6);border:1px solid #e5e7eb;border-radius:12px;font-size:13px;font-weight:600;color:#374151;white-space:nowrap;transition:all .2s;flex-shrink:0;text-decoration:none;cursor:pointer}
+.cn-card:hover{background:#fff;border-color:#ff6b35;box-shadow:0 4px 12px rgba(255,107,53,.1);transform:translateY(-1px)}
+.cn-card--active{background:#ff6b35 !important;color:#fff !important;border-color:#ff6b35 !important}
+.cn-card__img{width:32px;height:32px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.cn-card__img img{width:100%;height:100%;object-fit:cover}
+.cn-card__img span{font-size:16px}
+.cn-card__name{line-height:1}
 
-/* ═══════════════════════════════════════════ */
-/* MEGA MENU                                   */
-/* ═══════════════════════════════════════════ */
-.mn{position:absolute;left:0;right:0;top:100%;background:#fff;border-top:1px solid #e5e7eb;box-shadow:0 20px 50px rgba(0,0,0,.12);z-index:999;animation:mnDrop .2s ease}
-@keyframes mnDrop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.mn__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 16px;max-width:1400px;margin:0 auto;padding:20px 24px;max-height:50vh;overflow-y:auto}
-.mn__col{padding:8px 0;border-bottom:1px solid #f3f4f6}
-.mn__col:nth-last-child(-n+4){border-bottom:none}
-.mn__sub{display:flex;align-items:center;gap:12px;padding:4px 0;margin-bottom:4px}
+/* MEGA MENU */
+.mn{position:absolute;left:0;right:0;background:#fff;border-top:1px solid #f3f4f6;box-shadow:0 20px 60px rgba(0,0,0,.12);z-index:999;animation:mnFade .2s ease}
+@keyframes mnFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.mn__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px;max-width:1400px;margin:0 auto;padding:24px 20px}
+.mn__col{min-width:0}
+.mn__sub{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:6px 0;text-decoration:none;color:inherit}
+.mn__sub-img{width:36px;height:36px;border-radius:10px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.mn__sub-img img{width:100%;height:100%;object-fit:cover}
+.mn__sub-img span{font-size:14px;font-weight:600;color:#6b7280}
+.mn__sub-name{font-size:14px;font-weight:600;color:#1f2937}
 .mn__sub:hover .mn__sub-name{color:#ff6b35}
-.mn__sub-img{width:40px;height:40px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
-.mn__sub-img img{width:100%;height:100%;object-fit:contain}
-.mn__sub-img span{font-size:14px;font-weight:600;color:#9ca3af;width:36px;height:36px;background:#f3f4f6;border-radius:6px;display:flex;align-items:center;justify-content:center}
-.mn__sub-name{font-size:14px;font-weight:700;color:#1f2937}
-.mn__links{display:flex;flex-wrap:wrap;gap:0;padding:2px 0 6px;line-height:1.7}
-.mn__link{font-size:12px;color:#6b7280;transition:color .15s;white-space:nowrap}
-.mn__link::before{content:'•';color:#d1d5db;margin:0 5px}
+.mn__links{display:flex;flex-direction:column;gap:4px;padding-left:46px}
+.mn__link{font-size:13px;color:#6b7280;padding:3px 0;transition:color .15s;text-decoration:none}
 .mn__link:hover{color:#ff6b35}
-.mn__link--more{color:#ff6b35;font-weight:600}
-@media(max-width:1200px){.mn__grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:900px){.mn__grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:768px){.mn{display:none}}
+.mn__link--more{color:#ff6b35;font-weight:500}
 
-/* ═══════════════════════════════════════════ */
-/* ALL CATEGORIES DROPDOWN                     */
-/* ═══════════════════════════════════════════ */
-.cn-drop__overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1000;animation:fadeIn .15s}
+/* ALL CATEGORIES DROPDOWN */
+.cn-drop__overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1001;animation:fadeIn .2s}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.cn-drop{position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);width:92%;max-width:960px;max-height:70vh;background:#fff;border-radius:16px;box-shadow:0 25px 60px rgba(0,0,0,.16);z-index:1001;overflow:hidden;animation:dropSlide .25s cubic-bezier(.4,0,.2,1)}
-@keyframes dropSlide{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-.cn-drop__head{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #e5e7eb}
-.cn-drop__head h3{font-size:16px;font-weight:700;color:#1f2937}
-.cn-drop__head button{background:none;border:none;color:#6b7280;padding:4px;border-radius:8px}
-.cn-drop__head button:hover{background:#f3f4f6}
-.cn-drop__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:16px;max-height:calc(70vh - 60px);overflow-y:auto}
-.cn-drop__item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;transition:all .15s}
+.cn-drop{position:absolute;top:100%;left:50%;transform:translateX(-50%);width:900px;max-width:95vw;max-height:70vh;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2);z-index:1002;overflow:hidden;animation:dropSlide .25s ease}
+@keyframes dropSlide{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.cn-drop__head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #f3f4f6}
+.cn-drop__head h3{font-size:16px;font-weight:600;color:#1f2937}
+.cn-drop__head button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;background:#f3f4f6;border-radius:8px;color:#6b7280;transition:all .2s}
+.cn-drop__head button:hover{background:#fee2e2;color:#ef4444}
+.cn-drop__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:12px;max-height:calc(70vh - 60px);overflow-y:auto}
+.cn-drop__item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;transition:background .15s;text-decoration:none;color:inherit}
 .cn-drop__item:hover{background:#fef7f0}
-.cn-drop__item-img{width:40px;height:40px;border-radius:10px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
-.cn-drop__item-img img{width:100%;height:100%;object-fit:cover;border-radius:10px}
+.cn-drop__item-img{width:36px;height:36px;border-radius:10px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.cn-drop__item-img img{width:100%;height:100%;object-fit:cover}
 .cn-drop__item-img span{font-size:16px}
-.cn-drop__item-name{font-size:14px;font-weight:600;color:#1f2937;display:block}
-.cn-drop__item-count{font-size:12px;color:#9ca3af}
-@media(max-width:768px){.cn-drop__grid{grid-template-columns:repeat(2,1fr)}.cn-drop{width:95%}}
+.cn-drop__item-name{font-size:13px;font-weight:600;color:#374151;display:block}
+.cn-drop__item-count{font-size:11px;color:#9ca3af}
 
-/* ═══ COLLAPSE STATES ═══ */
+/* SCROLL COLLAPSE */
 .cn--collapsed .cn__row{padding:6px 0}
 .cn--collapsed .cn-pill{padding:4px 10px 4px 4px;font-size:12px}
 .cn--collapsed .cn-pill__ico{width:22px;height:22px}
-.cn--collapsed .cn-ico__circle{width:34px;height:34px}
-.cn--collapsed .cn-ico__name{font-size:9px}
-.cn--collapsed .cn-min{padding:10px 14px;font-size:12px}
+.cn--collapsed .cn-pill__ico span{font-size:11px}
+.cn--collapsed .cn-ico__circle{width:36px;height:36px}
+.cn--collapsed .cn-ico__name{font-size:10px}
+.cn--collapsed .cn-min{padding:8px 14px;font-size:13px}
 .cn--collapsed .cn-card{padding:5px 10px 5px 5px}
 .cn--collapsed .cn-card__img{width:26px;height:26px}
 .cn--collapsed .cn-card__name{font-size:11.5px}
+.cn--collapsed .cn__more-btn{padding:4px 10px;font-size:12px}
 
-/* ═══ FOOTER ═══ */
+/* FOOTER */
 .mp-main{flex:1}
 .mp-footer{background:#1f2937;color:#fff;margin-top:auto}
 .mp-footer__top{padding:48px 20px}
@@ -469,13 +466,13 @@
 .mp-footer__links a:hover{color:#fff}
 @media(max-width:768px){.mp-footer__grid{grid-template-columns:repeat(2,1fr);gap:24px}.mp-footer__top{padding:32px 20px}.mp-footer{padding-bottom:70px}.mp-footer__bottom{flex-direction:column;gap:12px;text-align:center}}
 
-/* ═══ BOTTOM NAV ═══ */
+/* BOTTOM NAV */
 .mp-bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;display:none;justify-content:space-around;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:1100}
 .mp-bottom-nav__item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;color:#6b7280;font-size:10px;font-weight:500}
 .mp-bottom-nav__item.is-active,.mp-bottom-nav__item:hover{color:#ff6b35}
 @media(max-width:768px){.mp-bottom-nav{display:flex}}
 
-/* ═══ MOBILE MENU ═══ */
+/* MOBILE MENU */
 .mp-mobile-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1200}
 .mp-mobile-menu{position:fixed;top:0;left:0;bottom:0;width:300px;max-width:85vw;background:#fff;z-index:1300;display:flex;flex-direction:column;animation:slideIn .3s ease}
 @keyframes slideIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
