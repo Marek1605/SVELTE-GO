@@ -1,6 +1,9 @@
-import { PUBLIC_API_URL } from '$env/static/public';
-
-const API_URL = PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+import { PUBLIC_API_URL } from "$env/static/public";
+import { browser } from "$app/environment";
+const API_URL = browser ? "/api/v1" : (PUBLIC_API_URL || "http://localhost:8080/api/v1");
+// replaced
+// replaced
+// replaced
 
 async function fetchApi(endpoint, options = {}) {
     const url = API_URL + endpoint;
