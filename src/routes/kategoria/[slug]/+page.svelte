@@ -477,7 +477,7 @@
 <style>
 /* === BASE === */
 .cat-page { padding: 12px 0 60px; background: #f8f9fb; min-height: 100vh; }
-.cat-container { max-width: 1400px; margin: 0 auto; padding: 0 16px; }
+.cat-container { max-width: 1400px; margin: 0 auto; padding: 0 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 
 /* Breadcrumb */
@@ -504,10 +504,10 @@
 .chip--clear:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
 
 /* Layout */
-.cat-layout { display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: start; }
+.cat-layout { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
 
 /* === FILTER SIDEBAR === */
-.fl { position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; background: #fff; border-radius: 14px; border: 1px solid #eef0f4; scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
+.fl { position: sticky; top: 40px; max-height: calc(100vh - 50px); overflow-y: auto; background: #fff; border-radius: 14px; border: 1px solid #eef0f4; scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
 .fl::-webkit-scrollbar { width: 4px; }
 .fl::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
 .fl__head { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid #eef0f4; font-size: 14px; font-weight: 700; color: #1f2937; }
