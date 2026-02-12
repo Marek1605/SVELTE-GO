@@ -15,6 +15,7 @@
     let activeCategoryId = null;
     let activeCategoryData = null;
     let closeTimeout = null;
+    let catNavStyle = 'pills';
 
     $: navCategories = (data?.navCategories || []).map(cat => {
         const children = (cat.children || []).map(child => {
@@ -26,7 +27,7 @@
 
     function handleSearch(e) { e.preventDefault(); if (searchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`; }
     function handleCatnavSearch(e) { e.preventDefault(); if (catnavSearchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(catnavSearchQuery)}`; }
-    function scrollCategories(direction) { const list = document.querySelector('.mp-catnav__list'); if (list) list.scrollBy({ left: direction * 150, behavior: 'smooth' }); }
+    function scrollCategories(direction) { const list = document.querySelector('.mp-catnav__list'); if (list) list.scrollBy({ left: direction * 200, behavior: 'smooth' }); }
     function closeMobileMenu() { mobileMenuOpen = false; document.body.style.overflow = ''; }
     function openMegaMenu(cat) {
         if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; }
@@ -51,7 +52,23 @@
         const onScroll = () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } };
         update();
         window.addEventListener('scroll', onScroll, { passive: true });
-        return () => { window.removeEventListener('scroll', onScroll); if (closeTimeout) clearTimeout(closeTimeout); };
+
+        try {
+            const saved = localStorage.getItem('mp_catnav_style');
+            if (saved && ['pills','icons','minimal','cards'].includes(saved)) catNavStyle = saved;
+        } catch(e) {}
+
+        // Listen for admin style changes
+        const onStorage = (e) => {
+            if (e.key === 'mp_catnav_style' && e.newValue) catNavStyle = e.newValue;
+        };
+        window.addEventListener('storage', onStorage);
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('storage', onStorage);
+            if (closeTimeout) clearTimeout(closeTimeout);
+        };
     });
 
     const categoryEmojis = {
@@ -97,18 +114,54 @@
     <nav class="mp-catnav" class:is-collapsed={isCollapsed}>
         <div class="mp-catnav__inner">
             <button class="mp-catnav__arrow mp-catnav__arrow--left" on:click={() => scrollCategories(-1)}>‹</button>
+
             <div class="mp-catnav__list">
-                {#each navCategories as cat}
-                    <a href={"/kategoria/" + (cat.slug || cat.id)} class="mp-catnav__item" class:is-active={activeCategoryId === cat.id}
-                        on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
-                        <span class="mp-catnav__item-img">
-                            {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
-                        </span>
-                        {cat.name}
-                    </a>
-                {/each}
+                {#if catNavStyle === 'pills'}
+                    {#each navCategories as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-pill" class:is-active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
+                            <span class="cn-pill__ico">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                            </span>
+                            <span class="cn-pill__txt">{cat.name}</span>
+                        </a>
+                    {/each}
+
+                {:else if catNavStyle === 'icons'}
+                    {#each navCategories as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-ico" class:is-active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
+                            <div class="cn-ico__circle">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                            </div>
+                            <span class="cn-ico__name">{cat.name}</span>
+                        </a>
+                    {/each}
+
+                {:else if catNavStyle === 'minimal'}
+                    {#each navCategories as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-min" class:is-active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
+                            {cat.name}
+                        </a>
+                    {/each}
+
+                {:else if catNavStyle === 'cards'}
+                    {#each navCategories as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-card" class:is-active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
+                            <div class="cn-card__img">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                            </div>
+                            <span class="cn-card__name">{cat.name}</span>
+                        </a>
+                    {/each}
+                {/if}
             </div>
+
             <button class="mp-catnav__arrow mp-catnav__arrow--right" on:click={() => scrollCategories(1)}>›</button>
+
+            <!-- RIGHT PANEL - visible on scroll down -->
             <div class="mp-catnav__right">
                 <form class="mp-catnav__search-form" on:submit={handleCatnavSearch}>
                     <input type="text" class="mp-catnav__search-input" placeholder="Hľadať..." bind:value={catnavSearchQuery}>
@@ -120,6 +173,7 @@
             </div>
         </div>
 
+        <!-- MEGA MENU -->
         {#if megaMenuOpen && activeCategoryData}
             <div class="mp-mega" on:mouseenter={cancelMegaClose} on:mouseleave={scheduleMegaClose}>
                 <div class="mp-mega__container">
@@ -191,6 +245,7 @@
 :global(button) { cursor: pointer; font-family: inherit; }
 .mp-site { min-height: 100vh; display: flex; flex-direction: column; }
 
+/* HEADER */
 .mp-header { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); position: relative; z-index: 1000; }
 .mp-header__inner { display: flex; align-items: center; gap: 24px; padding: 12px 20px; max-width: 1400px; margin: 0 auto; }
 .mp-header__logo { flex-shrink: 0; }
@@ -217,20 +272,62 @@
     .mp-header__action span:last-child { display: none; }
 }
 
-/* CATNAV - pills style with original scroll behavior */
+/* ═══ CATNAV ═══ */
 .mp-catnav { background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 998; }
 .mp-catnav__inner { display: flex; align-items: center; max-width: 100%; padding: 0 20px; position: relative; }
-.mp-catnav__list { display: flex; gap: 6px; flex: 1; overflow-x: auto; scrollbar-width: none; padding: 8px 0; }
+.mp-catnav__list { display: flex; gap: 6px; flex: 1; overflow-x: auto; scrollbar-width: none; padding: 8px 0; mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
 .mp-catnav__list::-webkit-scrollbar { display: none; }
-.mp-catnav__item { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: #f3f4f6; border: 1.5px solid transparent; border-radius: 100px; color: #374151; font-weight: 600; font-size: 13px; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
-.mp-catnav__item:hover { background: #fef7f0; border-color: #c4956a; color: #c4956a; }
-.mp-catnav__item.is-active { background: #c4956a; color: #fff; border-color: #c4956a; }
-.mp-catnav__item-img { width: 28px; height: 28px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-.mp-catnav__item-img img { width: 100%; height: 100%; object-fit: cover; }
-.mp-catnav__item-img span { font-size: 14px; }
-.mp-catnav__item.is-active .mp-catnav__item-img { background: rgba(255,255,255,0.25); }
+/* When collapsed, make room for right panel */
+.mp-catnav.is-collapsed .mp-catnav__list { padding-right: 280px; }
 
-/* RIGHT PANEL - appears on scroll (original behavior) */
+/* PILLS variant */
+.cn-pill { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: #f3f4f6; border: 1.5px solid transparent; border-radius: 100px; color: #374151; font-weight: 600; font-size: 13px; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
+.cn-pill:hover { background: #fef7f0; border-color: #c4956a; color: #c4956a; }
+.cn-pill.is-active { background: #c4956a; color: #fff; border-color: #c4956a; }
+.cn-pill__ico { width: 28px; height: 28px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.cn-pill__ico img { width: 100%; height: 100%; object-fit: cover; }
+.cn-pill__ico span { font-size: 14px; }
+.cn-pill.is-active .cn-pill__ico { background: rgba(255,255,255,0.25); }
+.cn-pill__txt { line-height: 1; }
+
+/* ICONS variant */
+.cn-ico { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 12px; transition: all 0.2s; flex-shrink: 0; }
+.cn-ico:hover { background: #fef7f0; }
+.cn-ico.is-active .cn-ico__circle { border-color: #c4956a; box-shadow: 0 0 0 3px rgba(196,149,106,0.15); }
+.cn-ico__circle { width: 48px; height: 48px; border-radius: 50%; border: 2px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: all 0.2s; }
+.cn-ico:hover .cn-ico__circle { border-color: #c4956a; transform: scale(1.08); }
+.cn-ico__circle img { width: 100%; height: 100%; object-fit: cover; }
+.cn-ico__circle span { font-size: 18px; }
+.cn-ico__name { font-size: 11px; font-weight: 500; color: #6b7280; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+.cn-ico:hover .cn-ico__name { color: #c4956a; }
+
+/* MINIMAL variant */
+.cn-min { padding: 12px 18px; font-size: 14px; font-weight: 500; color: #4b5563; position: relative; white-space: nowrap; transition: color 0.2s; flex-shrink: 0; }
+.cn-min::after { content: ''; position: absolute; bottom: 0; left: 18px; right: 18px; height: 2px; background: #c4956a; transform: scaleX(0); transition: transform 0.2s; }
+.cn-min:hover { color: #c4956a; }
+.cn-min:hover::after, .cn-min.is-active::after { transform: scaleX(1); }
+.cn-min.is-active { color: #c4956a; font-weight: 600; }
+
+/* CARDS variant */
+.cn-card { display: flex; align-items: center; gap: 8px; padding: 7px 14px 7px 7px; background: rgba(243,244,246,0.6); border: 1px solid #e5e7eb; border-radius: 12px; font-size: 13px; font-weight: 600; color: #374151; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
+.cn-card:hover { background: #fff; border-color: #c4956a; box-shadow: 0 4px 12px rgba(196,149,106,0.1); transform: translateY(-1px); }
+.cn-card.is-active { background: #c4956a; color: #fff; border-color: #c4956a; }
+.cn-card__img { width: 32px; height: 32px; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.cn-card__img img { width: 100%; height: 100%; object-fit: cover; }
+.cn-card__img span { font-size: 16px; }
+.cn-card__name { line-height: 1; }
+
+/* Collapsed sizes */
+.mp-catnav.is-collapsed .cn-pill { padding: 4px 10px 4px 4px; font-size: 12px; }
+.mp-catnav.is-collapsed .cn-pill__ico { width: 22px; height: 22px; }
+.mp-catnav.is-collapsed .cn-pill__ico span { font-size: 11px; }
+.mp-catnav.is-collapsed .cn-ico__circle { width: 36px; height: 36px; }
+.mp-catnav.is-collapsed .cn-ico__name { font-size: 10px; }
+.mp-catnav.is-collapsed .cn-min { padding: 8px 14px; font-size: 13px; }
+.mp-catnav.is-collapsed .cn-card { padding: 5px 10px 5px 5px; }
+.mp-catnav.is-collapsed .cn-card__img { width: 26px; height: 26px; }
+
+/* RIGHT PANEL - appears on scroll */
 .mp-catnav__right { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 12px; padding-left: 12px; border-left: 1px solid #e5e7eb; background: #fff; opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.3s ease; }
 .mp-catnav.is-collapsed .mp-catnav__right { opacity: 1; visibility: visible; pointer-events: auto; }
 .mp-catnav__search-form { display: flex; }
@@ -240,11 +337,13 @@
 .mp-catnav__action { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; color: #4b5563; transition: all 0.2s; }
 .mp-catnav__action:hover { background: #f3f4f6; color: #ff6b35; }
 .mp-catnav__compare:hover { color: #3b82f6; }
+
+/* ARROWS (mobile) */
 .mp-catnav__arrow { display: none; }
 @media (max-width: 768px) {
     .mp-catnav__inner { padding: 0; }
-    .mp-catnav__list { padding: 8px 36px; }
-    .mp-catnav__item { padding: 5px 10px 5px 5px; font-size: 12px; }
+    .mp-catnav__list { padding: 8px 36px; mask-image: none; -webkit-mask-image: none; }
+    .mp-catnav.is-collapsed .mp-catnav__list { padding-right: 36px; }
     .mp-catnav__arrow { position: absolute; top: 0; bottom: 0; width: 36px; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #fff 60%, transparent); color: #6b7280; border: none; font-size: 20px; z-index: 5; }
     .mp-catnav__arrow--left { left: 0; }
     .mp-catnav__arrow--right { right: 0; background: linear-gradient(-90deg, #fff 60%, transparent); }
@@ -267,11 +366,11 @@
 .mp-mega__link { font-size: 12px; color: #6b7280; padding: 0; transition: color 0.15s; white-space: nowrap; }
 .mp-mega__link::before { content: '•'; color: #9ca3af; margin: 0 5px; }
 .mp-mega__link:hover { color: #c4956a; }
-.mp-mega__more { color: #c4956a; font-weight: 500; }
 @media (max-width: 1200px) { .mp-mega__container { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 900px) { .mp-mega__container { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 768px) { .mp-mega { display: none; } }
 
+/* FOOTER */
 .mp-main { flex: 1; }
 .mp-footer { background: #1f2937; color: #fff; margin-top: auto; }
 .mp-footer__top { padding: 48px 20px; }
@@ -289,11 +388,13 @@
 .mp-footer__links a:hover { color: #fff; }
 @media (max-width: 768px) { .mp-footer__grid { grid-template-columns: repeat(2, 1fr); gap: 24px; } .mp-footer__top { padding: 32px 20px; } .mp-footer { padding-bottom: 70px; } .mp-footer__bottom { flex-direction: column; gap: 12px; text-align: center; } }
 
+/* BOTTOM NAV */
 .mp-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e5e7eb; display: none; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 1100; }
 .mp-bottom-nav__item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 12px; color: #6b7280; font-size: 10px; font-weight: 500; }
 .mp-bottom-nav__item.is-active, .mp-bottom-nav__item:hover { color: #ff6b35; }
 @media (max-width: 768px) { .mp-bottom-nav { display: flex; } }
 
+/* MOBILE MENU */
 .mp-mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1200; }
 .mp-mobile-menu { position: fixed; top: 0; left: 0; bottom: 0; width: 300px; max-width: 85vw; background: #fff; z-index: 1300; display: flex; flex-direction: column; animation: slideIn 0.3s ease; }
 @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
