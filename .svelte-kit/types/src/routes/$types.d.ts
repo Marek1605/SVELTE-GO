@@ -15,6 +15,7 @@ type PageServerParentData = EnsureDefined<LayoutServerData>;
 type PageParentData = EnsureDefined<LayoutData>;
 type LayoutRouteId = RouteId | "/" | "/admin" | "/admin/ai-settings" | "/admin/categories" | "/admin/feeds" | "/admin/feeds/new" | "/admin/filters" | "/admin/offers" | "/admin/pending-shops" | "/admin/products" | "/admin/vendor-offers" | "/admin/vendors" | "/hladat" | "/kategoria/[slug]" | "/prihlasenie-predajcu" | "/produkt/[slug]" | "/registracia-predajcu" | "/vendor-dashboard" | "/vendor-dashboard/konverzie" | "/vendor-dashboard/moj-ucet" | "/vendor-dashboard/nastavenia-predaja" | "/vendor-dashboard/ppc" | "/vendor-dashboard/pridat-obchod" | "/vendor-dashboard/produkty" | "/vendor-dashboard/reporty" | "/vendor-dashboard/statistiky" | "/vendor-dashboard/xml-feedy" | null
 type LayoutParams = RouteParams & { slug?: string }
+type LayoutServerParentData = EnsureDefined<{}>;
 type LayoutParentData = EnsureDefined<{}>;
 
 export type PageServerLoad<OutputData extends OutputDataShape<PageServerParentData> = OutputDataShape<PageServerParentData>> = Kit.ServerLoad<RouteParams, PageServerParentData, OutputData, RouteId>;
@@ -25,7 +26,9 @@ export type PageData = Expand<Omit<PageParentData, keyof PageServerData> & Ensur
 export type Action<OutputData extends Record<string, any> | void = Record<string, any> | void> = Kit.Action<RouteParams, OutputData, RouteId>
 export type Actions<OutputData extends Record<string, any> | void = Record<string, any> | void> = Kit.Actions<RouteParams, OutputData, RouteId>
 export type PageProps = { params: RouteParams; data: PageData; form: ActionData }
-export type LayoutServerData = null;
-export type LayoutData = Expand<LayoutParentData>;
+export type LayoutServerLoad<OutputData extends OutputDataShape<LayoutServerParentData> = OutputDataShape<LayoutServerParentData>> = Kit.ServerLoad<LayoutParams, LayoutServerParentData, OutputData, LayoutRouteId>;
+export type LayoutServerLoadEvent = Parameters<LayoutServerLoad>[0];
+export type LayoutServerData = Expand<OptionalUnion<EnsureDefined<Kit.LoadProperties<Awaited<ReturnType<typeof import('../../../../src/routes/+layout.server.js').load>>>>>>;
+export type LayoutData = Expand<Omit<LayoutParentData, keyof LayoutServerData> & EnsureDefined<LayoutServerData>>;
 export type LayoutProps = { params: LayoutParams; data: LayoutData; children: import("svelte").Snippet }
 export type RequestEvent = Kit.RequestEvent<RouteParams, RouteId>;

@@ -1,4 +1,4 @@
-const PUBLIC_API_URL = "http://46.224.7.54:8080/api/v1";
+const PUBLIC_API_URL = "http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1";
 const API_URL = PUBLIC_API_URL;
 async function fetchApi(endpoint, options = {}) {
   const url = API_URL + endpoint;

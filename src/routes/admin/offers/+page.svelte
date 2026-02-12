@@ -79,7 +79,7 @@
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(currentFeed)
             });
-            if ((await res.json()).success) { showEditModal = false; await loadData(); }
+            const data = await res.json(); console.log("updateFeed:", data); if (data.success) { showEditModal = false; await loadData(); } else { alert("Chyba: " + (data.error || JSON.stringify(data))); }
         } catch (e) { alert('Chyba: ' + e.message); }
     }
     

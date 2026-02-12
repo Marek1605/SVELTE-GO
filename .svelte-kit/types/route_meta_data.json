@@ -1,35 +1,89 @@
 {
 	"/": [
-		"src/routes/+page.server.ts"
+		"src/routes/+page.server.ts",
+		"src/routes/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
-	"/admin": [],
-	"/admin/ai-settings": [],
-	"/admin/categories": [],
-	"/admin/feeds": [],
-	"/admin/feeds/new": [],
-	"/admin/filters": [],
-	"/admin/offers": [],
-	"/admin/pending-shops": [],
-	"/admin/products": [],
-	"/admin/vendor-offers": [],
-	"/admin/vendors": [],
-	"/hladat": [],
+	"/admin": [
+		"src/routes/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/ai-settings": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/categories": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/feeds": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/feeds/new": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/filters": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/offers": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/pending-shops": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/products": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/vendor-offers": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/vendors": [
+		"src/routes/+layout.server.ts"
+	],
+	"/hladat": [
+		"src/routes/+layout.server.ts"
+	],
 	"/kategoria/[slug]": [
-		"src/routes/kategoria/[slug]/+page.server.ts"
+		"src/routes/kategoria/[slug]/+page.server.ts",
+		"src/routes/+layout.server.ts"
 	],
-	"/prihlasenie-predajcu": [],
+	"/prihlasenie-predajcu": [
+		"src/routes/+layout.server.ts"
+	],
 	"/produkt/[slug]": [
-		"src/routes/produkt/[slug]/+page.server.ts"
+		"src/routes/produkt/[slug]/+page.server.ts",
+		"src/routes/+layout.server.ts"
 	],
-	"/registracia-predajcu": [],
-	"/vendor-dashboard": [],
-	"/vendor-dashboard/konverzie": [],
-	"/vendor-dashboard/moj-ucet": [],
-	"/vendor-dashboard/nastavenia-predaja": [],
-	"/vendor-dashboard/ppc": [],
-	"/vendor-dashboard/pridat-obchod": [],
-	"/vendor-dashboard/produkty": [],
-	"/vendor-dashboard/reporty": [],
-	"/vendor-dashboard/statistiky": [],
-	"/vendor-dashboard/xml-feedy": []
+	"/registracia-predajcu": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard": [
+		"src/routes/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard/konverzie": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard/moj-ucet": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard/nastavenia-predaja": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard/ppc": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard/pridat-obchod": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard/produkty": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard/reporty": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard/statistiky": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vendor-dashboard/xml-feedy": [
+		"src/routes/+layout.server.ts"
+	]
 }

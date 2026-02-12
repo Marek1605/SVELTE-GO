@@ -26,6 +26,7 @@
  * ```
  */
 declare module '$env/static/private' {
+	export const BACKEND_URL: string;
 	export const LESSOPEN: string;
 	export const USER: string;
 	export const SSH_CLIENT: string;
@@ -103,6 +104,7 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+		BACKEND_URL: string;
 		LESSOPEN: string;
 		USER: string;
 		SSH_CLIENT: string;

@@ -47,6 +47,9 @@
       "_ssr.js",
       "_ssr2.js",
       "_environment.js"
+    ],
+    "dynamicImports": [
+      "src/hooks.server.ts"
     ]
   },
   "_shared.js": {
@@ -121,6 +124,21 @@
       "_internal.js"
     ]
   },
+  "src/hooks.server.ts": {
+    "file": "chunks/hooks.server.js",
+    "name": "hooks.server",
+    "src": "src/hooks.server.ts",
+    "isDynamicEntry": true
+  },
+  "src/routes/+layout.server.ts": {
+    "file": "entries/pages/_layout.server.ts.js",
+    "name": "entries/pages/_layout.server.ts",
+    "src": "src/routes/+layout.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_api.js"
+    ]
+  },
   "src/routes/+layout.svelte": {
     "file": "entries/pages/_layout.svelte.js",
     "name": "entries/pages/_layout.svelte",
@@ -128,11 +146,10 @@
     "isEntry": true,
     "imports": [
       "_ssr.js",
-      "_stores.js",
-      "_api.js"
+      "_stores.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.DtY8waKX.css"
+      "_app/immutable/assets/_layout.CvSIrtCU.css"
     ]
   },
   "src/routes/+page.server.ts": {
@@ -203,7 +220,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.4M8d_Qua.css"
+      "_app/immutable/assets/_page.o6TPKdkQ.css"
     ]
   },
   "src/routes/admin/feeds/+page.svelte": {
@@ -289,7 +306,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.DLOAa6Zv.css"
+      "_app/immutable/assets/_page.BrZruWvD.css"
     ]
   },
   "src/routes/admin/vendors/+page.svelte": {
@@ -340,7 +357,7 @@
       "_stores.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.8UcdqEYZ.css"
+      "_app/immutable/assets/_page.CKqPgc5v.css"
     ]
   },
   "src/routes/prihlasenie-predajcu/+page.svelte": {
