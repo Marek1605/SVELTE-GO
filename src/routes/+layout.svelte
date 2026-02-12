@@ -17,8 +17,22 @@
     let closeTimeout = null;
     let catNavStyle = 'pills';
     let showAllCats = false;
-    function toggleAllCats() { showAllCats = !showAllCats; }
-    function closeAllCats() { showAllCats = false; }
+    let editMode = false;
+    let hiddenCats = new Set();
+    function toggleAllCats() { showAllCats = !showAllCats; if (!showAllCats) editMode = false; }
+    function closeAllCats() { showAllCats = false; editMode = false; }
+    function toggleEditMode() { editMode = !editMode; }
+    function toggleHideCat(catId) {
+        const updated = new Set(hiddenCats);
+        if (updated.has(catId)) updated.delete(catId); else updated.add(catId);
+        hiddenCats = updated;
+        try { localStorage.setItem('mp_hidden_cats', JSON.stringify([...hiddenCats])); } catch(e) {}
+    }
+    function isHidden(catId) { return hiddenCats.has(catId); }
+    function showAllCategories() {
+        hiddenCats = new Set();
+        try { localStorage.setItem('mp_hidden_cats', '[]'); } catch(e) {}
+    }
 
     $: navCategories = (data?.navCategories || []).map(cat => {
         const children = (cat.children || []).map(child => {
@@ -27,6 +41,15 @@
         });
         return { ...cat, children };
     });
+
+    // Filtered categories for nav bar (excludes hidden)
+    $: visibleCategories = navCategories.filter(cat => !hiddenCats.has(cat.id));
+    // Count hidden
+    $: hiddenCount = navCategories.reduce((count, cat) => {
+        if (hiddenCats.has(cat.id)) return count + 1;
+        const hiddenChildren = (cat.children || []).filter(c => hiddenCats.has(c.id)).length;
+        return count + hiddenChildren;
+    }, 0);
 
     function handleSearch(e) { e.preventDefault(); if (searchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`; }
     function handleCatnavSearch(e) { e.preventDefault(); if (catnavSearchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(catnavSearchQuery)}`; }
@@ -59,6 +82,12 @@
         try {
             const saved = localStorage.getItem('mp_catnav_style');
             if (saved && ['pills','icons','minimal','cards'].includes(saved)) catNavStyle = saved;
+        } catch(e) {}
+
+        // Load hidden categories
+        try {
+            const hidden = localStorage.getItem('mp_hidden_cats');
+            if (hidden) hiddenCats = new Set(JSON.parse(hidden));
         } catch(e) {}
 
         // Listen for admin style changes
@@ -120,7 +149,7 @@
 
             <div class="mp-catnav__list">
                 {#if catNavStyle === 'pills'}
-                    {#each navCategories as cat}
+                    {#each visibleCategories as cat}
                         <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-pill" class:is-active={activeCategoryId === cat.id}
                             on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
                             <span class="cn-pill__ico">
@@ -131,7 +160,7 @@
                     {/each}
 
                 {:else if catNavStyle === 'icons'}
-                    {#each navCategories as cat}
+                    {#each visibleCategories as cat}
                         <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-ico" class:is-active={activeCategoryId === cat.id}
                             on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
                             <div class="cn-ico__circle">
@@ -142,7 +171,7 @@
                     {/each}
 
                 {:else if catNavStyle === 'minimal'}
-                    {#each navCategories as cat}
+                    {#each visibleCategories as cat}
                         <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-min" class:is-active={activeCategoryId === cat.id}
                             on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
                             {cat.name}
@@ -150,7 +179,7 @@
                     {/each}
 
                 {:else if catNavStyle === 'cards'}
-                    {#each navCategories as cat}
+                    {#each visibleCategories as cat}
                         <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-card" class:is-active={activeCategoryId === cat.id}
                             on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
                             <div class="cn-card__img">
@@ -187,7 +216,7 @@
         {#if megaMenuOpen && activeCategoryData}
             <div class="mp-mega" on:mouseenter={cancelMegaClose} on:mouseleave={scheduleMegaClose}>
                 <div class="mp-mega__container">
-                    {#each activeCategoryData.children || [] as subcategory}
+                    {#each (activeCategoryData.children || []).filter(c => !hiddenCats.has(c.id)) as subcategory}
                         <div class="mp-mega__col">
                             <a href={"/kategoria/" + (subcategory.slug || subcategory.id)} class="mp-mega__subcat">
                                 <div class="mp-mega__subcat-img">
@@ -195,9 +224,9 @@
                                 </div>
                                 <span class="mp-mega__subcat-name">{subcategory.name}</span>
                             </a>
-                            {#if subcategory.grandchildren && subcategory.grandchildren.length > 0}
+                            {#if subcategory.grandchildren && subcategory.grandchildren.filter(g => !hiddenCats.has(g.id)).length > 0}
                                 <div class="mp-mega__links">
-                                    {#each subcategory.grandchildren.slice(0, 10) as grandchild}
+                                    {#each subcategory.grandchildren.filter(g => !hiddenCats.has(g.id)).slice(0, 10) as grandchild}
                                         <a href={"/kategoria/" + (grandchild.slug || grandchild.id)} class="mp-mega__link">{grandchild.name}</a>
                                     {/each}
                                 </div>
@@ -213,20 +242,58 @@
             <div class="cn-drop__overlay" on:click={closeAllCats}></div>
             <div class="cn-drop">
                 <div class="cn-drop__head">
-                    <h3>Všetky kategórie ({navCategories.length})</h3>
-                    <button on:click={closeAllCats}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    <h3>Všetky kategórie ({navCategories.length}){#if hiddenCount > 0}<span class="cn-drop__hidden-badge">{hiddenCount} skrytých</span>{/if}</h3>
+                    <div class="cn-drop__head-actions">
+                        <button class="cn-drop__edit-btn" class:is-active={editMode} on:click={toggleEditMode} title="Upraviť viditeľnosť">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        {#if editMode && hiddenCount > 0}
+                            <button class="cn-drop__show-all-btn" on:click={showAllCategories}>Zobraziť všetky</button>
+                        {/if}
+                        <button on:click={closeAllCats}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
                 </div>
-                <div class="cn-drop__grid">
+                <div class="cn-drop__grid" class:is-edit={editMode}>
                     {#each navCategories as cat}
-                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-drop__item" on:click={closeAllCats}>
-                            <div class="cn-drop__item-img">
-                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                        <div class="cn-drop__cat-group" class:is-hidden={hiddenCats.has(cat.id)}>
+                            <div class="cn-drop__item-row">
+                                <a href={editMode ? null : "/kategoria/" + (cat.slug || cat.id)} class="cn-drop__item" on:click={() => { if (!editMode) closeAllCats(); }}>
+                                    <div class="cn-drop__item-img">
+                                        {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                                    </div>
+                                    <div>
+                                        <span class="cn-drop__item-name">{cat.name}</span>
+                                        {#if cat.children?.length}<span class="cn-drop__item-count">{cat.children.length} podkategórií</span>{/if}
+                                    </div>
+                                </a>
+                                {#if editMode}
+                                    <button class="cn-vis-btn" class:is-hidden={hiddenCats.has(cat.id)} on:click|stopPropagation={() => toggleHideCat(cat.id)} title={hiddenCats.has(cat.id) ? 'Zobraziť' : 'Skryť'}>
+                                        {#if hiddenCats.has(cat.id)}
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        {:else}
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        {/if}
+                                    </button>
+                                {/if}
                             </div>
-                            <div>
-                                <span class="cn-drop__item-name">{cat.name}</span>
-                                {#if cat.children?.length}<span class="cn-drop__item-count">{cat.children.length} podkategórií</span>{/if}
-                            </div>
-                        </a>
+                            <!-- Subcategories in edit mode -->
+                            {#if editMode && cat.children?.length > 0 && !hiddenCats.has(cat.id)}
+                                <div class="cn-drop__subcats">
+                                    {#each cat.children as sub}
+                                        <div class="cn-drop__subcat-row" class:is-hidden={hiddenCats.has(sub.id)}>
+                                            <span class="cn-drop__subcat-name">{sub.name}</span>
+                                            <button class="cn-vis-btn cn-vis-btn--sm" class:is-hidden={hiddenCats.has(sub.id)} on:click|stopPropagation={() => toggleHideCat(sub.id)}>
+                                                {#if hiddenCats.has(sub.id)}
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                                {:else}
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                {/if}
+                                            </button>
+                                        </div>
+                                    {/each}
+                                </div>
+                            {/if}
+                        </div>
                     {/each}
                 </div>
             </div>
@@ -260,7 +327,7 @@
                 <button class="mp-mobile-menu__close" on:click={closeMobileMenu}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div class="mp-mobile-menu__content">
-                {#each navCategories as cat}
+                {#each visibleCategories as cat}
                     <a href={"/kategoria/" + (cat.slug || cat.id)} class="mp-mobile-menu__link" on:click={closeMobileMenu}>
                         <span class="mp-mobile-menu__icon">{getCategoryEmoji(cat.name)}</span>{cat.name}
                     </a>
@@ -308,13 +375,13 @@
 
 /* ═══ CATNAV ═══ */
 .mp-catnav { background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 998; }
-.mp-catnav__inner { display: flex; align-items: center; max-width: 100%; padding: 0 0 0 20px; position: relative; }
-.mp-catnav__list { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 8px 0; }
+.mp-catnav__inner { display: flex; align-items: center; max-width: 100%; padding: 0 0 0 16px; position: relative; }
+.mp-catnav__list { display: flex; gap: 4px; flex: 1; min-width: 0; overflow: hidden; padding: 6px 0; }
 .mp-catnav__list::-webkit-scrollbar { display: none; }
 
-/* END SECTION - always visible, contains ≡ + collapsed actions */
-.mp-catnav__end { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding: 0 16px 0 0; background: linear-gradient(to right, transparent, #fff 16px); padding-left: 24px; position: relative; z-index: 5; }
-.mp-catnav__collapsed-actions { display: flex; align-items: center; gap: 10px; padding-left: 10px; border-left: 1px solid #e5e7eb; animation: fadeActions 0.3s ease; }
+/* END SECTION - ≡ glued to last visible category */
+.mp-catnav__end { display: flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 0 12px 0 6px; position: relative; z-index: 5; }
+.mp-catnav__collapsed-actions { display: flex; align-items: center; gap: 8px; padding-left: 8px; border-left: 1px solid #e5e7eb; animation: fadeActions 0.2s ease; }
 @keyframes fadeActions { from { opacity: 0; } to { opacity: 1; } }
 
 /* PILLS variant */
@@ -328,14 +395,14 @@
 .cn-pill__txt { line-height: 1; }
 
 /* ICONS variant */
-.cn-ico { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 12px; transition: all 0.2s; flex-shrink: 0; }
+.cn-ico { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 8px; border-radius: 10px; transition: all 0.2s; flex-shrink: 0; }
 .cn-ico:hover { background: #fef7f0; }
 .cn-ico.is-active .cn-ico__circle { border-color: #c4956a; box-shadow: 0 0 0 3px rgba(196,149,106,0.15); }
-.cn-ico__circle { width: 48px; height: 48px; border-radius: 50%; border: 2px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: all 0.2s; }
+.cn-ico__circle { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: all 0.2s; }
 .cn-ico:hover .cn-ico__circle { border-color: #c4956a; transform: scale(1.08); }
 .cn-ico__circle img { width: 100%; height: 100%; object-fit: cover; }
 .cn-ico__circle span { font-size: 18px; }
-.cn-ico__name { font-size: 11px; font-weight: 500; color: #6b7280; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+.cn-ico__name { font-size: 10px; font-weight: 500; color: #6b7280; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
 .cn-ico:hover .cn-ico__name { color: #c4956a; }
 
 /* MINIMAL variant */
@@ -354,25 +421,29 @@
 .cn-card__img span { font-size: 16px; }
 .cn-card__name { line-height: 1; }
 
-/* Collapsed sizes */
-.mp-catnav.is-collapsed .cn-pill { padding: 4px 10px 4px 4px; font-size: 12px; }
-.mp-catnav.is-collapsed .cn-pill__ico { width: 22px; height: 22px; }
-.mp-catnav.is-collapsed .cn-pill__ico span { font-size: 11px; }
-.mp-catnav.is-collapsed .cn-ico__circle { width: 36px; height: 36px; }
-.mp-catnav.is-collapsed .cn-ico__name { font-size: 10px; }
-.mp-catnav.is-collapsed .cn-min { padding: 8px 14px; font-size: 13px; }
-.mp-catnav.is-collapsed .cn-card { padding: 5px 10px 5px 5px; }
-.mp-catnav.is-collapsed .cn-card__img { width: 26px; height: 26px; }
+/* Collapsed sizes - compact */
+.mp-catnav.is-collapsed { border-bottom: 1px solid #f3f4f6; }
+.mp-catnav.is-collapsed .mp-catnav__inner { padding: 0 0 0 12px; }
+.mp-catnav.is-collapsed .mp-catnav__list { padding: 4px 0; gap: 3px; }
+.mp-catnav.is-collapsed .mp-catnav__end { padding: 0 8px 0 4px; gap: 4px; }
+.mp-catnav.is-collapsed .cn-pill { padding: 3px 8px 3px 3px; font-size: 11px; gap: 5px; }
+.mp-catnav.is-collapsed .cn-pill__ico { width: 20px; height: 20px; }
+.mp-catnav.is-collapsed .cn-pill__ico span { font-size: 10px; }
+.mp-catnav.is-collapsed .cn-ico { padding: 2px 6px; gap: 2px; }
+.mp-catnav.is-collapsed .cn-ico__circle { width: 30px; height: 30px; }
+.mp-catnav.is-collapsed .cn-ico__name { font-size: 9px; max-width: 56px; }
+.mp-catnav.is-collapsed .cn-min { padding: 6px 10px; font-size: 12px; }
+.mp-catnav.is-collapsed .cn-card { padding: 3px 8px 3px 3px; font-size: 11px; }
+.mp-catnav.is-collapsed .cn-card__img { width: 22px; height: 22px; border-radius: 5px; }
+.mp-catnav.is-collapsed .cn-more { width: 28px; height: 28px; }
+.mp-catnav.is-collapsed .cn-more svg { width: 14px; height: 14px; }
 
-/* END SECTION: ≡ button + collapsed actions */
-.mp-catnav__end { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding: 0 16px 0 0; background: linear-gradient(to right, transparent, #fff 16px); padding-left: 24px; position: relative; z-index: 5; }
-.mp-catnav__collapsed-actions { display: flex; align-items: center; gap: 10px; padding-left: 10px; border-left: 1px solid #e5e7eb; animation: fadeActions 0.3s ease; }
-@keyframes fadeActions { from { opacity: 0; } to { opacity: 1; } }
+/* RIGHT PANEL (now inside end section) */
 .mp-catnav__search-form { display: flex; }
-.mp-catnav__search-input { width: 120px; padding: 8px 12px; border: 2px solid #e5e7eb; border-right: none; border-radius: 8px 0 0 8px; font-size: 12px; outline: none; transition: all 0.2s; }
-.mp-catnav__search-input:focus { border-color: #ff6b35; width: 150px; }
-.mp-catnav__search-btn { padding: 8px 12px; background: #ff6b35; border: none; border-radius: 0 8px 8px 0; color: #fff; }
-.mp-catnav__action { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; color: #4b5563; transition: all 0.2s; }
+.mp-catnav__search-input { width: 100px; padding: 5px 10px; border: 1.5px solid #e5e7eb; border-right: none; border-radius: 6px 0 0 6px; font-size: 11px; outline: none; transition: all 0.2s; }
+.mp-catnav__search-input:focus { border-color: #ff6b35; width: 130px; }
+.mp-catnav__search-btn { padding: 5px 10px; background: #ff6b35; border: none; border-radius: 0 6px 6px 0; color: #fff; }
+.mp-catnav__action { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; color: #4b5563; transition: all 0.2s; }
 .mp-catnav__action:hover { background: #f3f4f6; color: #ff6b35; }
 .mp-catnav__compare:hover { color: #3b82f6; }
 
@@ -380,7 +451,7 @@
 .mp-catnav__arrow { display: none; }
 
 /* MORE BUTTON (≡) */
-.cn-more { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; color: #6b7280; flex-shrink: 0; transition: all 0.2s; }
+.cn-more { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; color: #6b7280; flex-shrink: 0; transition: all 0.2s; }
 .cn-more:hover { background: #f3f4f6; color: #c4956a; border-color: #c4956a; }
 
 /* ALL CATEGORIES DROPDOWN */
@@ -400,14 +471,35 @@
 .cn-drop__item-img span { font-size: 14px; }
 .cn-drop__item-name { font-size: 13px; font-weight: 600; color: #374151; display: block; }
 .cn-drop__item-count { font-size: 11px; color: #9ca3af; }
+
+/* EDIT MODE */
+.cn-drop__head-actions { display: flex; align-items: center; gap: 8px; }
+.cn-drop__edit-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #e5e7eb; background: #fff; border-radius: 8px; color: #6b7280; transition: all 0.2s; }
+.cn-drop__edit-btn:hover { background: #f3f4f6; color: #c4956a; border-color: #c4956a; }
+.cn-drop__edit-btn.is-active { background: #c4956a; color: #fff; border-color: #c4956a; }
+.cn-drop__show-all-btn { padding: 4px 10px; background: #fff; border: 1px solid #c4956a; border-radius: 6px; color: #c4956a; font-size: 11px; font-weight: 600; transition: all 0.2s; }
+.cn-drop__show-all-btn:hover { background: #c4956a; color: #fff; }
+.cn-drop__hidden-badge { font-size: 11px; font-weight: 500; color: #ef4444; margin-left: 6px; }
+.cn-drop__grid.is-edit { grid-template-columns: 1fr; gap: 0; }
+.cn-drop__cat-group { border-bottom: 1px solid #f3f4f6; }
+.cn-drop__cat-group:last-child { border-bottom: none; }
+.cn-drop__cat-group.is-hidden { opacity: 0.45; }
+.cn-drop__item-row { display: flex; align-items: center; gap: 4px; }
+.cn-drop__item-row .cn-drop__item { flex: 1; }
+.cn-vis-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #e5e7eb; background: #fff; border-radius: 6px; color: #16a34a; flex-shrink: 0; transition: all 0.15s; }
+.cn-vis-btn:hover { background: #f3f4f6; }
+.cn-vis-btn.is-hidden { color: #ef4444; border-color: #fecaca; background: #fef2f2; }
+.cn-vis-btn--sm { width: 24px; height: 24px; }
+.cn-drop__subcats { padding: 2px 8px 8px 52px; display: flex; flex-wrap: wrap; gap: 4px; }
+.cn-drop__subcat-row { display: flex; align-items: center; gap: 4px; padding: 3px 8px; background: #f9fafb; border-radius: 6px; transition: opacity 0.15s; }
+.cn-drop__subcat-row.is-hidden { opacity: 0.45; }
+.cn-drop__subcat-name { font-size: 12px; color: #4b5563; white-space: nowrap; }
 @media (max-width: 768px) {
-    .mp-catnav__inner { padding: 0; }
-    .mp-catnav__list { padding: 8px 8px 8px 36px; }
-    .mp-catnav__end { padding-right: 8px; padding-left: 8px; background: linear-gradient(to right, transparent, #fff 8px); }
+    .mp-catnav__inner { padding: 0 0 0 8px; }
+    .mp-catnav__list { padding: 6px 0 6px 0; gap: 3px; }
+    .mp-catnav__end { padding-right: 8px; padding-left: 4px; }
     .mp-catnav__collapsed-actions { display: none !important; }
-    .mp-catnav__arrow { position: absolute; top: 0; bottom: 0; width: 36px; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #fff 60%, transparent); color: #6b7280; border: none; font-size: 20px; z-index: 5; }
-    .mp-catnav__arrow--left { left: 0; }
-    .mp-catnav__arrow--right { right: 44px; background: linear-gradient(-90deg, #fff 60%, transparent); }
+    .mp-catnav__arrow { display: none; }
 }
 
 /* MEGA MENU */
