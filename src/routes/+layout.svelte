@@ -16,6 +16,9 @@
     let activeCategoryData = null;
     let closeTimeout = null;
     let catNavStyle = 'pills';
+    let showAllCats = false;
+    function toggleAllCats() { showAllCats = !showAllCats; }
+    function closeAllCats() { showAllCats = false; }
 
     $: navCategories = (data?.navCategories || []).map(cat => {
         const children = (cat.children || []).map(child => {
@@ -161,6 +164,11 @@
 
             <button class="mp-catnav__arrow mp-catnav__arrow--right" on:click={() => scrollCategories(1)}>›</button>
 
+            <!-- MORE BUTTON (≡) -->
+            <button class="cn-more" on:click={toggleAllCats} title="Všetky kategórie">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+
             <!-- RIGHT PANEL - visible on scroll down -->
             <div class="mp-catnav__right">
                 <form class="mp-catnav__search-form" on:submit={handleCatnavSearch}>
@@ -193,6 +201,30 @@
                                 </div>
                             {/if}
                         </div>
+                    {/each}
+                </div>
+            </div>
+        {/if}
+
+        <!-- ALL CATEGORIES DROPDOWN -->
+        {#if showAllCats}
+            <div class="cn-drop__overlay" on:click={closeAllCats}></div>
+            <div class="cn-drop">
+                <div class="cn-drop__head">
+                    <h3>Všetky kategórie ({navCategories.length})</h3>
+                    <button on:click={closeAllCats}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                </div>
+                <div class="cn-drop__grid">
+                    {#each navCategories as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-drop__item" on:click={closeAllCats}>
+                            <div class="cn-drop__item-img">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                            </div>
+                            <div>
+                                <span class="cn-drop__item-name">{cat.name}</span>
+                                {#if cat.children?.length}<span class="cn-drop__item-count">{cat.children.length} podkategórií</span>{/if}
+                            </div>
+                        </a>
                     {/each}
                 </div>
             </div>
@@ -340,6 +372,28 @@
 
 /* ARROWS (mobile) */
 .mp-catnav__arrow { display: none; }
+
+/* MORE BUTTON (≡) */
+.cn-more { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; color: #6b7280; flex-shrink: 0; margin-left: 4px; transition: all 0.2s; }
+.cn-more:hover { background: #f3f4f6; color: #c4956a; border-color: #c4956a; }
+
+/* ALL CATEGORIES DROPDOWN */
+.cn-drop__overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 1001; animation: fadeIn 0.2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.cn-drop { position: absolute; top: 100%; right: 20px; width: 700px; max-width: 95vw; max-height: 70vh; background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); z-index: 1002; overflow: hidden; animation: dropSlide 0.2s ease; }
+@keyframes dropSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.cn-drop__head { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f3f4f6; }
+.cn-drop__head h3 { font-size: 15px; font-weight: 600; color: #1f2937; }
+.cn-drop__head button { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: #f3f4f6; border-radius: 8px; color: #6b7280; transition: all 0.2s; }
+.cn-drop__head button:hover { background: #fee2e2; color: #ef4444; }
+.cn-drop__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 8px; max-height: calc(70vh - 56px); overflow-y: auto; }
+.cn-drop__item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; transition: background 0.15s; }
+.cn-drop__item:hover { background: #fef7f0; }
+.cn-drop__item-img { width: 32px; height: 32px; border-radius: 8px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.cn-drop__item-img img { width: 100%; height: 100%; object-fit: cover; }
+.cn-drop__item-img span { font-size: 14px; }
+.cn-drop__item-name { font-size: 13px; font-weight: 600; color: #374151; display: block; }
+.cn-drop__item-count { font-size: 11px; color: #9ca3af; }
 @media (max-width: 768px) {
     .mp-catnav__inner { padding: 0; }
     .mp-catnav__list { padding: 8px 36px; mask-image: none; -webkit-mask-image: none; }
