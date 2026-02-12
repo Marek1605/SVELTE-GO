@@ -164,20 +164,22 @@
 
             <button class="mp-catnav__arrow mp-catnav__arrow--right" on:click={() => scrollCategories(1)}>›</button>
 
-            <!-- MORE BUTTON (≡) -->
-            <button class="cn-more" on:click={toggleAllCats} title="Všetky kategórie">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-            </button>
-
-            <!-- RIGHT PANEL - visible on scroll down -->
-            <div class="mp-catnav__right">
-                <form class="mp-catnav__search-form" on:submit={handleCatnavSearch}>
-                    <input type="text" class="mp-catnav__search-input" placeholder="Hľadať..." bind:value={catnavSearchQuery}>
-                    <button type="submit" class="mp-catnav__search-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
-                </form>
-                <a href="/oblubene" class="mp-catnav__action"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></a>
-                <a href="/porovnanie" class="mp-catnav__action mp-catnav__compare"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg></a>
-                <a href="/kosik" class="mp-catnav__action"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>
+            <!-- END SECTION: always visible, contains ≡ + collapsed search/actions -->
+            <div class="mp-catnav__end">
+                <button class="cn-more" on:click={toggleAllCats} title="Všetky kategórie">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                {#if isCollapsed}
+                    <div class="mp-catnav__collapsed-actions">
+                        <form class="mp-catnav__search-form" on:submit={handleCatnavSearch}>
+                            <input type="text" class="mp-catnav__search-input" placeholder="Hľadať..." bind:value={catnavSearchQuery}>
+                            <button type="submit" class="mp-catnav__search-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+                        </form>
+                        <a href="/oblubene" class="mp-catnav__action"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></a>
+                        <a href="/porovnanie" class="mp-catnav__action mp-catnav__compare"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg></a>
+                        <a href="/kosik" class="mp-catnav__action"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>
+                    </div>
+                {/if}
             </div>
         </div>
 
@@ -306,11 +308,14 @@
 
 /* ═══ CATNAV ═══ */
 .mp-catnav { background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 998; }
-.mp-catnav__inner { display: flex; align-items: center; max-width: 100%; padding: 0 20px; position: relative; }
-.mp-catnav__list { display: flex; gap: 6px; flex: 1; overflow-x: auto; scrollbar-width: none; padding: 8px 0; mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+.mp-catnav__inner { display: flex; align-items: center; max-width: 100%; padding: 0 0 0 20px; position: relative; }
+.mp-catnav__list { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 8px 0; }
 .mp-catnav__list::-webkit-scrollbar { display: none; }
-/* When collapsed, make room for right panel */
-.mp-catnav.is-collapsed .mp-catnav__list { padding-right: 280px; }
+
+/* END SECTION - always visible, contains ≡ + collapsed actions */
+.mp-catnav__end { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding: 0 16px 0 0; background: linear-gradient(to right, transparent, #fff 16px); padding-left: 24px; position: relative; z-index: 5; }
+.mp-catnav__collapsed-actions { display: flex; align-items: center; gap: 10px; padding-left: 10px; border-left: 1px solid #e5e7eb; animation: fadeActions 0.3s ease; }
+@keyframes fadeActions { from { opacity: 0; } to { opacity: 1; } }
 
 /* PILLS variant */
 .cn-pill { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: #f3f4f6; border: 1.5px solid transparent; border-radius: 100px; color: #374151; font-weight: 600; font-size: 13px; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
@@ -359,9 +364,10 @@
 .mp-catnav.is-collapsed .cn-card { padding: 5px 10px 5px 5px; }
 .mp-catnav.is-collapsed .cn-card__img { width: 26px; height: 26px; }
 
-/* RIGHT PANEL - appears on scroll */
-.mp-catnav__right { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 12px; padding-left: 12px; border-left: 1px solid #e5e7eb; background: #fff; opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.3s ease; }
-.mp-catnav.is-collapsed .mp-catnav__right { opacity: 1; visibility: visible; pointer-events: auto; }
+/* END SECTION: ≡ button + collapsed actions */
+.mp-catnav__end { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding: 0 16px 0 0; background: linear-gradient(to right, transparent, #fff 16px); padding-left: 24px; position: relative; z-index: 5; }
+.mp-catnav__collapsed-actions { display: flex; align-items: center; gap: 10px; padding-left: 10px; border-left: 1px solid #e5e7eb; animation: fadeActions 0.3s ease; }
+@keyframes fadeActions { from { opacity: 0; } to { opacity: 1; } }
 .mp-catnav__search-form { display: flex; }
 .mp-catnav__search-input { width: 120px; padding: 8px 12px; border: 2px solid #e5e7eb; border-right: none; border-radius: 8px 0 0 8px; font-size: 12px; outline: none; transition: all 0.2s; }
 .mp-catnav__search-input:focus { border-color: #ff6b35; width: 150px; }
@@ -374,7 +380,7 @@
 .mp-catnav__arrow { display: none; }
 
 /* MORE BUTTON (≡) */
-.cn-more { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; color: #6b7280; flex-shrink: 0; margin-left: 4px; transition: all 0.2s; }
+.cn-more { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; color: #6b7280; flex-shrink: 0; transition: all 0.2s; }
 .cn-more:hover { background: #f3f4f6; color: #c4956a; border-color: #c4956a; }
 
 /* ALL CATEGORIES DROPDOWN */
@@ -396,12 +402,12 @@
 .cn-drop__item-count { font-size: 11px; color: #9ca3af; }
 @media (max-width: 768px) {
     .mp-catnav__inner { padding: 0; }
-    .mp-catnav__list { padding: 8px 36px; mask-image: none; -webkit-mask-image: none; }
-    .mp-catnav.is-collapsed .mp-catnav__list { padding-right: 36px; }
+    .mp-catnav__list { padding: 8px 8px 8px 36px; }
+    .mp-catnav__end { padding-right: 8px; padding-left: 8px; background: linear-gradient(to right, transparent, #fff 8px); }
+    .mp-catnav__collapsed-actions { display: none !important; }
     .mp-catnav__arrow { position: absolute; top: 0; bottom: 0; width: 36px; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #fff 60%, transparent); color: #6b7280; border: none; font-size: 20px; z-index: 5; }
     .mp-catnav__arrow--left { left: 0; }
-    .mp-catnav__arrow--right { right: 0; background: linear-gradient(-90deg, #fff 60%, transparent); }
-    .mp-catnav__right { display: none !important; }
+    .mp-catnav__arrow--right { right: 44px; background: linear-gradient(-90deg, #fff 60%, transparent); }
 }
 
 /* MEGA MENU */
