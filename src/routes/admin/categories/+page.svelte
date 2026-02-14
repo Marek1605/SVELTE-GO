@@ -18,6 +18,7 @@
     let deleting = false;
     let importingTranslations = false;
     let fileInput;
+    let hideEmptyPublic = false;
 
     // Category nav style switcher
     let catNavStyle = 'pills';
@@ -40,18 +41,36 @@
         try { localStorage.setItem('mp_catnav_style', style); } catch(e) {}
     }
 
-    onMount(() => { loadNavStyle(); loadCategories(); });
+    onMount(() => { loadNavStyle(); loadCategories(); loadHideEmptySetting(); });
 
     async function loadCategories() {
         loading = true;
         try {
-            const res = await fetch(`${API}/admin/categories`);
+            const res = await fetch(`${API}/admin/categories?show_all=true`);
             const data = await res.json();
             if (data.success && data.data) categories = Array.isArray(data.data) ? data.data : (data.data?.data || []);
             else if (Array.isArray(data)) categories = data;
             else categories = [];
         } catch (e) { categories = []; }
         loading = false;
+    }
+
+    async function loadHideEmptySetting() {
+        try {
+            const res = await fetch(`${API}/admin/system-info`);
+            const data = await res.json();
+            if (data?.success) hideEmptyPublic = data.data?.hide_empty || false;
+        } catch(e) {}
+    }
+
+    async function toggleHideEmptyPublic() {
+        hideEmptyPublic = !hideEmptyPublic;
+        try {
+            await fetch(`${API}/admin/toggle-hide-empty`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hide_empty: hideEmptyPublic })
+            });
+        } catch(e) {}
     }
 
     function flatten(cats, level = 0, parentPath = '') {
@@ -238,6 +257,11 @@
             <button class="btn xs" on:click={collapseAll}>➖ Zbaliť</button>
         </div>
         <div class="right">
+            <label class="hide-toggle" title="Skryť/Zobraziť prázdne kategórie na webe">
+                <input type="checkbox" checked={hideEmptyPublic} on:change={toggleHideEmptyPublic}>
+                <span class="hide-toggle-slider"></span>
+                <span class="hide-toggle-text">{hideEmptyPublic ? '👁️‍🗨️ Prázdne skryté' : '👁️ Prázdne zobrazené'}</span>
+            </label>
             {#if selectedIds.size > 0}
                 <span class="sel-count">{selectedIds.size} vybraných</span>
                 <button class="btn sm red" on:click={bulkDelete} disabled={deleting}>{deleting ? '⏳' : '🗑️'} Zmazať</button>
@@ -374,4 +398,12 @@
     .nav-switcher__opt-name{display:block;font-size:13px;font-weight:700;color:#1f2937;margin-bottom:4px}
     .nav-switcher__opt-desc{display:block;font-size:11px;color:#6b7280;line-height:1.3}
     @media(max-width:768px){.nav-switcher__grid{grid-template-columns:repeat(2,1fr)}}
+
+    .hide-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;padding:4px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px}
+    .hide-toggle input{display:none}
+    .hide-toggle-slider{position:relative;width:36px;height:20px;background:#cbd5e1;border-radius:10px;transition:.2s;flex-shrink:0}
+    .hide-toggle-slider::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s}
+    .hide-toggle input:checked + .hide-toggle-slider{background:#10b981}
+    .hide-toggle input:checked + .hide-toggle-slider::after{left:18px}
+    .hide-toggle-text{font-size:11px;font-weight:600;color:#475569;white-space:nowrap}
 </style>
