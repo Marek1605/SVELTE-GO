@@ -1,6 +1,6 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
-    const API_BASE = '';
+    const API_BASE = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io';
     let settings = { ai_provider: 'openai', openai_api_key: '', anthropic_api_key: '', ai_model_openai: 'gpt-4o-mini', ai_model_anthropic: 'claude-3-haiku-20240307' };
     let loading = true, saving = false, saveMsg = '';
     let shops = [], selectedShopId = '', reportShopId = '', cleanupShopId = '';
