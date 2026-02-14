@@ -181,6 +181,7 @@
             <button class="btn red" on:click={() => runCleanup(true,false,false)} disabled={cleanupLoading||!cleanupShopId}>{cleanupLoading ? 'Mazem...' : 'Zmazat AI produkty'}</button>
             <button class="btn orange" on:click={() => runCleanup(false,true,false)} disabled={cleanupLoading}>Zmazat prazdne kategorie</button>
             <button class="btn purple" on:click={() => runCleanup(false,false,true)} disabled={cleanupLoading}>Zmazat MASTER produkty obchodu</button>
+            <button class="btn purple" on:click={() => runCleanup(false,false,true)} disabled={cleanupLoading}>Zmazat MASTER produkty obchodu</button>
             <button class="btn darkred" on:click={() => runCleanup(true,true,true)} disabled={cleanupLoading||!cleanupShopId}>Zmazat vsetko</button>
         </div>
         {#if cleanupMsg}<div class="cleanup-result">{cleanupMsg}</div>{/if}
