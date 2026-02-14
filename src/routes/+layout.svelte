@@ -19,6 +19,7 @@
     let showAllCats = false;
     let editMode = false;
     let hiddenCats = new Set();
+    let logoUrl = '';
     function toggleAllCats() { showAllCats = !showAllCats; if (!showAllCats) editMode = false; }
     function closeAllCats() { showAllCats = false; editMode = false; }
     function toggleEditMode() { editMode = !editMode; }
@@ -96,6 +97,12 @@
         };
         window.addEventListener('storage', onStorage);
 
+        // Load site logo
+        fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/site/settings')
+            .then(r => r.json())
+            .then(d => { if (d?.data?.logo_url) logoUrl = d.data.logo_url; })
+            .catch(() => {});
+
         return () => {
             window.removeEventListener('scroll', onScroll);
             window.removeEventListener('storage', onStorage);
@@ -126,7 +133,13 @@
 <div class="mp-site">
     <header class="mp-header">
         <div class="mp-header__inner">
-            <a href="/" class="mp-header__logo"><span class="mp-header__logo-text">megaprice</span></a>
+            <a href="/" class="mp-header__logo">
+                {#if logoUrl}
+                    <img src={logoUrl} alt="MegaPrice" class="mp-header__logo-img" />
+                {:else}
+                    <span class="mp-header__logo-text">megaprice</span>
+                {/if}
+            </a>
             <form class="mp-search" on:submit={handleSearch}>
                 <input type="text" class="mp-search__input" placeholder="Hľadaj produkt, značku..." bind:value={searchQuery}>
                 <button type="submit" class="mp-search__btn">
@@ -351,6 +364,7 @@
 .mp-header__inner { display: flex; align-items: center; gap: 24px; padding: 12px 20px; max-width: 1400px; margin: 0 auto; }
 .mp-header__logo { flex-shrink: 0; }
 .mp-header__logo-text { font-size: 24px; font-weight: 700; color: #ff6b35; }
+.mp-header__logo-img { height: 40px; max-width: 200px; object-fit: contain; display: block; }
 .mp-search { flex: 1; max-width: 600px; margin: 0 auto; display: flex; }
 .mp-search__input { flex: 1; padding: 12px 20px; border: 2px solid #e5e7eb; border-right: none; border-radius: 10px 0 0 10px; font-size: 15px; outline: none; transition: border-color 0.2s; }
 .mp-search__input:focus { border-color: #ff6b35; }

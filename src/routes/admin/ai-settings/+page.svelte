@@ -16,12 +16,8 @@
     let starting = false;
     let displayStats = null;
 
-    let systemInfo = null;
-    let cleaningImages = false;
-    let cleanupMsg = '';
-
     onMount(async () => {
-        await Promise.all([loadSettings(), loadShops(), loadProgress(), loadDisplayStats(), loadSystemInfo()]);
+        await Promise.all([loadSettings(), loadShops(), loadProgress(), loadDisplayStats()]);
         loading = false;
     });
 
@@ -92,45 +88,12 @@
     }
 
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
-
-    async function loadSystemInfo() {
-        const res = await apiFetch('/admin/system-info');
-        if (res?.success) systemInfo = res.data;
-    }
-
-    async function cleanupOrphanedImages() {
-        if (!confirm('Zmazať všetky osirotené obrázky? (Obrázky bez referencie v DB)')) return;
-        cleaningImages = true; cleanupMsg = '';
-        const res = await apiFetch('/admin/cleanup-orphaned-images', { method: 'POST' });
-        if (res?.success) cleanupMsg = `✅ ${res.message}`;
-        else cleanupMsg = '❌ ' + (res?.error || 'Chyba');
-        cleaningImages = false;
-        await loadSystemInfo();
-        setTimeout(() => cleanupMsg = '', 8000);
-    }
-
-    async function deleteAllImages() {
-        if (!confirm('⚠️ POZOR: Zmazať VŠETKY obrázky z disku? Toto je nevratná akcia!')) return;
-        if (!confirm('Naozaj? Toto zmaže všetky uložené obrázky!')) return;
-        cleaningImages = true; cleanupMsg = '';
-        const res = await apiFetch('/admin/delete-all-images', { method: 'POST' });
-        if (res?.success) cleanupMsg = `✅ ${res.message}`;
-        else cleanupMsg = '❌ ' + (res?.error || 'Chyba');
-        cleaningImages = false;
-        await loadSystemInfo();
-    }
-
-    async function toggleHideEmpty() {
-        const newVal = !(systemInfo?.hide_empty);
-        const res = await apiFetch('/admin/toggle-hide-empty', { method: 'POST', body: JSON.stringify({ hide_empty: newVal }) });
-        if (res?.success) { systemInfo = { ...systemInfo, hide_empty: newVal }; }
-    }
 </script>
 
 <svelte:head><title>AI Kategorizácia | Admin</title></svelte:head>
 
 <div class="page">
-    <h1>🤖 AI Kategorizácia & Nastavenia</h1>
+    <h1>🤖 AI Kategorizácia</h1>
 
     {#if loading}
         <div class="loading">Načítavam...</div>
@@ -138,7 +101,7 @@
 
     {#if displayStats}
     <div class="section">
-        <h2>📊 Prehľad systému</h2>
+        <h2>📊 Prehľad</h2>
         <div class="stats-grid">
             <div class="stat"><span class="n">{fmt(displayStats.shops?.total)}</span><span class="l">Obchodov</span></div>
             <div class="stat free"><span class="n">{fmt(displayStats.shops?.free)}</span><span class="l">FREE režim</span></div>
@@ -147,55 +110,6 @@
             <div class="stat ok"><span class="n">{fmt(displayStats.matching?.matched)}</span><span class="l">Spárovaných</span></div>
             <div class="stat warn"><span class="n">{fmt(displayStats.matching?.unmatched)}</span><span class="l">Nespárovaných</span></div>
         </div>
-    </div>
-    {/if}
-
-    {#if systemInfo}
-    <div class="section">
-        <h2>🖥️ Stav systému</h2>
-        <div class="stats-grid">
-            <div class="stat"><span class="n">{fmt(systemInfo.products)}</span><span class="l">Produktov</span></div>
-            <div class="stat"><span class="n">{fmt(systemInfo.categories)}</span><span class="l">Kategórií</span></div>
-            <div class="stat warn"><span class="n">{fmt(systemInfo.empty_categories)}</span><span class="l">Prázdnych kat.</span></div>
-            <div class="stat"><span class="n">{fmt(systemInfo.offers)}</span><span class="l">Ponúk</span></div>
-            <div class="stat"><span class="n">{fmt(systemInfo.disk_images)}</span><span class="l">Obrázkov na disku</span></div>
-            <div class="stat" class:warn={systemInfo.orphaned_estimate > 0}><span class="n">{fmt(systemInfo.orphaned_estimate)}</span><span class="l">Osirotených obr.</span></div>
-            <div class="stat"><span class="n">{systemInfo.disk_size_gb} GB</span><span class="l">Miesto na disku</span></div>
-            <div class="stat" class:ok={systemInfo.ai_status === 'completed'} class:running={systemInfo.ai_status === 'running'}>
-                <span class="n">{systemInfo.ai_status === 'running' ? '⏳' : systemInfo.ai_status === 'completed' ? '✅' : '⏸️'}</span>
-                <span class="l">AI stav</span>
-            </div>
-        </div>
-
-        <div class="system-actions">
-            <div class="system-row">
-                <div>
-                    <strong>🖼️ Osirotené obrázky</strong>
-                    <p class="desc">Súbory na disku bez referencie v DB ({fmt(systemInfo.orphaned_estimate)} súborov, {systemInfo.disk_size_gb} GB)</p>
-                </div>
-                <div class="btn-group">
-                    <button class="btn orange" on:click={cleanupOrphanedImages} disabled={cleaningImages}>
-                        {cleaningImages ? '⏳ Mažem...' : '🧹 Vyčistiť osirotené'}
-                    </button>
-                    <button class="btn red sm" on:click={deleteAllImages} disabled={cleaningImages}>🗑️ Zmazať všetky</button>
-                </div>
-            </div>
-            {#if cleanupMsg}<div class="msg cleanup-msg">{cleanupMsg}</div>{/if}
-
-            <div class="system-row">
-                <div>
-                    <strong>📁 Prázdne kategórie</strong>
-                    <p class="desc">Skryť kategórie bez produktov na webe ({fmt(systemInfo.empty_categories)} prázdnych)</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" checked={systemInfo.hide_empty} on:change={toggleHideEmpty}>
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-label">{systemInfo.hide_empty ? 'Skryté' : 'Zobrazené'}</span>
-                </label>
-            </div>
-        </div>
-
-        <button class="btn outline sm" on:click={loadSystemInfo} style="margin-top:12px">🔄 Obnoviť info</button>
     </div>
     {/if}
 
@@ -344,23 +258,8 @@
     .btn.green{background:#10b981;color:#fff}.btn.green:hover{background:#059669}
     .btn.red{background:#ef4444;color:#fff}.btn.red:hover{background:#dc2626}
     .btn.outline{background:#fff;color:#475569;border:1px solid #d1d5db}.btn.outline:hover{border-color:#3b82f6;color:#3b82f6}
-    .btn.orange{background:#f59e0b;color:#fff}.btn.orange:hover{background:#d97706}
     .btn.sm{padding:6px 12px;font-size:12px}
-    .btn-group{display:flex;gap:6px;align-items:center}
     .btn:disabled{opacity:.5;cursor:not-allowed}
-    .system-actions{margin-top:20px;display:flex;flex-direction:column;gap:16px}
-    .system-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;gap:16px;flex-wrap:wrap}
-    .system-row strong{font-size:14px;color:#1e293b}
-    .system-row .desc{margin:2px 0 0;font-size:12px}
-    .cleanup-msg{display:block;padding:8px 12px;background:#ecfdf5;border-radius:6px;font-size:13px}
-    .toggle-switch{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
-    .toggle-switch input{display:none}
-    .toggle-slider{position:relative;width:44px;height:24px;background:#cbd5e1;border-radius:12px;transition:.2s}
-    .toggle-slider::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s}
-    .toggle-switch input:checked + .toggle-slider{background:#10b981}
-    .toggle-switch input:checked + .toggle-slider::after{left:23px}
-    .toggle-label{font-size:13px;font-weight:500;color:#475569}
-    .stat.running{border-color:#3b82f6;background:#eff6ff}
     .flow{display:flex;gap:8px;align-items:center;margin:16px 0;flex-wrap:wrap}
     .step{background:#eff6ff;color:#1d4ed8;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500}
     .arrow{color:#94a3b8;font-size:18px}

@@ -12,6 +12,7 @@
         { href: '/admin/categories', label: 'Kategórie', icon: '📁' },
         { href: '/admin/filters', label: 'Filtre', icon: '🎛️' },
         { href: '/admin/ai-settings', label: 'AI Kategorizácia', icon: '🤖' },
+        { href: '/admin/settings', label: 'Nastavenia', icon: '⚙️' },
     ];
 </script>
 
