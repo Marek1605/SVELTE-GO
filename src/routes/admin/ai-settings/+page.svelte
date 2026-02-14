@@ -12,130 +12,175 @@
     onMount(async () => { await Promise.all([loadSettings(), loadShops(), loadProgress(), loadDisplayStats()]); loading = false; });
     onDestroy(() => { if (polling) clearInterval(polling); });
 
-    async function apiFetch(ep, opts = {}) { try { const r = await fetch(`${API_BASE}${ep}`, { headers: { 'Content-Type': 'application/json', ...opts.headers }, ...opts }); return await r.json(); } catch (e) { return { success: false, error: e.message }; } }
+    async function apiFetch(ep, opts = {}) {
+        try {
+            const r = await fetch(`${API_BASE}${ep}`, {
+                headers: { 'Content-Type': 'application/json', ...opts.headers },
+                ...opts
+            });
+            return await r.json();
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    }
     async function loadSettings() { const r = await apiFetch('/api/v1/admin/ai/settings'); if (r?.success && r.data) settings = { ...settings, ...r.data }; }
     async function loadShops() { const r = await apiFetch('/api/v1/admin/shops'); if (r?.success) shops = r.data || []; }
-    async function saveSettings() { saving = true; saveMsg = ''; const r = await apiFetch('/api/v1/admin/ai/settings', { method: 'POST', body: JSON.stringify(settings) }); saveMsg = r?.success ? '✅ Uložené' : '❌ ' + (r?.error || 'Chyba'); saving = false; setTimeout(() => saveMsg = '', 3000); }
+    async function saveSettings() { saving = true; saveMsg = ''; const r = await apiFetch('/api/v1/admin/ai/settings', { method: 'POST', body: JSON.stringify(settings) }); saveMsg = r?.success ? '\u2705 Ulozene' : '\u274C ' + (r?.error || 'Chyba'); saving = false; setTimeout(() => saveMsg = '', 3000); }
     async function loadProgress() { const r = await apiFetch('/api/v1/admin/ai/bulk-categorize/progress'); if (r?.success && r.data) { job = r.data; if (job.status === 'running' && !polling) polling = setInterval(loadProgress, 2000); if (job.status !== 'running' && polling) { clearInterval(polling); polling = null; } } }
     async function loadDisplayStats() { const r = await apiFetch('/api/v1/admin/ai/display-mode-stats'); if (r?.success) displayStats = r.data; }
-    async function startCategorization() { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; if (!confirm(`Spustiť AI kategorizáciu pre "${sn}"?`)) return; starting = true; const r = await apiFetch('/api/v1/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
-    async function cancelCategorization() { if (!confirm('Zastaviť?')) return; await apiFetch('/api/v1/admin/ai/bulk-categorize/cancel', { method: 'POST' }); if (polling) { clearInterval(polling); polling = null; } await loadProgress(); }
-    async function loadReport() { reportLoading = true; let u = `/api/v1/admin/ai/categorization-report?page=${reportPage}&per_page=50&match_type=${reportFilter}`; if (reportShopId) u += `&shop_id=${reportShopId}`; const r = await apiFetch(u); if (r?.success) { reportData = r.data || []; reportStats = r.stats || {}; reportTotal = r.total || 0; reportTotalPages = r.total_pages || 1; } reportLoading = false; }
+    async function startCategorization() {
+        if (!selectedShopId) { alert('Vyberte obchod'); return; }
+        const sn = shops.find(s => s.id === selectedShopId)?.shop_name || '';
+        if (!confirm('Spustit AI kategorizaciu pre "' + sn + '"?')) return;
+        starting = true;
+        const r = await apiFetch('/api/v1/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId }) });
+        if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba');
+        starting = false;
+    }
+    async function cancelCategorization() { if (!confirm('Zastavit?')) return; await apiFetch('/api/v1/admin/ai/bulk-categorize/cancel', { method: 'POST' }); if (polling) { clearInterval(polling); polling = null; } await loadProgress(); }
+    async function loadReport() {
+        reportLoading = true;
+        let u = '/api/v1/admin/ai/categorization-report?page=' + reportPage + '&per_page=50&match_type=' + reportFilter;
+        if (reportShopId) u += '&shop_id=' + reportShopId;
+        const r = await apiFetch(u);
+        if (r?.success) { reportData = r.data || []; reportStats = r.stats || {}; reportTotal = r.total || 0; reportTotalPages = r.total_pages || 1; }
+        reportLoading = false;
+    }
     function changeReportFilter(f) { reportFilter = f; reportPage = 1; loadReport(); }
     function changeReportPage(p) { if (p >= 1 && p <= reportTotalPages) { reportPage = p; loadReport(); } }
     function changeReportShop() { reportPage = 1; loadReport(); }
-    function downloadCSV() { let u = `${API_BASE}/api/v1/admin/ai/categorization-report/csv`; if (reportShopId) u += `?shop_id=${reportShopId}`; window.open(u, '_blank'); }
+    function downloadCSV() {
+        let u = API_BASE + '/api/v1/admin/ai/categorization-report/csv';
+        if (reportShopId) u += '?shop_id=' + reportShopId;
+        window.open(u, '_blank');
+    }
     function switchToReport() { activeTab = 'report'; if (reportData.length === 0) loadReport(); }
-    async function runCleanup(delP, delC) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delC) m += '- Zmazať prázdne kategórie\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/api/v1/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 8000); }
+    async function runCleanup(delP, delC) {
+        if (!cleanupShopId) { alert('Vyberte obchod'); return; }
+        const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || '';
+        let m = 'Vycistit pre "' + sn + '":\n';
+        if (delP) m += '- Zmazat AI produkty\n';
+        if (delC) m += '- Zmazat prazdne kategorie\n';
+        if (!confirm(m + '\nPokracovat?')) return;
+        cleanupLoading = true; cleanupMsg = '';
+        const r = await apiFetch('/api/v1/admin/ai/cleanup', {
+            method: 'POST',
+            body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC })
+        });
+        if (r?.success) { cleanupMsg = '\u2705 ' + r.message; await loadDisplayStats(); if (reportData.length > 0) loadReport(); }
+        else { cleanupMsg = '\u274C ' + (r?.error || 'Chyba'); }
+        cleanupLoading = false;
+        setTimeout(() => cleanupMsg = '', 8000);
+    }
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
-    function shortDate(s) { if (!s) return '—'; return s.length > 19 ? s.slice(0, 19).replace('T', ' ') : s; }
+    function shortDate(s) { if (!s) return '\u2014'; return s.length > 19 ? s.slice(0, 19).replace('T', ' ') : s; }
 </script>
 
-<svelte:head><title>AI Kategorizácia | Admin</title></svelte:head>
+<svelte:head><title>AI Kategorizacia | Admin</title></svelte:head>
 
 <div class="page">
     <div class="page-head">
-        <h1>🤖 AI Kategorizácia</h1>
+        <h1>AI Kategorizacia</h1>
         <div class="tab-bar">
-            <button class="tab" class:active={activeTab === 'settings'} on:click={() => activeTab = 'settings'}>⚙️ Nastavenia</button>
-            <button class="tab" class:active={activeTab === 'report'} on:click={switchToReport}>📊 Report</button>
-            <button class="tab" class:active={activeTab === 'cleanup'} on:click={() => activeTab = 'cleanup'}>🗑️ Vyčistenie</button>
+            <button class="tab" class:active={activeTab === 'settings'} on:click={() => activeTab = 'settings'}>Nastavenia</button>
+            <button class="tab" class:active={activeTab === 'report'} on:click={switchToReport}>Report</button>
+            <button class="tab" class:active={activeTab === 'cleanup'} on:click={() => activeTab = 'cleanup'}>Vycistenie</button>
         </div>
     </div>
 
-    {#if loading}<div class="loading">Načítavam...</div>{:else}
+    {#if loading}<div class="loading">Nacitavam...</div>{:else}
 
     {#if activeTab === 'settings'}
     {#if displayStats}
     <div class="section">
-        <h2>📊 Prehľad</h2>
+        <h2>Prehlad</h2>
         <div class="stats-grid">
             <div class="stat"><span class="n">{fmt(displayStats.shops?.total)}</span><span class="l">Obchodov</span></div>
-            <div class="stat ok"><span class="n">{fmt(displayStats.matching?.matched)}</span><span class="l">Spárovaných</span></div>
-            <div class="stat warn"><span class="n">{fmt(displayStats.matching?.unmatched)}</span><span class="l">Nespárovaných</span></div>
-            <div class="stat"><span class="n">{fmt(displayStats.offers?.total)}</span><span class="l">Ponúk</span></div>
+            <div class="stat ok"><span class="n">{fmt(displayStats.matching?.matched)}</span><span class="l">Sparovanych</span></div>
+            <div class="stat warn"><span class="n">{fmt(displayStats.matching?.unmatched)}</span><span class="l">Nesparovanych</span></div>
+            <div class="stat"><span class="n">{fmt(displayStats.offers?.total)}</span><span class="l">Ponuk</span></div>
         </div>
     </div>
     {/if}
     <div class="section">
-        <h2>⚙️ AI Nastavenia</h2>
+        <h2>AI Nastavenia</h2>
         <div class="form-grid">
             <div class="form-row"><label>AI Provider</label><select bind:value={settings.ai_provider}><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></div>
-            <div class="form-row"><label>OpenAI API kľúč</label><input type="password" bind:value={settings.openai_api_key} placeholder="sk-proj-..."></div>
-            <div class="form-row"><label>Anthropic API kľúč</label><input type="password" bind:value={settings.anthropic_api_key} placeholder="sk-ant-..."></div>
+            <div class="form-row"><label>OpenAI API kluc</label><input type="password" bind:value={settings.openai_api_key} placeholder="sk-proj-..."></div>
+            <div class="form-row"><label>Anthropic API kluc</label><input type="password" bind:value={settings.anthropic_api_key} placeholder="sk-ant-..."></div>
         </div>
-        <div class="actions"><button class="btn blue" on:click={saveSettings} disabled={saving}>{saving ? 'Ukladám...' : '💾 Uložiť'}</button>{#if saveMsg}<span class="msg">{saveMsg}</span>{/if}</div>
+        <div class="actions"><button class="btn blue" on:click={saveSettings} disabled={saving}>{saving ? 'Ukladam...' : 'Ulozit'}</button>{#if saveMsg}<span class="msg">{saveMsg}</span>{/if}</div>
     </div>
     <div class="section">
-        <h2>🧠 Hromadná AI kategorizácia</h2>
-        <div class="flow"><div class="step">1️⃣ EAN</div><div class="arrow">→</div><div class="step">2️⃣ Fuzzy</div><div class="arrow">→</div><div class="step">3️⃣ Feed kat.</div><div class="arrow">→</div><div class="step">4️⃣ AI</div><div class="arrow">→</div><div class="step">5️⃣ Nový produkt</div></div>
+        <h2>Hromadna AI kategorizacia</h2>
+        <div class="flow"><div class="step">1. EAN</div><div class="arrow">&rarr;</div><div class="step">2. Fuzzy</div><div class="arrow">&rarr;</div><div class="step">3. Feed kat.</div><div class="arrow">&rarr;</div><div class="step">4. AI</div><div class="arrow">&rarr;</div><div class="step">5. Novy produkt</div></div>
         <div class="form-row"><label>Obchod</label><select bind:value={selectedShopId}><option value="">-- Vyberte --</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select></div>
         {#if job}
         <div class="job-status" class:running={job.status==='running'} class:done={job.status==='completed'}>
-            <span class="job-badge {job.status}">{job.status === 'running' ? '⏳ Prebieha' : job.status === 'completed' ? '✅ Hotovo' : '⛔ '+job.status}</span>
+            <span class="job-badge {job.status}">{job.status === 'running' ? 'Prebieha...' : job.status === 'completed' ? 'Hotovo' : job.status}</span>
             {#if job.status === 'running'}<div class="progress-bar"><div class="progress-fill" style="width:{job.percent||0}%"></div></div><div class="progress-text">{fmt(job.processed)} / {fmt(job.total_offers)} ({job.percent||0}%)</div>{/if}
-            <div class="job-stats"><span>📦 {fmt(job.processed)}</span><span>✅ {fmt(job.matched)}</span><span>🆕 {fmt(job.new_products)}</span><span>📁 {fmt(job.new_categories)}</span><span>❌ {fmt(job.errors)}</span></div>
+            <div class="job-stats"><span>Spracovanych: {fmt(job.processed)}</span><span>Sparovanych: {fmt(job.matched)}</span><span>Novych: {fmt(job.new_products)}</span><span>Kategorii: {fmt(job.new_categories)}</span><span>Chyb: {fmt(job.errors)}</span></div>
         </div>
         {/if}
         <div class="actions">
-            {#if job?.status === 'running'}<button class="btn red" on:click={cancelCategorization}>⛔ Zastaviť</button>
-            {:else}<button class="btn green" on:click={startCategorization} disabled={starting || !selectedShopId}>{starting ? '⏳...' : '🚀 Spustiť'}</button>{/if}
-            <button class="btn outline" on:click={loadProgress}>🔄 Obnoviť</button>
+            {#if job?.status === 'running'}<button class="btn red" on:click={cancelCategorization}>Zastavit</button>
+            {:else}<button class="btn green" on:click={startCategorization} disabled={starting || !selectedShopId}>{starting ? 'Spustam...' : 'Spustit kategorizaciu'}</button>{/if}
+            <button class="btn outline" on:click={loadProgress}>Obnovit</button>
         </div>
     </div>
 
     {:else if activeTab === 'report'}
     <div class="section">
-        <div class="report-head"><div><h2>📊 Report kategorizácie</h2><p class="desc">Feed kategória vs. priradená kategória — všetky typy párovania</p></div><button class="csv-btn" on:click={downloadCSV}>📥 CSV</button></div>
+        <div class="report-head"><div><h2>Report kategorizacie</h2><p class="desc">Feed kategoria vs. priradena kategoria - vsetky typy parovania</p></div><button class="csv-btn" on:click={downloadCSV}>CSV Export</button></div>
         <div class="stats-grid stats-sm">
             <div class="stat"><span class="n">{fmt(reportStats.total_products)}</span><span class="l">Produktov</span></div>
             <div class="stat ok"><span class="n">{fmt(reportStats.total_matched)}</span><span class="l">EAN</span></div>
             <div class="stat"><span class="n">{fmt(reportStats.total_fulltext)}</span><span class="l">Fulltext</span></div>
             <div class="stat warn"><span class="n">{fmt(reportStats.total_created)}</span><span class="l">AI vytv.</span></div>
-            <div class="stat"><span class="n">{fmt(reportStats.total_categories)}</span><span class="l">Kategórií</span></div>
-            <div class="stat paid"><span class="n">{fmt(reportStats.new_categories)}</span><span class="l">Nových 24h</span></div>
+            <div class="stat"><span class="n">{fmt(reportStats.total_categories)}</span><span class="l">Kategorii</span></div>
+            <div class="stat paid"><span class="n">{fmt(reportStats.new_categories)}</span><span class="l">Novych 24h</span></div>
         </div>
         <div class="filter-row">
-            <select bind:value={reportShopId} on:change={changeReportShop}><option value="">Všetky obchody</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select>
+            <select bind:value={reportShopId} on:change={changeReportShop}><option value="">Vsetky obchody</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select>
             <div class="filter-tabs">
-                <button class:active={reportFilter==='all'} on:click={() => changeReportFilter('all')}>Všetky</button>
-                <button class:active={reportFilter==='created'} on:click={() => changeReportFilter('created')}>🤖 AI</button>
-                <button class:active={reportFilter==='matched'} on:click={() => changeReportFilter('matched')}>📦 EAN</button>
-                <button class:active={reportFilter==='fulltext'} on:click={() => changeReportFilter('fulltext')}>🔍 FT</button>
+                <button class:active={reportFilter==='all'} on:click={() => changeReportFilter('all')}>Vsetky</button>
+                <button class:active={reportFilter==='created'} on:click={() => changeReportFilter('created')}>AI</button>
+                <button class:active={reportFilter==='matched'} on:click={() => changeReportFilter('matched')}>EAN</button>
+                <button class:active={reportFilter==='fulltext'} on:click={() => changeReportFilter('fulltext')}>FT</button>
             </div>
         </div>
-        {#if reportLoading}<div class="loading">Načítavam...</div>
-        {:else if reportData.length === 0}<div class="empty-msg">Žiadne záznamy</div>
+        {#if reportLoading}<div class="loading">Nacitavam...</div>
+        {:else if reportData.length === 0}<div class="empty-msg">Ziadne zaznamy</div>
         {:else}
-        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Typ</th><th>Ponuka</th><th>Feed kategória</th><th>→</th><th>Priradená (plná cesta)</th><th>Značka</th><th>Cena</th><th>Obchod</th><th>Dátum</th></tr></thead><tbody>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Typ</th><th>Ponuka</th><th>Feed kategoria</th><th>&rarr;</th><th>Priradena (plna cesta)</th><th>Znacka</th><th>Cena</th><th>Obchod</th><th>Datum</th></tr></thead><tbody>
             {#each reportData as row}
             <tr class="row-{row.match_type}">
                 <td>{#if row.match_type==='created'}<span class="badge ai">AI</span>{:else if row.match_type==='matched'}<span class="badge ean">EAN</span>{:else if row.match_type==='fulltext'}<span class="badge ft">FT</span>{:else}<span class="badge">{row.match_type||'?'}</span>{/if}</td>
                 <td class="td-title"><a href="/produkt/{row.product_slug}" target="_blank">{row.offer_title?.length > 50 ? row.offer_title.slice(0,50)+'...' : row.offer_title}</a></td>
-                <td class="td-feed" title={row.feed_category}>{row.feed_category || '—'}</td>
-                <td class="td-arrow">{#if row.feed_category && row.category_path && !row.category_path.includes(row.feed_category?.split('|')[0]?.trim())}<span class="changed">⚠️</span>{:else}<span class="same">✓</span>{/if}</td>
-                <td class="td-path">{#each (row.category_path||'—').split(' > ') as part, i}{#if i > 0}<span class="sep"> › </span>{/if}<span class:leaf={i===(row.category_path||'').split(' > ').length-1}>{part}</span>{/each}</td>
-                <td class="td-brand">{row.brand||'—'}</td>
-                <td class="td-price">{row.price ? row.price.toFixed(2)+'€' : '—'}</td>
-                <td class="td-shop">{row.shop_name||'—'}</td>
+                <td class="td-feed" title={row.feed_category}>{row.feed_category || '\u2014'}</td>
+                <td class="td-arrow">{#if row.feed_category && row.category_path && !row.category_path.includes(row.feed_category?.split('|')[0]?.trim())}<span class="changed">!</span>{:else}<span class="same">&check;</span>{/if}</td>
+                <td class="td-path">{#each (row.category_path||'\u2014').split(' > ') as part, i}{#if i > 0}<span class="sep"> &rsaquo; </span>{/if}<span class:leaf={i===(row.category_path||'').split(' > ').length-1}>{part}</span>{/each}</td>
+                <td class="td-brand">{row.brand||'\u2014'}</td>
+                <td class="td-price">{row.price ? row.price.toFixed(2)+'\u20AC' : '\u2014'}</td>
+                <td class="td-shop">{row.shop_name||'\u2014'}</td>
                 <td class="td-date">{shortDate(row.offer_created)}</td>
             </tr>
             {/each}
         </tbody></table></div>
-        {#if reportTotalPages > 1}<div class="pag"><button disabled={reportPage<=1} on:click={() => changeReportPage(reportPage-1)}>‹</button><span>{reportPage}/{reportTotalPages} ({fmt(reportTotal)})</span><button disabled={reportPage>=reportTotalPages} on:click={() => changeReportPage(reportPage+1)}>›</button></div>{/if}
+        {#if reportTotalPages > 1}<div class="pag"><button disabled={reportPage<=1} on:click={() => changeReportPage(reportPage-1)}>&lsaquo;</button><span>{reportPage}/{reportTotalPages} ({fmt(reportTotal)})</span><button disabled={reportPage>=reportTotalPages} on:click={() => changeReportPage(reportPage+1)}>&rsaquo;</button></div>{/if}
         {/if}
     </div>
 
     {:else if activeTab === 'cleanup'}
     <div class="section">
-        <h2>🗑️ Vyčistenie AI kategorizácie</h2>
-        <p class="desc">Zmazať AI-vytvorené produkty a prázdne kategórie pre obchod → možnosť opakovať kategorizáciu.</p>
-        <div class="cleanup-warn">⚠️ <strong>Pozor:</strong> Nezvratná akcia. AI produkty + ponuky budú zmazané. Kategórie sa zmažú len ak sú prázdne.</div>
+        <h2>Vycistenie AI kategorizacie</h2>
+        <p class="desc">Zmazat AI-vytvorene produkty a prazdne kategorie pre obchod. Moznost opakovat kategorizaciu.</p>
+        <div class="cleanup-warn"><strong>Pozor:</strong> Nevratna akcia. AI produkty + ponuky budu zmazane. Kategorie sa zmazu len ak su prazdne.</div>
         <div class="form-row"><label>Obchod</label><select bind:value={cleanupShopId}><option value="">-- Vyberte --</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select></div>
         <div class="cleanup-actions">
-            <button class="btn red" on:click={() => runCleanup(true,false)} disabled={cleanupLoading||!cleanupShopId}>{cleanupLoading ? '⏳...' : '🗑️ Zmazať AI produkty'}</button>
-            <button class="btn orange" on:click={() => runCleanup(false,true)} disabled={cleanupLoading}>📁 Zmazať prázdne kategórie</button>
-            <button class="btn darkred" on:click={() => runCleanup(true,true)} disabled={cleanupLoading||!cleanupShopId}>💣 Zmazať všetko</button>
+            <button class="btn red" on:click={() => runCleanup(true,false)} disabled={cleanupLoading||!cleanupShopId}>{cleanupLoading ? 'Mazem...' : 'Zmazat AI produkty'}</button>
+            <button class="btn orange" on:click={() => runCleanup(false,true)} disabled={cleanupLoading}>Zmazat prazdne kategorie</button>
+            <button class="btn darkred" on:click={() => runCleanup(true,true)} disabled={cleanupLoading||!cleanupShopId}>Zmazat vsetko</button>
         </div>
         {#if cleanupMsg}<div class="cleanup-result">{cleanupMsg}</div>{/if}
     </div>
