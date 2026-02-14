@@ -55,17 +55,17 @@
         window.open(u, '_blank');
     }
     function switchToReport() { activeTab = 'report'; if (reportData.length === 0) loadReport(); }
-    async function runCleanup(delP, delC) {
+    async function runCleanup(delP, delC, delM) {
         if (!cleanupShopId) { alert('Vyberte obchod'); return; }
         const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || '';
         let m = 'Vycistit pre "' + sn + '":\n';
         if (delP) m += '- Zmazat AI produkty\n';
-        if (delC) m += '- Zmazat prazdne kategorie\n';
+        if (delM) m += '- Zmazat MASTER produkty obchodu (EAN matched)\n'; if (delC) m += '- Zmazat prazdne kategorie\n';
         if (!confirm(m + '\nPokracovat?')) return;
         cleanupLoading = true; cleanupMsg = '';
         const r = await apiFetch('/api/v1/admin/ai/cleanup', {
             method: 'POST',
-            body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC })
+            body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_master: delM || false })
         });
         if (r?.success) { cleanupMsg = '\u2705 ' + r.message; await loadDisplayStats(); if (reportData.length > 0) loadReport(); }
         else { cleanupMsg = '\u274C ' + (r?.error || 'Chyba'); }
@@ -178,9 +178,9 @@
         <div class="cleanup-warn"><strong>Pozor:</strong> Nevratna akcia. AI produkty + ponuky budu zmazane. Kategorie sa zmazu len ak su prazdne.</div>
         <div class="form-row"><label>Obchod</label><select bind:value={cleanupShopId}><option value="">-- Vyberte --</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select></div>
         <div class="cleanup-actions">
-            <button class="btn red" on:click={() => runCleanup(true,false)} disabled={cleanupLoading||!cleanupShopId}>{cleanupLoading ? 'Mazem...' : 'Zmazat AI produkty'}</button>
-            <button class="btn orange" on:click={() => runCleanup(false,true)} disabled={cleanupLoading}>Zmazat prazdne kategorie</button>
-            <button class="btn darkred" on:click={() => runCleanup(true,true)} disabled={cleanupLoading||!cleanupShopId}>Zmazat vsetko</button>
+            <button class="btn red" on:click={() => runCleanup(true,false,false)} disabled={cleanupLoading||!cleanupShopId}>{cleanupLoading ? 'Mazem...' : 'Zmazat AI produkty'}</button>
+            <button class="btn orange" on:click={() => runCleanup(false,true,false)} disabled={cleanupLoading}>Zmazat prazdne kategorie</button>
+            <button class="btn darkred" on:click={() => runCleanup(true,true,true)} disabled={cleanupLoading||!cleanupShopId}>Zmazat vsetko</button>
         </div>
         {#if cleanupMsg}<div class="cleanup-result">{cleanupMsg}</div>{/if}
     </div>
@@ -209,7 +209,8 @@ h1{font-size:24px;margin:0;color:#1e293b} h2{font-size:18px;margin:0 0 8px;color
 .actions{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap} .msg{font-size:14px;font-weight:500}
 .btn{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
 .btn.blue{background:#3b82f6;color:#fff} .btn.green{background:#10b981;color:#fff} .btn.red{background:#ef4444;color:#fff}
-.btn.orange{background:#f59e0b;color:#fff} .btn.darkred{background:#991b1b;color:#fff}
+.btn.orange{background:#f59e0b;color:#fff} .btn.purple{background:#7c3aed;color:#fff} .btn.purple:hover{background:#6d28d9}
+.btn.darkred{background:#991b1b;color:#fff}
 .btn.outline{background:#fff;color:#475569;border:1px solid #d1d5db} .btn:disabled{opacity:.5;cursor:not-allowed}
 .flow{display:flex;gap:6px;align-items:center;margin:14px 0;flex-wrap:wrap}
 .step{background:#eff6ff;color:#1d4ed8;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600} .arrow{color:#94a3b8}
