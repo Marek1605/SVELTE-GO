@@ -59,6 +59,17 @@
         setTimeout(() => settingsMsg = '', 3000);
     }
 
+    let logoSizeTimer;
+    function onLogoSizeChange() {
+        clearTimeout(logoSizeTimer);
+        logoSizeTimer = setTimeout(async () => {
+            await apiFetch('/admin/site-settings', {
+                method: 'POST',
+                body: JSON.stringify({ site_name: siteName, site_description: siteDescription, logo_size: logoSize.toString() })
+            });
+        }, 400);
+    }
+
     function handleLogoSelect(e) {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -205,7 +216,7 @@
                     <label>Veľkosť loga: <strong>{logoSize}px</strong></label>
                     <div class="logo-size-row">
                         <span class="size-label">20px</span>
-                        <input type="range" min="20" max="120" step="2" bind:value={logoSize}>
+                        <input type="range" min="20" max="120" step="2" bind:value={logoSize} on:input={onLogoSizeChange}>
                         <span class="size-label">120px</span>
                     </div>
                     <div class="logo-size-preview" style="height:{logoSize}px;width:{Math.round(logoSize * 4)}px">
