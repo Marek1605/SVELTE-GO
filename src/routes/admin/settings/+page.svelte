@@ -18,6 +18,12 @@
     let savingSettings = false;
     let logoSize = 40;
 
+    // UI visibility
+    let showCart = true;
+    let showAccount = true;
+    let showWishlist = true;
+    let showCompare = true;
+
     onMount(async () => {
         await Promise.all([loadSystemInfo(), loadSiteSettings()]);
         loading = false;
@@ -45,6 +51,10 @@
             siteDescription = res.data.site_description || '';
             logoUrl = res.data.logo_url || '';
             logoSize = parseInt(res.data.logo_size) || 40;
+            showCart = res.data.show_cart !== 'false';
+            showAccount = res.data.show_account !== 'false';
+            showWishlist = res.data.show_wishlist !== 'false';
+            showCompare = res.data.show_compare !== 'false';
         }
     }
 
@@ -150,6 +160,13 @@
     }
 
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
+
+    async function toggleUISetting(key, value) {
+        await apiFetch('/admin/toggle-ui-setting', {
+            method: 'POST',
+            body: JSON.stringify({ key, value })
+        });
+    }
 </script>
 
 <svelte:head><title>Nastavenia | Admin</title></svelte:head>
@@ -227,6 +244,74 @@
                         {/if}
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI ELEMENTS VISIBILITY -->
+    <div class="section">
+        <h2>🎨 Prvky rozhrania</h2>
+        <p class="desc">Zobrazenie alebo skrytie prvkov v hlavičke webu.</p>
+
+        <div class="ui-toggles">
+            <div class="ui-toggle-row">
+                <div class="ui-toggle-info">
+                    <span class="ui-toggle-icon">🛒</span>
+                    <div>
+                        <strong>Košík</strong>
+                        <small>Tlačidlo košíka v hlavičke</small>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" bind:checked={showCart} on:change={() => toggleUISetting('show_cart', showCart)}>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">{showCart ? 'Zobrazený' : 'Skrytý'}</span>
+                </label>
+            </div>
+
+            <div class="ui-toggle-row">
+                <div class="ui-toggle-info">
+                    <span class="ui-toggle-icon">👤</span>
+                    <div>
+                        <strong>Môj účet</strong>
+                        <small>Tlačidlo účtu v hlavičke</small>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" bind:checked={showAccount} on:change={() => toggleUISetting('show_account', showAccount)}>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">{showAccount ? 'Zobrazený' : 'Skrytý'}</span>
+                </label>
+            </div>
+
+            <div class="ui-toggle-row">
+                <div class="ui-toggle-info">
+                    <span class="ui-toggle-icon">❤️</span>
+                    <div>
+                        <strong>Obľúbené</strong>
+                        <small>Wishlist tlačidlo v hlavičke</small>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" bind:checked={showWishlist} on:change={() => toggleUISetting('show_wishlist', showWishlist)}>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">{showWishlist ? 'Zobrazené' : 'Skryté'}</span>
+                </label>
+            </div>
+
+            <div class="ui-toggle-row">
+                <div class="ui-toggle-info">
+                    <span class="ui-toggle-icon">⚖️</span>
+                    <div>
+                        <strong>Porovnanie</strong>
+                        <small>Tlačidlo porovnania v hlavičke</small>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" bind:checked={showCompare} on:change={() => toggleUISetting('show_compare', showCompare)}>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">{showCompare ? 'Zobrazené' : 'Skryté'}</span>
+                </label>
             </div>
         </div>
     </div>
@@ -357,11 +442,20 @@
     /* Toggle */
     .toggle-switch{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
     .toggle-switch input{display:none}
-    .toggle-slider{position:relative;width:44px;height:24px;background:#cbd5e1;border-radius:12px;transition:.2s}
+    .toggle-slider{position:relative;width:44px;height:24px;background:#cbd5e1;border-radius:12px;transition:.2s;flex-shrink:0}
     .toggle-slider::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s}
     .toggle-switch input:checked + .toggle-slider{background:#10b981}
     .toggle-switch input:checked + .toggle-slider::after{left:23px}
-    .toggle-label{font-size:13px;font-weight:500;color:#475569}
+    .toggle-label{font-size:13px;font-weight:500;color:#475569;white-space:nowrap}
+
+    /* UI toggles */
+    .ui-toggles{display:flex;flex-direction:column;gap:0;margin-top:12px}
+    .ui-toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #f1f5f9;gap:16px}
+    .ui-toggle-row:last-child{border-bottom:none}
+    .ui-toggle-info{display:flex;align-items:center;gap:12px}
+    .ui-toggle-icon{font-size:20px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:8px;flex-shrink:0}
+    .ui-toggle-info strong{display:block;font-size:14px;color:#1e293b}
+    .ui-toggle-info small{color:#64748b;font-size:12px}
 
     @media(max-width:768px){
         .settings-grid{grid-template-columns:1fr}

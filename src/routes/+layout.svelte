@@ -21,6 +21,10 @@
     let hiddenCats = new Set();
     let logoUrl = '';
     let logoSize = 40;
+    let showCart = true;
+    let showAccount = true;
+    let showWishlist = true;
+    let showCompare = true;
     function toggleAllCats() { showAllCats = !showAllCats; if (!showAllCats) editMode = false; }
     function closeAllCats() { showAllCats = false; editMode = false; }
     function toggleEditMode() { editMode = !editMode; }
@@ -98,10 +102,17 @@
         };
         window.addEventListener('storage', onStorage);
 
-        // Load site logo
+        // Load site settings
         fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/site/settings')
             .then(r => r.json())
-            .then(d => { if (d?.data?.logo_url) logoUrl = d.data.logo_url; if (d?.data?.logo_size) logoSize = parseInt(d.data.logo_size) || 40; })
+            .then(d => {
+                if (d?.data?.logo_url) logoUrl = d.data.logo_url;
+                if (d?.data?.logo_size) logoSize = parseInt(d.data.logo_size) || 40;
+                showCart = d?.data?.show_cart !== 'false';
+                showAccount = d?.data?.show_account !== 'false';
+                showWishlist = d?.data?.show_wishlist !== 'false';
+                showCompare = d?.data?.show_compare !== 'false';
+            })
             .catch(() => {});
 
         return () => {
@@ -149,10 +160,10 @@
                 </button>
             </form>
             <nav class="mp-header__actions">
-                <a href="/ucet" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Môj účet</span></a>
-                <a href="/oblubene" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>{#if wishlistCount > 0}<span class="mp-header__action-badge">{wishlistCount}</span>{/if}</span><span>Obľúbené</span></a>
-                <a href="/porovnanie" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg>{#if compareCount > 0}<span class="mp-header__action-badge mp-header__action-badge--blue">{compareCount}</span>{/if}</span><span>Porovnať</span></a>
-                <a href="/kosik" class="mp-header__action mp-header__action--cart"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span>Košík</span></a>
+                {#if showAccount}<a href="/ucet" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Môj účet</span></a>{/if}
+                {#if showWishlist}<a href="/oblubene" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>{#if wishlistCount > 0}<span class="mp-header__action-badge">{wishlistCount}</span>{/if}</span><span>Obľúbené</span></a>{/if}
+                {#if showCompare}<a href="/porovnanie" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg>{#if compareCount > 0}<span class="mp-header__action-badge mp-header__action-badge--blue">{compareCount}</span>{/if}</span><span>Porovnať</span></a>{/if}
+                {#if showCart}<a href="/kosik" class="mp-header__action mp-header__action--cart"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span>Košík</span></a>{/if}
             </nav>
         </div>
     </header>
@@ -218,9 +229,9 @@
                             <input type="text" class="mp-catnav__search-input" placeholder="Hľadať..." bind:value={catnavSearchQuery}>
                             <button type="submit" class="mp-catnav__search-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
                         </form>
-                        <a href="/oblubene" class="mp-catnav__action"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></a>
-                        <a href="/porovnanie" class="mp-catnav__action mp-catnav__compare"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg></a>
-                        <a href="/kosik" class="mp-catnav__action"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>
+                        {#if showWishlist}<a href="/oblubene" class="mp-catnav__action"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></a>{/if}
+                        {#if showCompare}<a href="/porovnanie" class="mp-catnav__action mp-catnav__compare"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg></a>{/if}
+                        {#if showCart}<a href="/kosik" class="mp-catnav__action"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>{/if}
                     </div>
                 {/if}
             </div>
@@ -329,8 +340,8 @@
     <nav class="mp-bottom-nav">
         <a href="/" class="mp-bottom-nav__item" class:is-active={$page.url.pathname === '/'}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Domov</span></a>
         <a href="/kategorie" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Kategórie</span></a>
-        <a href="/oblubene" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Obľúbené</span></a>
-        <a href="/ucet" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Účet</span></a>
+        {#if showWishlist}<a href="/oblubene" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Obľúbené</span></a>{/if}
+        {#if showAccount}<a href="/ucet" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Účet</span></a>{/if}
     </nav>
 
     {#if mobileMenuOpen}
