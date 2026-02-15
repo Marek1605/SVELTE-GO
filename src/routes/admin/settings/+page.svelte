@@ -267,22 +267,14 @@
             <div class="system-row">
                 <div>
                     <strong>📁 Prázdne kategórie</strong>
-                    <p class="desc">Skryť kategórie bez produktov na webe ({fmt(systemInfo.empty_categories)} prázdnych)</p>
+                    <p class="desc">Skryť kategórie bez produktov na webe ({fmt(systemInfo.empty_categories)} prázdnych). Na mazanie použite AI Kategorizácia → Vyčistenie.</p>
                 </div>
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                    <label class="toggle-switch">
-                        <input type="checkbox" checked={systemInfo.hide_empty} on:change={toggleHideEmpty}>
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">{systemInfo.hide_empty ? 'Skryté' : 'Zobrazené'}</span>
-                    </label>
-                    {#if systemInfo.empty_categories > 0}
-                        <button class="btn red sm" on:click={deleteEmptyCategories} disabled={deletingCategories}>
-                            {deletingCategories ? '⏳...' : `🗑️ Zmazať ${fmt(systemInfo.empty_categories)} prázdnych`}
-                        </button>
-                    {/if}
-                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked={systemInfo.hide_empty} on:change={toggleHideEmpty}>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">{systemInfo.hide_empty ? 'Skryté' : 'Zobrazené'}</span>
+                </label>
             </div>
-            {#if catCleanupMsg}<div class="msg cleanup-msg">{catCleanupMsg}</div>{/if}
         </div>
 
         <button class="btn outline sm" on:click={loadSystemInfo} style="margin-top:12px">🔄 Obnoviť info</button>
