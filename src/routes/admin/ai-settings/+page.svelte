@@ -26,7 +26,7 @@
     function changeReportShop() { reportPage = 1; loadReport(); }
     function downloadCSV() { let u = `${API_BASE}/admin/ai/categorization-report/csv`; if (reportShopId) u += `?shop_id=${reportShopId}`; window.open(u, '_blank'); }
     function switchToReport() { activeTab = 'report'; if (reportData.length === 0) loadReport(); }
-    async function runCleanup(delP, delC) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delC) m += '- Zmazať prázdne kategórie\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 8000); }
+    async function runCleanup(delP, delC, delAllC = false) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delAllC) m += '- Zmazať VŠETKY kategórie pre tohto vendora!\n'; else if (delC) m += '- Zmazať prázdne kategórie\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_all_categories: delAllC }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 8000); }
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
     function shortDate(s) { if (!s) return '—'; return s.length > 19 ? s.slice(0, 19).replace('T', ' ') : s; }
 </script>
@@ -132,13 +132,14 @@
     {:else if activeTab === 'cleanup'}
     <div class="section">
         <h2>🗑️ Vyčistenie AI kategorizácie</h2>
-        <p class="desc">Zmazať AI-vytvorené produkty a prázdne kategórie pre obchod → možnosť opakovať kategorizáciu.</p>
-        <div class="cleanup-warn">⚠️ <strong>Pozor:</strong> Nezvratná akcia. AI produkty + ponuky budú zmazané. Kategórie sa zmažú len ak sú prázdne.</div>
+        <p class="desc">Zmazať AI-vytvorené produkty a kategórie pre obchod → možnosť opakovať kategorizáciu.</p>
+        <div class="cleanup-warn">⚠️ <strong>Pozor:</strong> Nezvratná akcia. Údaje budú permanentne zmazané.</div>
         <div class="form-row"><label>Obchod</label><select bind:value={cleanupShopId}><option value="">-- Vyberte --</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select></div>
         <div class="cleanup-actions">
-            <button class="btn red" on:click={() => runCleanup(true,false)} disabled={cleanupLoading||!cleanupShopId}>{cleanupLoading ? '⏳...' : '🗑️ Zmazať AI produkty'}</button>
-            <button class="btn orange" on:click={() => runCleanup(false,true)} disabled={cleanupLoading}>📁 Zmazať prázdne kategórie</button>
-            <button class="btn darkred" on:click={() => runCleanup(true,true)} disabled={cleanupLoading||!cleanupShopId}>💣 Zmazať všetko</button>
+            <button class="btn orange" on:click={() => runCleanup(false,true,false)} disabled={cleanupLoading||!cleanupShopId}>{cleanupLoading ? '⏳...' : '📁 Zmazať prázdne kategórie'}</button>
+            <button class="btn red" on:click={() => runCleanup(false,false,true)} disabled={cleanupLoading||!cleanupShopId}>📁💀 Zmazať VŠETKY kategórie</button>
+            <button class="btn red" on:click={() => runCleanup(true,false,false)} disabled={cleanupLoading||!cleanupShopId}>🗑️ Zmazať AI produkty</button>
+            <button class="btn darkred" on:click={() => runCleanup(true,false,true)} disabled={cleanupLoading||!cleanupShopId}>💣 Zmazať produkty + kategórie</button>
         </div>
         {#if cleanupMsg}<div class="cleanup-result">{cleanupMsg}</div>{/if}
     </div>
