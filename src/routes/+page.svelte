@@ -143,7 +143,7 @@
         </div>
     </section>
 
-    <!-- ========== TRUST BAR (full width) ========== -->
+    <!-- ========== TRUST BAR (floating card) ========== -->
     <section class="trust">
         <div class="trust__inner">
             <div class="trust__item">
@@ -417,12 +417,14 @@
 }
 .hero__tag:hover{background:rgba(196,149,106,0.15);color:#c4956a;border-color:rgba(196,149,106,0.3)}
 
-/* ============ TRUST BAR — full width ============ */
+/* ============ TRUST BAR — floating card ============ */
 .trust{
-    background:#fff;border-bottom:1px solid #e2e8f0;
+    padding:0;margin-top:-28px;position:relative;z-index:2;
 }
 .trust__inner{
-    max-width:1200px;margin:0 auto;padding:16px 24px;
+    max-width:900px;margin:0 auto;padding:20px 40px;
+    background:#fff;border-radius:16px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.08);
     display:flex;align-items:center;justify-content:space-between;
 }
 .trust__item{display:flex;align-items:center;gap:10px;flex:1;justify-content:center}
@@ -432,7 +434,7 @@
 .trust__sep{width:1px;height:32px;background:#e2e8f0;flex-shrink:0}
 
 /* ============ CATEGORIES ============ */
-.cats{padding:40px 0 32px}
+.cats{padding:48px 0 32px}
 .cats__inner{max-width:1200px;margin:0 auto;padding:0 24px}
 .cats__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .cats__grid--extra{margin-top:12px}
@@ -555,11 +557,11 @@
     .hero__search{flex-direction:column;border-radius:12px}
     .hero__input{padding:12px 14px;border-radius:12px 12px 0 0;text-align:center}.hero__search-icon{display:none}
     .hero__btn{border-radius:0 0 12px 12px;width:100%}
-    .trust__inner{flex-wrap:wrap;gap:16px;padding:14px 16px;justify-content:center}.trust__sep{display:none}
+    .trust__inner{flex-wrap:wrap;gap:16px;padding:16px 20px;justify-content:center}.trust__sep{display:none}
     .cats__grid,.prod-grid{grid-template-columns:repeat(2,1fr)}
     .how__grid{flex-direction:column;gap:20px}.how__arrow{display:none}
     .vendor-cta__inner{flex-direction:column;text-align:center}.vendor-cta__features{align-items:center}
     .sec-head{flex-direction:column;align-items:flex-start;gap:6px}
 }
-@media(max-width:480px){.cats__grid,.prod-grid{grid-template-columns:1fr}.trust__inner{flex-direction:column;gap:10px}}
+@media(max-width:480px){.cats__grid,.prod-grid{grid-template-columns:1fr}.trust__inner{flex-direction:column;gap:10px;padding:16px}}
 </style>
