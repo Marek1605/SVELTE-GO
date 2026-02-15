@@ -55,6 +55,30 @@
         const d=await(await fetch(`${API}/admin/vendor-offers/bulk-delete-all`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,match_filter:matchFilter,status_filter:statusFilter})})).json();
         if(d.success) alert(`Zmazaných: ${d.deleted}`); loadOffers();
     }
+    async function bulkDeleteWithMasters(){
+        if(!selectedShop){alert('Najprv vyberte obchod');return;}
+        const name=shops.find(s=>s.id===selectedShop)?.shop_name||'?';
+        if(!confirm(`⚠️ POZOR! Zmazať VŠETKY ponuky "${name}" (${fmt(total)}) + MASTER PRODUKTY + MÉDIÁ?\n\nToto vymaže aj produkty vytvorené z týchto ponúk!`))return;
+        processing=true; processMsg='⏳ Mažem ponuky + master produkty...';
+        try{
+            const d=await(await fetch(`${API}/admin/vendor-offers/bulk-delete-cleanup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,match_filter:matchFilter,status_filter:statusFilter,delete_masters:true,delete_media:true})})).json();
+            if(d.success){processMsg=`✅ Ponuky: ${d.deleted_offers}, Master: ${d.deleted_masters}, Médiá: ${d.deleted_media}`;loadOffers();}
+            else processMsg='❌ '+d.error;
+        }catch(e){processMsg='❌ '+e.message;}
+        processing=false;
+    }
+    async function bulkDeleteWithMedia(){
+        if(!selectedShop){alert('Najprv vyberte obchod');return;}
+        const name=shops.find(s=>s.id===selectedShop)?.shop_name||'?';
+        if(!confirm(`Zmazať VŠETKY ponuky "${name}" (${fmt(total)}) + ich médiá?`))return;
+        processing=true; processMsg='⏳ Mažem ponuky + médiá...';
+        try{
+            const d=await(await fetch(`${API}/admin/vendor-offers/bulk-delete-cleanup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,match_filter:matchFilter,status_filter:statusFilter,delete_masters:false,delete_media:true})})).json();
+            if(d.success){processMsg=`✅ Ponuky: ${d.deleted_offers}, Médiá: ${d.deleted_media}`;loadOffers();}
+            else processMsg='❌ '+d.error;
+        }catch(e){processMsg='❌ '+e.message;}
+        processing=false;
+    }
     async function bulkAction(mode){
         if(!selectedCount){alert('Vyberte ponuky');return;}
         const lbl={ean:'EAN párovanie',ai:'AI kategorizácia',fulltext:'Fulltext'};
@@ -156,6 +180,8 @@
                 <button class="btn sm ai" on:click={()=>bulkActionAll('ai')} disabled={processing}>🤖 AI</button>
                 <button class="btn sm fulltext" on:click={()=>bulkActionAll('fulltext')} disabled={processing}>🔍 Fulltext</button>
                 <button class="btn sm danger-outline" on:click={bulkDeleteAll} disabled={processing}>🗑️ Zmazať</button>
+                <button class="btn sm danger-master" on:click={bulkDeleteWithMasters} disabled={processing}>🗑️💀 + Master</button>
+                <button class="btn sm danger-media" on:click={bulkDeleteWithMedia} disabled={processing}>🗑️🖼️ + Médiá</button>
             </div>
         {/if}
         {#if processMsg}<div class="process-msg" class:done={!processing}>{processMsg}</div>{/if}
@@ -292,6 +318,8 @@
     .btn.primary{background:#3b82f6;color:#fff;border-color:#3b82f6}.btn.primary:hover{background:#2563eb}
     .btn.danger{background:#ef4444;color:#fff;border-color:#ef4444}
     .btn.danger-outline{color:#ef4444;border-color:#fca5a5;background:#fff}.btn.danger-outline:hover{background:#fef2f2}
+    .btn.danger-master{color:#fff;background:#7c2d12;border-color:#7c2d12}.btn.danger-master:hover{background:#9a3412}
+    .btn.danger-media{color:#fff;background:#9333ea;border-color:#9333ea}.btn.danger-media:hover{background:#7e22ce}
     .btn.outline{color:#64748b;border-color:#d1d5db}
     .btn.ean{background:#3b82f6;color:#fff;border-color:#3b82f6}
     .btn.ai{background:#059669;color:#fff;border-color:#059669}

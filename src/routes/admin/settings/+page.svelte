@@ -16,6 +16,7 @@
     let uploadingLogo = false;
     let settingsMsg = '';
     let savingSettings = false;
+    let logoSize = 40;
 
     onMount(async () => {
         await Promise.all([loadSystemInfo(), loadSiteSettings()]);
@@ -43,6 +44,7 @@
             siteName = res.data.site_name || 'MegaPrice';
             siteDescription = res.data.site_description || '';
             logoUrl = res.data.logo_url || '';
+            logoSize = parseInt(res.data.logo_size) || 40;
         }
     }
 
@@ -50,7 +52,7 @@
         savingSettings = true; settingsMsg = '';
         const res = await apiFetch('/admin/site-settings', {
             method: 'POST',
-            body: JSON.stringify({ site_name: siteName, site_description: siteDescription })
+            body: JSON.stringify({ site_name: siteName, site_description: siteDescription, logo_size: logoSize.toString() })
         });
         settingsMsg = res?.success ? '✅ Uložené' : '❌ ' + (res?.error || 'Chyba');
         savingSettings = false;
@@ -186,6 +188,21 @@
                     {/if}
                 </div>
                 <small class="hint">PNG, JPG, SVG alebo WebP. Max 5 MB. Odporúčaná šírka: 200-400px.</small>
+                <div class="logo-size-control">
+                    <label>Veľkosť loga: <strong>{logoSize}px</strong></label>
+                    <div class="logo-size-row">
+                        <span class="size-label">20px</span>
+                        <input type="range" min="20" max="120" step="2" bind:value={logoSize}>
+                        <span class="size-label">120px</span>
+                    </div>
+                    <div class="logo-size-preview" style="height:{logoSize}px;width:{Math.round(logoSize * 4)}px">
+                        {#if logoUrl}
+                            <img src={logoUrl} alt="Preview" style="height:{logoSize}px" />
+                        {:else}
+                            <span style="font-size:{Math.max(12, logoSize * 0.5)}px">Logo</span>
+                        {/if}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -267,6 +284,17 @@
     .file-name{font-size:12px;color:#64748b;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .upload-btn{cursor:pointer}
     .hint{color:#9ca3af;font-size:11px;line-height:1.4}
+
+    /* Logo size control */
+    .logo-size-control{margin-top:8px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
+    .logo-size-control label{font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px}
+    .logo-size-control strong{color:#1e293b}
+    .logo-size-row{display:flex;align-items:center;gap:8px}
+    .size-label{font-size:11px;color:#94a3b8;white-space:nowrap}
+    .logo-size-row input[type="range"]{flex:1;accent-color:#3b82f6;height:6px}
+    .logo-size-preview{margin-top:8px;background:#fff;border:1px dashed #d1d5db;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:all .2s}
+    .logo-size-preview img{max-width:100%;object-fit:contain}
+    .logo-size-preview span{color:#94a3b8;font-weight:600}
 
     /* Stats */
     .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:16px}

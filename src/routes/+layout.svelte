@@ -20,6 +20,7 @@
     let editMode = false;
     let hiddenCats = new Set();
     let logoUrl = '';
+    let logoSize = 40;
     function toggleAllCats() { showAllCats = !showAllCats; if (!showAllCats) editMode = false; }
     function closeAllCats() { showAllCats = false; editMode = false; }
     function toggleEditMode() { editMode = !editMode; }
@@ -100,7 +101,7 @@
         // Load site logo
         fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/site/settings')
             .then(r => r.json())
-            .then(d => { if (d?.data?.logo_url) logoUrl = d.data.logo_url; })
+            .then(d => { if (d?.data?.logo_url) logoUrl = d.data.logo_url; if (d?.data?.logo_size) logoSize = parseInt(d.data.logo_size) || 40; })
             .catch(() => {});
 
         return () => {
@@ -135,7 +136,7 @@
         <div class="mp-header__inner">
             <a href="/" class="mp-header__logo">
                 {#if logoUrl}
-                    <img src={logoUrl} alt="MegaPrice" class="mp-header__logo-img" />
+                    <img src={logoUrl} alt="MegaPrice" class="mp-header__logo-img" style="height:{logoSize}px" />
                 {:else}
                     <span class="mp-header__logo-text">megaprice</span>
                 {/if}
@@ -364,7 +365,7 @@
 .mp-header__inner { display: flex; align-items: center; gap: 24px; padding: 12px 20px; max-width: 1400px; margin: 0 auto; }
 .mp-header__logo { flex-shrink: 0; }
 .mp-header__logo-text { font-size: 24px; font-weight: 700; color: #ff6b35; }
-.mp-header__logo-img { height: 40px; max-width: 200px; object-fit: contain; display: block; }
+.mp-header__logo-img { height: 40px; max-width: 300px; object-fit: contain; display: block; }
 .mp-search { flex: 1; max-width: 600px; margin: 0 auto; display: flex; }
 .mp-search__input { flex: 1; padding: 12px 20px; border: 2px solid #e5e7eb; border-right: none; border-radius: 10px 0 0 10px; font-size: 15px; outline: none; transition: border-color 0.2s; }
 .mp-search__input:focus { border-color: #ff6b35; }
