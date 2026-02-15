@@ -24,6 +24,15 @@
     let showWishlist = true;
     let showCompare = true;
 
+    // Homepage settings
+    let heroTitle = 'Nájdite *najnižšiu cenu* za pár sekúnd';
+    let heroSubtitle = 'Porovnávame ceny z overených obchodov na jednom mieste.';
+    let homeCategorySections = 3;
+    let showHowItWorks = true;
+    let showVendorCta = true;
+    let savingHome = false;
+    let homeMsg = '';
+
     onMount(async () => {
         await Promise.all([loadSystemInfo(), loadSiteSettings()]);
         loading = false;
@@ -55,6 +64,11 @@
             showAccount = res.data.show_account !== 'false';
             showWishlist = res.data.show_wishlist !== 'false';
             showCompare = res.data.show_compare !== 'false';
+            heroTitle = res.data.hero_title || heroTitle;
+            heroSubtitle = res.data.hero_subtitle || heroSubtitle;
+            homeCategorySections = parseInt(res.data.home_category_sections) || 3;
+            showHowItWorks = res.data.show_how_it_works !== 'false';
+            showVendorCta = res.data.show_vendor_cta !== 'false';
         }
     }
 
@@ -166,6 +180,26 @@
             method: 'POST',
             body: JSON.stringify({ key, value })
         });
+    }
+
+    async function saveHomeSettings() {
+        savingHome = true; homeMsg = '';
+        const keys = {
+            hero_title: heroTitle,
+            hero_subtitle: heroSubtitle,
+            home_category_sections: homeCategorySections.toString(),
+            show_how_it_works: showHowItWorks ? 'true' : 'false',
+            show_vendor_cta: showVendorCta ? 'true' : 'false'
+        };
+        for (const [k, v] of Object.entries(keys)) {
+            await apiFetch('/admin/toggle-ui-setting', {
+                method: 'POST',
+                body: JSON.stringify({ key: k, value: v })
+            });
+        }
+        savingHome = false;
+        homeMsg = '✅ Uložené';
+        setTimeout(() => homeMsg = '', 3000);
     }
 </script>
 
@@ -316,6 +350,60 @@
         </div>
     </div>
 
+    <!-- HOMEPAGE SETTINGS -->
+    <div class="section">
+        <h2>🏠 Úvodná stránka</h2>
+        <div class="form-group">
+            <label>Hlavný nadpis (Hero) <small style="color:#94a3b8;font-weight:400">— text medzi *hviezdičkami* bude zvýraznený</small></label>
+            <input type="text" bind:value={heroTitle} placeholder="Nájdite *najnižšiu cenu* za pár sekúnd">
+        </div>
+        <div class="form-group">
+            <label>Podnadpis</label>
+            <input type="text" bind:value={heroSubtitle} placeholder="Porovnávame ceny z overených obchodov...">
+        </div>
+        <div class="form-group">
+            <label>Počet sekcií kategórií s produktami</label>
+            <div style="display:flex;align-items:center;gap:12px">
+                <input type="range" min="0" max="6" bind:value={homeCategorySections} style="flex:1;accent-color:#c4956a">
+                <span style="font-weight:700;min-width:24px;text-align:center">{homeCategorySections}</span>
+            </div>
+        </div>
+        <div class="ui-toggle-row">
+            <div class="ui-toggle-info">
+                <span class="ui-toggle-icon">📋</span>
+                <div>
+                    <span class="ui-toggle-name">Ako to funguje</span>
+                    <span class="ui-toggle-desc">Sekcia s 3 krokmi pre nových zákazníkov</span>
+                </div>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" bind:checked={showHowItWorks}>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">{showHowItWorks ? 'Zobrazené' : 'Skryté'}</span>
+            </label>
+        </div>
+        <div class="ui-toggle-row">
+            <div class="ui-toggle-info">
+                <span class="ui-toggle-icon">🏪</span>
+                <div>
+                    <span class="ui-toggle-name">Ste predajca?</span>
+                    <span class="ui-toggle-desc">CTA sekcia pre získanie nových predajcov</span>
+                </div>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" bind:checked={showVendorCta}>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">{showVendorCta ? 'Zobrazené' : 'Skryté'}</span>
+            </label>
+        </div>
+        <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
+            <button class="btn-save" on:click={saveHomeSettings} disabled={savingHome}>
+                {savingHome ? 'Ukladám...' : '💾 Uložiť nastavenia úvodnej stránky'}
+            </button>
+            {#if homeMsg}<span class="save-msg">{homeMsg}</span>{/if}
+        </div>
+    </div>
+
     <!-- SYSTEM INFO -->
     {#if systemInfo}
     <div class="section">
@@ -461,4 +549,16 @@
         .settings-grid{grid-template-columns:1fr}
         .stats-grid{grid-template-columns:repeat(2,1fr)}
     }
+
+    /* Homepage settings */
+    .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+    .form-group label{font-size:13px;font-weight:600;color:#374151}
+    .form-group input[type="text"]{padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;width:100%;box-sizing:border-box}
+    .form-group input[type="text"]:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+    .btn-save{padding:10px 20px;background:#10b981;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+    .btn-save:hover{background:#059669}
+    .btn-save:disabled{opacity:.5;cursor:not-allowed}
+    .save-msg{font-size:14px;font-weight:500;color:#10b981}
+    .ui-toggle-name{display:block;font-size:14px;font-weight:600;color:#1e293b}
+    .ui-toggle-desc{display:block;font-size:12px;color:#64748b}
 </style>

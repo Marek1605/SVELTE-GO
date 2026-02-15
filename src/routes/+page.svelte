@@ -1,74 +1,120 @@
 <script>
     import { onMount } from 'svelte';
-    
-    export let data;
+    import { api } from '$lib/api';
     
     let searchQuery = '';
     let showMoreCats = false;
     let moreRef;
-    let statsVisible = false;
-    let statsRef;
     
-    $: stats = data.stats || { products: 0, categories: 0, shops: 0, updates: '24/7' };
-    $: categories = data.categories || [];
-    $: topProducts = data.products || [];
-    $: visibleCats = categories.slice(0, 8);
-    $: overflowCats = categories.slice(8);
+    let categories = [];
+    let topProducts = [];
+    let categoryProducts = [];
+    let stats = { products: 0, categories: 0 };
+    let loaded = false;
+    
+    // Settings from admin
+    let heroTitle = 'Nájdite *najnižšiu cenu* za pár sekúnd';
+    let heroSubtitle = 'Porovnávame ceny z overených obchodov na jednom mieste.';
+    let homeCatSections = 3;
+    let showHow = true;
+    let showVendor = true;
     
     // Animated counters
-    let animProducts = 0, animCategories = 0;
+    let animProducts = 0, animCategories = 0, animStarted = false;
     
-    function animateCount(target, setter, duration = 1200) {
-        let start = 0;
-        const step = target / (duration / 16);
-        const timer = setInterval(() => {
-            start += step;
-            if (start >= target) { setter(target); clearInterval(timer); }
-            else setter(Math.floor(start));
-        }, 16);
+    function animateCount(target, setter, dur = 1000) {
+        if (target <= 0) return;
+        let s = 0;
+        const step = target / (dur / 16);
+        const t = setInterval(() => { s += step; if (s >= target) { setter(target); clearInterval(t); } else setter(Math.floor(s)); }, 16);
     }
     
-    const popularSearches = ['notebook', 'iPhone 15', 'televízor 55"', 'slúchadlá', 'Samsung Galaxy', 'robotický vysávač'];
+    const popularSearches = ['notebook', 'iPhone 15', 'televízor', 'slúchadlá', 'Samsung Galaxy', 'vysávač'];
     
     function totalProducts(cat) {
-        let count = cat.product_count || 0;
-        if (cat.children) for (const child of cat.children) count += totalProducts(child);
-        return count;
+        let c = cat.product_count || 0;
+        if (cat.children) for (const ch of cat.children) c += totalProducts(ch);
+        return c;
     }
     
     function handleSearch(e) {
         e.preventDefault();
         if (searchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`;
     }
-    
     function toggleMore() { showMoreCats = !showMoreCats; }
     function handleClickOutside(e) { if (moreRef && !moreRef.contains(e.target)) showMoreCats = false; }
+    function fmtPrice(p) { return (p || 0).toFixed(2).replace('.', ','); }
+    function fmtNum(n) { return (n || 0).toLocaleString('sk-SK'); }
     
-    onMount(() => {
+    $: visibleCats = categories.slice(0, 8);
+    $: overflowCats = categories.slice(8);
+    
+    onMount(async () => {
         document.addEventListener('click', handleClickOutside, true);
         
-        // Intersection observer for stats animation
-        if (statsRef) {
-            const obs = new IntersectionObserver(([entry]) => {
-                if (entry.isIntersecting && !statsVisible) {
-                    statsVisible = true;
-                    animateCount(stats.products, v => animProducts = v);
-                    animateCount(stats.categories, v => animCategories = v);
+        // Load site settings
+        try {
+            const setRes = await fetch('/api/v1/site/settings');
+            const setData = await setRes.json();
+            if (setData?.success && setData?.data) {
+                const d = setData.data;
+                if (d.hero_title) heroTitle = d.hero_title;
+                if (d.hero_subtitle) heroSubtitle = d.hero_subtitle;
+                homeCatSections = parseInt(d.home_category_sections) || 3;
+                showHow = d.show_how_it_works !== 'false';
+                showVendor = d.show_vendor_cta !== 'false';
+            }
+        } catch(e) {}
+        
+        // Load categories
+        try {
+            const catRes = await api.getCategoriesTree();
+            if (catRes?.success && Array.isArray(catRes.data)) categories = catRes.data;
+            else if (Array.isArray(catRes)) categories = catRes;
+        } catch(e) {}
+        
+        // Load popular products
+        try {
+            const prodRes = await api.getProducts('limit=8&sort=popular');
+            if (prodRes?.success && prodRes?.data?.items) {
+                topProducts = prodRes.data.items;
+                stats.products = prodRes.data.total || topProducts.length;
+            } else if (prodRes?.items) {
+                topProducts = prodRes.items;
+            }
+        } catch(e) {}
+        
+        stats.categories = categories.length;
+        loaded = true;
+        
+        // Animate stats
+        if (!animStarted) {
+            animStarted = true;
+            animateCount(stats.products, v => animProducts = v);
+            animateCount(stats.categories, v => animCategories = v);
+        }
+        
+        // Load products for top 3 categories that have products
+        const catsWithProducts = categories.filter(c => totalProducts(c) > 0).slice(0, homeCatSections);
+        for (const cat of catsWithProducts) {
+            try {
+                const res = await api.getProducts(`category=${cat.slug}&limit=4&sort=popular`);
+                let items = [];
+                if (res?.success && res?.data?.items) items = res.data.items;
+                else if (res?.items) items = res.items;
+                if (items.length > 0) {
+                    categoryProducts = [...categoryProducts, { name: cat.name, slug: cat.slug, products: items }];
                 }
-            }, { threshold: 0.3 });
-            obs.observe(statsRef);
+            } catch(e) {}
         }
         
         return () => document.removeEventListener('click', handleClickOutside, true);
     });
-    
-    function fmtPrice(p) { return (p || 0).toFixed(2).replace('.', ','); }
-    function fmtNum(n) { return (n || 0).toLocaleString('sk-SK'); }
 </script>
 
 <svelte:head>
     <title>MegaPrice.sk — Porovnávač cien | Najlepšie ponuky na jednom mieste</title>
-    <meta name="description" content="Porovnajte ceny z overených slovenských obchodov. Nájdite najlepšie ponuky na elektroniku, domácnosť a ďalšie kategórie.">
+    <meta name="description" content="Porovnajte ceny z overených slovenských obchodov. Nájdite najlepšie ponuky na elektroniku, domácnosť a ďalšie.">
 </svelte:head>
 
 <div class="hp">
@@ -77,13 +123,10 @@
     <section class="hero">
         <div class="hero__bg"></div>
         <div class="hero__inner">
-            <div class="hero__badge">Porovnávač cien pre Slovensko</div>
             <h1 class="hero__title">
-                Nájdite <span class="hero__em">najnižšiu cenu</span> za pár sekúnd
+                {@html heroTitle.replace(/\*([^*]+)\*/g, '<span class="hero__em">$1</span>')}
             </h1>
-            <p class="hero__sub">
-                Porovnávame ceny z overených obchodov na jednom mieste. Ušetrite čas aj peniaze.
-            </p>
+            <p class="hero__sub">{heroSubtitle}</p>
             
             <form class="hero__search" on:submit={handleSearch}>
                 <svg class="hero__search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -100,47 +143,31 @@
         </div>
     </section>
 
-    <!-- ========== TRUST BAR ========== -->
-    <section class="trust" bind:this={statsRef}>
+    <!-- ========== TRUST BAR (full width) ========== -->
+    <section class="trust">
         <div class="trust__inner">
             <div class="trust__item">
-                <div class="trust__icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                </div>
-                <div class="trust__data">
-                    <span class="trust__num">{fmtNum(statsVisible ? animProducts : 0)}+</span>
-                    <span class="trust__label">produktov</span>
-                </div>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span class="trust__num">{fmtNum(animProducts)}+</span>
+                <span class="trust__label">produktov</span>
             </div>
             <div class="trust__sep"></div>
             <div class="trust__item">
-                <div class="trust__icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                </div>
-                <div class="trust__data">
-                    <span class="trust__num">{fmtNum(statsVisible ? animCategories : 0)}</span>
-                    <span class="trust__label">kategórií</span>
-                </div>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                <span class="trust__num">{fmtNum(animCategories)}</span>
+                <span class="trust__label">kategórií</span>
             </div>
             <div class="trust__sep"></div>
             <div class="trust__item">
-                <div class="trust__icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <div class="trust__data">
-                    <span class="trust__num">Overené</span>
-                    <span class="trust__label">obchody</span>
-                </div>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span class="trust__num">Overené</span>
+                <span class="trust__label">obchody</span>
             </div>
             <div class="trust__sep"></div>
             <div class="trust__item">
-                <div class="trust__icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <div class="trust__data">
-                    <span class="trust__num">Denne</span>
-                    <span class="trust__label">aktualizované</span>
-                </div>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span class="trust__num">Denne</span>
+                <span class="trust__label">aktualizované</span>
             </div>
         </div>
     </section>
@@ -188,17 +215,11 @@
                     {#each overflowCats as cat}
                         <a href="/kategoria/{cat.slug}" class="cat-card">
                             <div class="cat-card__img">
-                                {#if cat.image_url}
-                                    <img src={cat.image_url} alt={cat.name} />
-                                {:else}
-                                    <span class="cat-card__emoji">{cat.icon || '📦'}</span>
-                                {/if}
+                                {#if cat.image_url}<img src={cat.image_url} alt={cat.name} />{:else}<span class="cat-card__emoji">{cat.icon || '📦'}</span>{/if}
                             </div>
                             <div class="cat-card__info">
                                 <span class="cat-card__name">{cat.name}</span>
-                                {#if totalProducts(cat) > 0}
-                                    <span class="cat-card__count">{fmtNum(totalProducts(cat))} produktov</span>
-                                {/if}
+                                {#if totalProducts(cat) > 0}<span class="cat-card__count">{fmtNum(totalProducts(cat))} produktov</span>{/if}
                             </div>
                         </a>
                     {/each}
@@ -227,28 +248,17 @@
                     <a href="/produkt/{product.slug}" class="prod">
                         {#if i < 3}<div class="prod__badge">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</div>{/if}
                         <div class="prod__img">
-                            {#if product.image_url}
-                                <img src={product.image_url} alt={product.title}>
-                            {:else}
-                                <div class="prod__img-ph">📷</div>
-                            {/if}
+                            {#if product.image_url}<img src={product.image_url} alt={product.title}>{:else}<div class="prod__img-ph">📷</div>{/if}
                         </div>
                         <div class="prod__body">
-                            {#if product.brand}
-                                <span class="prod__brand">{product.brand}</span>
-                            {/if}
+                            {#if product.brand}<span class="prod__brand">{product.brand}</span>{/if}
                             <h3 class="prod__title">{product.title}</h3>
                             <div class="prod__price">
-                                {#if product.price_min}
-                                    <span class="prod__price-from">od</span>
-                                {/if}
+                                {#if product.price_min}<span class="prod__price-from">od</span>{/if}
                                 <span class="prod__price-val">{fmtPrice(product.price_min || product.price)} €</span>
                             </div>
                             {#if product.offer_count > 0}
-                                <span class="prod__offers">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                                    {product.offer_count} {product.offer_count === 1 ? 'ponuka' : product.offer_count < 5 ? 'ponuky' : 'ponúk'}
-                                </span>
+                                <span class="prod__offers">{product.offer_count} {product.offer_count === 1 ? 'ponuka' : product.offer_count < 5 ? 'ponuky' : 'ponúk'}</span>
                             {/if}
                             <div class="prod__cta">Porovnať ceny →</div>
                         </div>
@@ -259,310 +269,297 @@
     </section>
     {/if}
 
+    <!-- ========== CATEGORY PRODUCT SECTIONS ========== -->
+    {#each categoryProducts as catSec}
+    <section class="cat-products">
+        <div class="cat-products__inner">
+            <div class="sec-head">
+                <div>
+                    <h2 class="sec-title">{catSec.name}</h2>
+                    <p class="sec-sub">Najobľúbenejšie v kategórii</p>
+                </div>
+                <a href="/kategoria/{catSec.slug}" class="sec-link">Všetky v kategórii <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>
+            </div>
+            <div class="prod-grid">
+                {#each catSec.products as product}
+                    <a href="/produkt/{product.slug}" class="prod">
+                        <div class="prod__img">
+                            {#if product.image_url}<img src={product.image_url} alt={product.title}>{:else}<div class="prod__img-ph">📷</div>{/if}
+                        </div>
+                        <div class="prod__body">
+                            {#if product.brand}<span class="prod__brand">{product.brand}</span>{/if}
+                            <h3 class="prod__title">{product.title}</h3>
+                            <div class="prod__price">
+                                {#if product.price_min}<span class="prod__price-from">od</span>{/if}
+                                <span class="prod__price-val">{fmtPrice(product.price_min || product.price)} €</span>
+                            </div>
+                            {#if product.offer_count > 0}
+                                <span class="prod__offers">{product.offer_count} {product.offer_count === 1 ? 'ponuka' : product.offer_count < 5 ? 'ponuky' : 'ponúk'}</span>
+                            {/if}
+                            <div class="prod__cta">Porovnať ceny →</div>
+                        </div>
+                    </a>
+                {/each}
+            </div>
+        </div>
+    </section>
+    {/each}
+
     <!-- ========== HOW IT WORKS ========== -->
+    {#if showHow}
     <section class="how">
         <div class="how__inner">
             <h2 class="sec-title sec-title--center">Ako funguje MegaPrice?</h2>
             <p class="sec-sub sec-sub--center">Tri jednoduché kroky k najlepšej cene</p>
-            
             <div class="how__grid">
                 <div class="how__step">
                     <div class="how__num">1</div>
-                    <div class="how__icon">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    </div>
+                    <div class="how__icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
                     <h3 class="how__title">Vyhľadajte</h3>
-                    <p class="how__text">Zadajte názov produktu alebo prechádzajte kategórie. Máme tisíce produktov z overených obchodov.</p>
+                    <p class="how__text">Zadajte názov produktu alebo prechádzajte kategórie.</p>
                 </div>
                 <div class="how__arrow">→</div>
                 <div class="how__step">
                     <div class="how__num">2</div>
-                    <div class="how__icon">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg>
-                    </div>
+                    <div class="how__icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg></div>
                     <h3 class="how__title">Porovnajte</h3>
-                    <p class="how__text">Porovnajte ceny od rôznych predajcov na jednom mieste. Prehľadne a transparentne.</p>
+                    <p class="how__text">Porovnajte ceny od rôznych predajcov na jednom mieste.</p>
                 </div>
                 <div class="how__arrow">→</div>
                 <div class="how__step">
                     <div class="how__num">3</div>
-                    <div class="how__icon">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                    </div>
+                    <div class="how__icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
                     <h3 class="how__title">Ušetrite</h3>
-                    <p class="how__text">Vyberte najlepšiu ponuku a nakúpte priamo u predajcu. Žiadne skryté poplatky.</p>
+                    <p class="how__text">Vyberte najlepšiu ponuku a nakúpte priamo u predajcu.</p>
                 </div>
             </div>
         </div>
     </section>
+    {/if}
 
     <!-- ========== VENDOR CTA ========== -->
+    {#if showVendor}
     <section class="vendor-cta">
         <div class="vendor-cta__inner">
             <div class="vendor-cta__content">
                 <h2 class="vendor-cta__title">Ste predajca?</h2>
-                <p class="vendor-cta__text">Pridajte svoj e-shop na MegaPrice a získajte prístup k tisícom zákazníkov, ktorí aktívne porovnávajú ceny. Platíte len za kliknutia.</p>
+                <p class="vendor-cta__text">Pridajte svoj e-shop na MegaPrice a získajte prístup k tisícom zákazníkov. Platíte len za kliknutia.</p>
                 <div class="vendor-cta__features">
-                    <div class="vendor-cta__feat">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span>Cielení zákazníci s úmyslom kúpiť</span>
-                    </div>
-                    <div class="vendor-cta__feat">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span>Platba za kliknutie (CPC model)</span>
-                    </div>
-                    <div class="vendor-cta__feat">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span>Jednoduchý XML feed import</span>
-                    </div>
+                    <div class="vendor-cta__feat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Cielení zákazníci s úmyslom kúpiť</span></div>
+                    <div class="vendor-cta__feat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Platba za kliknutie (CPC)</span></div>
+                    <div class="vendor-cta__feat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Jednoduchý XML feed import</span></div>
                 </div>
                 <a href="/pre-predajcov" class="vendor-cta__btn">Začať predávať →</a>
             </div>
             <div class="vendor-cta__visual">
                 <div class="vendor-cta__card">
-                    <div class="vendor-cta__card-row"><span>Denne návštevy</span><strong>2 500+</strong></div>
-                    <div class="vendor-cta__card-row"><span>Priemerný CTR</span><strong>4.2%</strong></div>
                     <div class="vendor-cta__card-row"><span>CPC od</span><strong>0,05 €</strong></div>
+                    <div class="vendor-cta__card-row"><span>Registrácia</span><strong>Zadarmo</strong></div>
+                    <div class="vendor-cta__card-row"><span>Feed import</span><strong>XML / CSV</strong></div>
                 </div>
             </div>
         </div>
     </section>
+    {/if}
 
 </div>
 
 <style>
-/* ============ GLOBAL ============ */
-.hp { background: #fff; }
-.sec-head { display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;gap:16px }
-.sec-title { font-size:24px;font-weight:700;color:#0f172a;margin:0 }
-.sec-title--center { text-align:center }
-.sec-sub { font-size:15px;color:#64748b;margin:4px 0 0;line-height:1.5 }
-.sec-sub--center { text-align:center }
-.sec-link { font-size:14px;font-weight:600;color:#c4956a;text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap;transition:color .15s }
-.sec-link:hover { color:#a67b52 }
+.hp{background:#fff}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;gap:16px}
+.sec-title{font-size:22px;font-weight:700;color:#0f172a;margin:0}
+.sec-title--center{text-align:center}
+.sec-sub{font-size:14px;color:#64748b;margin:4px 0 0;line-height:1.5}
+.sec-sub--center{text-align:center}
+.sec-link{font-size:13px;font-weight:600;color:#c4956a;text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap;transition:color .15s}
+.sec-link:hover{color:#a67b52}
 
 /* ============ HERO ============ */
-.hero {
-    position: relative; overflow: hidden;
-    padding: 72px 0 64px; text-align: center;
-    background: #0f172a;
-    color: #fff;
+.hero{
+    position:relative;overflow:hidden;
+    padding:40px 0 36px;text-align:center;
+    background:#0f172a;color:#fff;
 }
-.hero__bg {
+.hero__bg{
     position:absolute;inset:0;
-    background: radial-gradient(ellipse at 30% 0%, rgba(196,149,106,0.15) 0%, transparent 60%),
-                radial-gradient(ellipse at 70% 100%, rgba(99,102,241,0.1) 0%, transparent 50%);
+    background:radial-gradient(ellipse at 30% 0%,rgba(196,149,106,0.12) 0%,transparent 60%),
+               radial-gradient(ellipse at 70% 100%,rgba(99,102,241,0.08) 0%,transparent 50%);
 }
-.hero__inner { position:relative;max-width:720px;margin:0 auto;padding:0 24px }
-.hero__badge {
-    display:inline-block;padding:6px 16px;margin-bottom:20px;
-    background:rgba(196,149,106,0.15);border:1px solid rgba(196,149,106,0.3);
-    border-radius:20px;font-size:12px;font-weight:600;color:#c4956a;
-    letter-spacing:0.3px;text-transform:uppercase;
-}
-.hero__title { font-size:44px;font-weight:800;line-height:1.15;margin-bottom:16px;letter-spacing:-0.5px }
-.hero__em { color:#c4956a }
-.hero__sub { font-size:17px;color:#94a3b8;margin-bottom:36px;line-height:1.6 }
+.hero__inner{position:relative;max-width:680px;margin:0 auto;padding:0 24px}
+.hero__title{font-size:36px;font-weight:800;line-height:1.15;margin-bottom:10px;letter-spacing:-.5px}
+.hero__em{color:#c4956a}
+.hero__sub{font-size:16px;color:#94a3b8;margin-bottom:28px}
 
-/* Search bar */
-.hero__search {
+.hero__search{
     display:flex;align-items:center;
     background:#fff;border-radius:14px;
-    padding:6px;max-width:600px;margin:0 auto 24px;
-    box-shadow:0 8px 32px rgba(0,0,0,0.2);
-    position:relative;
+    padding:5px;max-width:560px;margin:0 auto 20px;
+    box-shadow:0 6px 24px rgba(0,0,0,0.2);position:relative;
 }
-.hero__search-icon { position:absolute;left:20px;pointer-events:none }
-.hero__input {
-    flex:1;border:none;background:none;padding:14px 16px 14px 46px;
-    font-size:16px;color:#1e293b;outline:none;border-radius:10px;
-    min-width:0;
+.hero__search-icon{position:absolute;left:18px;pointer-events:none}
+.hero__input{
+    flex:1;border:none;background:none;padding:13px 14px 13px 44px;
+    font-size:15px;color:#1e293b;outline:none;border-radius:10px;min-width:0;
 }
-.hero__input::placeholder { color:#94a3b8 }
-.hero__btn {
-    padding:14px 28px;background:#c4956a;color:#fff;border:none;
-    border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;
+.hero__input::placeholder{color:#94a3b8}
+.hero__btn{
+    padding:13px 24px;background:#c4956a;color:#fff;border:none;
+    border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
     transition:background .15s;white-space:nowrap;
 }
-.hero__btn:hover { background:#b8875c }
+.hero__btn:hover{background:#b8875c}
 
-/* Tags */
-.hero__tags { display:flex;flex-wrap:wrap;justify-content:center;gap:8px;align-items:center }
-.hero__tags-label { font-size:13px;color:#64748b }
-.hero__tag {
-    padding:5px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);
-    border-radius:8px;font-size:12px;color:#94a3b8;text-decoration:none;
-    transition:all .15s;
+.hero__tags{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;align-items:center}
+.hero__tags-label{font-size:12px;color:#64748b}
+.hero__tag{
+    padding:4px 10px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);
+    border-radius:7px;font-size:11px;color:#94a3b8;text-decoration:none;transition:all .15s;
 }
-.hero__tag:hover { background:rgba(196,149,106,0.15);color:#c4956a;border-color:rgba(196,149,106,0.3) }
+.hero__tag:hover{background:rgba(196,149,106,0.15);color:#c4956a;border-color:rgba(196,149,106,0.3)}
 
-/* ============ TRUST BAR ============ */
-.trust {
-    padding:0;margin-top:-28px;position:relative;z-index:2;
+/* ============ TRUST BAR — full width ============ */
+.trust{
+    background:#fff;border-bottom:1px solid #e2e8f0;
 }
-.trust__inner {
-    max-width:800px;margin:0 auto;padding:20px 32px;
-    background:#fff;border-radius:16px;
-    box-shadow:0 4px 24px rgba(0,0,0,0.08);
-    display:flex;align-items:center;justify-content:center;gap:28px;
+.trust__inner{
+    max-width:1200px;margin:0 auto;padding:16px 24px;
+    display:flex;align-items:center;justify-content:space-between;
 }
-.trust__item { display:flex;align-items:center;gap:12px }
-.trust__icon { color:#c4956a;flex-shrink:0 }
-.trust__num { font-size:18px;font-weight:800;color:#0f172a;display:block }
-.trust__label { font-size:12px;color:#64748b;display:block }
-.trust__sep { width:1px;height:36px;background:#e2e8f0 }
+.trust__item{display:flex;align-items:center;gap:10px;flex:1;justify-content:center}
+.trust__item svg{color:#c4956a;flex-shrink:0}
+.trust__num{font-size:16px;font-weight:800;color:#0f172a}
+.trust__label{font-size:12px;color:#64748b}
+.trust__sep{width:1px;height:32px;background:#e2e8f0;flex-shrink:0}
 
 /* ============ CATEGORIES ============ */
-.cats { padding:56px 0 }
-.cats__inner { max-width:1200px;margin:0 auto;padding:0 24px }
-.cats__grid {
-    display:grid;grid-template-columns:repeat(4,1fr);gap:16px;
+.cats{padding:40px 0 32px}
+.cats__inner{max-width:1200px;margin:0 auto;padding:0 24px}
+.cats__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cats__grid--extra{margin-top:12px}
+.cat-card{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px;background:#f8fafc;border:1px solid #e2e8f0;
+    border-radius:10px;text-decoration:none;color:#0f172a;transition:all .15s;
 }
-.cats__grid--extra { margin-top:16px }
-.cat-card {
-    display:flex;align-items:center;gap:14px;
-    padding:16px 18px;background:#f8fafc;border:1px solid #e2e8f0;
-    border-radius:12px;text-decoration:none;color:#0f172a;
-    transition:all .15s;
-}
-.cat-card:hover { border-color:#c4956a;box-shadow:0 4px 16px rgba(196,149,106,0.1);transform:translateY(-2px) }
-.cat-card__img {
-    width:48px;height:48px;border-radius:10px;overflow:hidden;
+.cat-card:hover{border-color:#c4956a;box-shadow:0 2px 12px rgba(196,149,106,0.08);transform:translateY(-1px)}
+.cat-card__img{
+    width:44px;height:44px;border-radius:8px;overflow:hidden;
     background:#fff;display:flex;align-items:center;justify-content:center;
     flex-shrink:0;border:1px solid #e2e8f0;
 }
-.cat-card__img img { width:100%;height:100%;object-fit:cover }
-.cat-card__emoji { font-size:22px }
-.cat-card__info { min-width:0 }
-.cat-card__name { display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis }
-.cat-card__count { font-size:12px;color:#64748b }
+.cat-card__img img{width:100%;height:100%;object-fit:cover}
+.cat-card__emoji{font-size:20px}
+.cat-card__info{min-width:0}
+.cat-card__name{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-card__count{font-size:11px;color:#64748b}
 
-.cats__overflow { text-align:center;margin-top:16px }
-.cats__more-btn {
+.cats__overflow{text-align:center;margin-top:12px}
+.cats__more-btn{
     display:inline-flex;align-items:center;gap:6px;
-    padding:10px 20px;background:none;border:1px solid #d1d5db;
-    border-radius:10px;font-size:13px;font-weight:600;color:#475569;
-    cursor:pointer;transition:all .15s;
+    padding:8px 18px;background:none;border:1px solid #d1d5db;
+    border-radius:8px;font-size:12px;font-weight:600;color:#475569;cursor:pointer;transition:all .15s;
 }
-.cats__more-btn:hover { border-color:#c4956a;color:#c4956a }
+.cats__more-btn:hover{border-color:#c4956a;color:#c4956a}
 
 /* ============ PRODUCTS ============ */
-.products { padding:24px 0 56px;background:#f8fafc }
-.products__inner { max-width:1200px;margin:0 auto;padding:0 24px }
-.prod-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:16px }
+.products,.cat-products{padding:32px 0;background:#f8fafc}
+.cat-products{background:#fff}
+.cat-products:nth-child(even){background:#f8fafc}
+.products__inner,.cat-products__inner{max-width:1200px;margin:0 auto;padding:0 24px}
 
-.prod {
-    background:#fff;border:1px solid #e2e8f0;border-radius:14px;
+.prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+.prod{
+    background:#fff;border:1px solid #e2e8f0;border-radius:12px;
     text-decoration:none;color:#0f172a;overflow:hidden;
-    transition:all .15s;display:flex;flex-direction:column;
-    position:relative;
+    transition:all .15s;display:flex;flex-direction:column;position:relative;
 }
-.prod:hover { box-shadow:0 8px 24px rgba(0,0,0,0.08);transform:translateY(-3px);border-color:#d1d5db }
-.prod__badge {
-    position:absolute;top:10px;left:10px;z-index:1;
-    font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+.cat-products .prod{background:#fff}
+.prod:hover{box-shadow:0 6px 20px rgba(0,0,0,0.06);transform:translateY(-2px);border-color:#d1d5db}
+.prod__badge{
+    position:absolute;top:8px;left:8px;z-index:1;
+    font-size:16px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.15));
 }
-.prod__img {
-    height:180px;background:#f9fafb;display:flex;align-items:center;
-    justify-content:center;padding:16px;
+.prod__img{
+    height:160px;background:#f9fafb;display:flex;align-items:center;
+    justify-content:center;padding:12px;
 }
-.prod__img img { max-width:100%;max-height:100%;object-fit:contain }
-.prod__img-ph { font-size:40px;opacity:.2 }
-.prod__body { padding:16px;flex:1;display:flex;flex-direction:column }
-.prod__brand { font-size:11px;font-weight:700;color:#c4956a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px }
-.prod__title {
-    font-size:14px;font-weight:500;line-height:1.4;margin:0 0 10px;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-    color:#1e293b;
+.prod__img img{max-width:100%;max-height:100%;object-fit:contain}
+.prod__img-ph{font-size:36px;opacity:.2}
+.prod__body{padding:14px;flex:1;display:flex;flex-direction:column}
+.prod__brand{font-size:10px;font-weight:700;color:#c4956a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.prod__title{
+    font-size:13px;font-weight:500;line-height:1.4;margin:0 0 8px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#1e293b;
 }
-.prod__price { margin-bottom:4px }
-.prod__price-from { font-size:12px;color:#94a3b8 }
-.prod__price-val { font-size:20px;font-weight:800;color:#0f172a }
-.prod__offers {
-    display:flex;align-items:center;gap:4px;
-    font-size:12px;color:#64748b;margin-bottom:12px;
+.prod__price{margin-bottom:2px}
+.prod__price-from{font-size:11px;color:#94a3b8}
+.prod__price-val{font-size:18px;font-weight:800;color:#0f172a}
+.prod__offers{font-size:11px;color:#64748b;margin-bottom:10px}
+.prod__cta{
+    margin-top:auto;padding:9px;text-align:center;
+    background:#f8fafc;border-radius:7px;
+    font-size:12px;font-weight:600;color:#c4956a;transition:all .15s;
 }
-.prod__cta {
-    margin-top:auto;padding:10px;text-align:center;
-    background:#f8fafc;border-radius:8px;
-    font-size:13px;font-weight:600;color:#c4956a;
-    transition:all .15s;
-}
-.prod:hover .prod__cta { background:#c4956a;color:#fff }
+.prod:hover .prod__cta{background:#c4956a;color:#fff}
 
-/* ============ HOW IT WORKS ============ */
-.how { padding:64px 0;background:#fff }
-.how__inner { max-width:900px;margin:0 auto;padding:0 24px }
-.how__grid { display:flex;align-items:flex-start;justify-content:center;gap:12px;margin-top:40px }
-.how__step { flex:1;text-align:center;position:relative;padding:0 8px }
-.how__num {
-    position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-    width:28px;height:28px;background:#c4956a;color:#fff;
-    font-size:13px;font-weight:700;border-radius:50%;
+/* ============ HOW ============ */
+.how{padding:48px 0;background:#fff}
+.how__inner{max-width:860px;margin:0 auto;padding:0 24px}
+.how__grid{display:flex;align-items:flex-start;justify-content:center;gap:12px;margin-top:32px}
+.how__step{flex:1;text-align:center;position:relative;padding:0 8px}
+.how__num{
+    position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+    width:24px;height:24px;background:#c4956a;color:#fff;
+    font-size:11px;font-weight:700;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
-    box-shadow:0 2px 8px rgba(196,149,106,0.3);
+    box-shadow:0 2px 6px rgba(196,149,106,0.3);
 }
-.how__icon {
-    width:72px;height:72px;margin:0 auto 16px;
+.how__icon{
+    width:64px;height:64px;margin:0 auto 12px;
     background:#f8fafc;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    color:#c4956a;
-    border:2px solid #e2e8f0;
+    display:flex;align-items:center;justify-content:center;color:#c4956a;border:2px solid #e2e8f0;
 }
-.how__title { font-size:17px;font-weight:700;color:#0f172a;margin-bottom:8px }
-.how__text { font-size:14px;color:#64748b;line-height:1.6 }
-.how__arrow { color:#d1d5db;font-size:24px;margin-top:36px;flex-shrink:0 }
+.how__title{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:6px}
+.how__text{font-size:13px;color:#64748b;line-height:1.5}
+.how__arrow{color:#d1d5db;font-size:20px;margin-top:30px;flex-shrink:0}
 
 /* ============ VENDOR CTA ============ */
-.vendor-cta { padding:64px 0;background:#0f172a;color:#fff }
-.vendor-cta__inner { max-width:1000px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:48px }
-.vendor-cta__content { flex:1 }
-.vendor-cta__title { font-size:28px;font-weight:800;margin:0 0 12px }
-.vendor-cta__text { font-size:15px;color:#94a3b8;line-height:1.6;margin-bottom:24px }
-.vendor-cta__features { display:flex;flex-direction:column;gap:10px;margin-bottom:28px }
-.vendor-cta__feat { display:flex;align-items:center;gap:10px;font-size:14px;color:#e2e8f0 }
-.vendor-cta__btn {
-    display:inline-block;padding:14px 28px;
+.vendor-cta{padding:48px 0;background:#0f172a;color:#fff}
+.vendor-cta__inner{max-width:960px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:40px}
+.vendor-cta__content{flex:1}
+.vendor-cta__title{font-size:24px;font-weight:800;margin:0 0 10px}
+.vendor-cta__text{font-size:14px;color:#94a3b8;line-height:1.6;margin-bottom:20px}
+.vendor-cta__features{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.vendor-cta__feat{display:flex;align-items:center;gap:8px;font-size:13px;color:#e2e8f0}
+.vendor-cta__btn{
+    display:inline-block;padding:12px 24px;
     background:#c4956a;color:#fff;border-radius:10px;
-    text-decoration:none;font-size:15px;font-weight:700;
-    transition:background .15s;
+    text-decoration:none;font-size:14px;font-weight:700;transition:background .15s;
 }
-.vendor-cta__btn:hover { background:#b8875c }
-.vendor-cta__visual { flex-shrink:0 }
-.vendor-cta__card {
+.vendor-cta__btn:hover{background:#b8875c}
+.vendor-cta__visual{flex-shrink:0}
+.vendor-cta__card{
     background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
-    border-radius:16px;padding:24px 28px;min-width:220px;
+    border-radius:14px;padding:20px 24px;min-width:200px;
 }
-.vendor-cta__card-row { display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:14px }
-.vendor-cta__card-row:last-child { border:none }
-.vendor-cta__card-row span { color:#94a3b8 }
-.vendor-cta__card-row strong { color:#c4956a;font-weight:700 }
+.vendor-cta__card-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px}
+.vendor-cta__card-row:last-child{border:none}
+.vendor-cta__card-row span{color:#94a3b8}
+.vendor-cta__card-row strong{color:#c4956a;font-weight:700}
 
 /* ============ RESPONSIVE ============ */
-@media(max-width:1024px){
-    .cats__grid{grid-template-columns:repeat(3,1fr)}
-    .prod-grid{grid-template-columns:repeat(3,1fr)}
-}
+@media(max-width:1024px){.cats__grid{grid-template-columns:repeat(3,1fr)}.prod-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:768px){
-    .hero{padding:48px 0 52px}
-    .hero__title{font-size:30px}
+    .hero{padding:32px 0 28px}.hero__title{font-size:26px}
     .hero__search{flex-direction:column;border-radius:12px}
-    .hero__input{padding:14px 16px;border-radius:12px 12px 0 0;text-align:center}
-    .hero__search-icon{display:none}
+    .hero__input{padding:12px 14px;border-radius:12px 12px 0 0;text-align:center}.hero__search-icon{display:none}
     .hero__btn{border-radius:0 0 12px 12px;width:100%}
-    .trust__inner{flex-wrap:wrap;gap:20px;padding:20px}
-    .trust__sep{display:none}
-    .cats__grid{grid-template-columns:repeat(2,1fr)}
-    .prod-grid{grid-template-columns:repeat(2,1fr)}
-    .how__grid{flex-direction:column;gap:24px}
-    .how__arrow{display:none}
-    .vendor-cta__inner{flex-direction:column;text-align:center}
-    .vendor-cta__features{align-items:center}
-    .sec-head{flex-direction:column;align-items:flex-start;gap:8px}
+    .trust__inner{flex-wrap:wrap;gap:16px;padding:14px 16px;justify-content:center}.trust__sep{display:none}
+    .cats__grid,.prod-grid{grid-template-columns:repeat(2,1fr)}
+    .how__grid{flex-direction:column;gap:20px}.how__arrow{display:none}
+    .vendor-cta__inner{flex-direction:column;text-align:center}.vendor-cta__features{align-items:center}
+    .sec-head{flex-direction:column;align-items:flex-start;gap:6px}
 }
-@media(max-width:480px){
-    .cats__grid{grid-template-columns:1fr}
-    .prod-grid{grid-template-columns:1fr}
-    .trust__inner{flex-direction:column;gap:12px}
-}
+@media(max-width:480px){.cats__grid,.prod-grid{grid-template-columns:1fr}.trust__inner{flex-direction:column;gap:10px}}
 </style>
