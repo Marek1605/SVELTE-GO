@@ -597,7 +597,19 @@
 .cat-layout { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
 
 /* === FILTER SIDEBAR === */
-.fl { position: sticky; top: 40px; max-height: calc(100vh - 50px); overflow-y: auto; background: #fff; border-radius: 14px; border: 1px solid #eef0f4; scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
+.fl {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 12px;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #eef0f4;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}
 .fl::-webkit-scrollbar { width: 4px; }
 .fl::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
 .fl__head { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid #eef0f4; font-size: 14px; font-weight: 700; color: #1f2937; }
@@ -617,7 +629,9 @@
 /* Price filter */
 .fl__price { display: flex; align-items: center; gap: 6px; }
 .fl__price-field { position: relative; flex: 1; }
-.fl__price-field input { width: 100%; padding: 8px 28px 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; }
+.fl__price-field input { width: 100%; padding: 8px 28px 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
+.fl__price-field input::-webkit-outer-spin-button,
+.fl__price-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .fl__price-field input:focus { border-color: #c4956a; }
 .fl__price-unit { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #9ca3af; pointer-events: none; }
 .fl__price-sep { color: #d1d5db; font-size: 13px; }
