@@ -30,13 +30,7 @@
     let rangeTrack;
     let dragging = null;
 
-    // Collapsible sections state
-    let openSections = { price: true, brand: true, sort: true };
-
-    function toggleSection(key) {
-        openSections[key] = !openSections[key];
-        openSections = openSections;
-    }
+    // Collapsible sections state (unused - kept for mobile)
 
     $: {
         const params = $page.url.searchParams;
@@ -243,95 +237,85 @@
 
                     <!-- Price -->
                     <div class="fl__sec">
-                        <button class="fl__sec-head" on:click={() => toggleSection('price')}>
-                            <span>Cena</span>
-                            <svg class="fl__chev" class:is-open={openSections.price} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </button>
-                        {#if openSections.price}
-                            <div class="fl__body">
-                                <div class="fl__price">
-                                    <div class="fl__price-field">
-                                        <input type="number" placeholder="Od" bind:value={minPrice} on:change={applyFilters}>
-                                        <span class="fl__price-unit">€</span>
-                                    </div>
-                                    <span class="fl__price-sep">–</span>
-                                    <div class="fl__price-field">
-                                        <input type="number" placeholder="Do" bind:value={maxPrice} on:change={applyFilters}>
-                                        <span class="fl__price-unit">€</span>
-                                    </div>
+                        <div class="fl__sec-head"><span>Cena</span></div>
+                        <div class="fl__body">
+                            <div class="fl__price">
+                                <div class="fl__price-field">
+                                    <input type="number" placeholder="Od" bind:value={minPrice} on:change={applyFilters}>
+                                    <span class="fl__price-unit">€</span>
                                 </div>
-                                {#if rangeMax > 0}
-                                    <div class="range-slider" bind:this={rangeTrack}
-                                         on:mousedown={(e) => {
-                                             const rect = rangeTrack.getBoundingClientRect();
-                                             const pct = (e.clientX - rect.left) / rect.width;
-                                             const val = rangeMin + pct * rangeSpan;
-                                             startDrag(Math.abs(val - sliderMin) < Math.abs(val - sliderMax) ? 'min' : 'max', e);
-                                         }}
-                                         on:touchstart|preventDefault={(e) => {
-                                             const rect = rangeTrack.getBoundingClientRect();
-                                             const pct = (e.touches[0].clientX - rect.left) / rect.width;
-                                             const val = rangeMin + pct * rangeSpan;
-                                             startDrag(Math.abs(val - sliderMin) < Math.abs(val - sliderMax) ? 'min' : 'max', e);
-                                         }}>
-                                        <div class="range-slider__track"></div>
-                                        <div class="range-slider__fill" style="left:{leftPct}%;width:{rightPct - leftPct}%"></div>
-                                        <div class="range-slider__thumb" style="left:{leftPct}%"
-                                             on:mousedown|stopPropagation={(e) => startDrag('min', e)}
-                                             on:touchstart|preventDefault|stopPropagation={(e) => startDrag('min', e)}></div>
-                                        <div class="range-slider__thumb" style="left:{rightPct}%"
-                                             on:mousedown|stopPropagation={(e) => startDrag('max', e)}
-                                             on:touchstart|preventDefault|stopPropagation={(e) => startDrag('max', e)}></div>
-                                    </div>
-                                    <div class="fl__hint">{formatPrice(rangeMin)} – {formatPrice(rangeMax)}</div>
-                                {/if}
-                                <div class="fl__price-quick">
-                                    <button class:is-active={maxPrice === '50' && !minPrice} on:click={() => setQuickPrice(0, 50)}>do 50 €</button>
-                                    <button class:is-active={minPrice === '50' && maxPrice === '100'} on:click={() => setQuickPrice(50, 100)}>50 – 100 €</button>
-                                    <button class:is-active={minPrice === '100' && maxPrice === '200'} on:click={() => setQuickPrice(100, 200)}>100 – 200 €</button>
-                                    <button class:is-active={minPrice === '200' && !maxPrice} on:click={() => setQuickPrice(200, 0)}>od 200 €</button>
+                                <span class="fl__price-sep">–</span>
+                                <div class="fl__price-field">
+                                    <input type="number" placeholder="Do" bind:value={maxPrice} on:change={applyFilters}>
+                                    <span class="fl__price-unit">€</span>
                                 </div>
                             </div>
-                        {/if}
+                            {#if rangeMax > 0}
+                                <div class="range-slider" bind:this={rangeTrack}
+                                     on:mousedown={(e) => {
+                                         const rect = rangeTrack.getBoundingClientRect();
+                                         const pct = (e.clientX - rect.left) / rect.width;
+                                         const val = rangeMin + pct * rangeSpan;
+                                         startDrag(Math.abs(val - sliderMin) < Math.abs(val - sliderMax) ? 'min' : 'max', e);
+                                     }}
+                                     on:touchstart|preventDefault={(e) => {
+                                         const rect = rangeTrack.getBoundingClientRect();
+                                         const pct = (e.touches[0].clientX - rect.left) / rect.width;
+                                         const val = rangeMin + pct * rangeSpan;
+                                         startDrag(Math.abs(val - sliderMin) < Math.abs(val - sliderMax) ? 'min' : 'max', e);
+                                     }}>
+                                    <div class="range-slider__track"></div>
+                                    <div class="range-slider__fill" style="left:{leftPct}%;width:{rightPct - leftPct}%"></div>
+                                    <div class="range-slider__thumb" style="left:{leftPct}%"
+                                         on:mousedown|stopPropagation={(e) => startDrag('min', e)}
+                                         on:touchstart|preventDefault|stopPropagation={(e) => startDrag('min', e)}></div>
+                                    <div class="range-slider__thumb" style="left:{rightPct}%"
+                                         on:mousedown|stopPropagation={(e) => startDrag('max', e)}
+                                         on:touchstart|preventDefault|stopPropagation={(e) => startDrag('max', e)}></div>
+                                </div>
+                                <div class="fl__hint">{formatPrice(rangeMin)} – {formatPrice(rangeMax)}</div>
+                            {/if}
+                            <div class="fl__price-quick">
+                                <button class:is-active={maxPrice === '50' && !minPrice} on:click={() => setQuickPrice(0, 50)}>do 50 €</button>
+                                <button class:is-active={minPrice === '50' && maxPrice === '100'} on:click={() => setQuickPrice(50, 100)}>50 – 100 €</button>
+                                <button class:is-active={minPrice === '100' && maxPrice === '200'} on:click={() => setQuickPrice(100, 200)}>100 – 200 €</button>
+                                <button class:is-active={minPrice === '200' && !maxPrice} on:click={() => setQuickPrice(200, 0)}>od 200 €</button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Brand -->
                     {#if brands.length > 0}
                         <div class="fl__sec">
-                            <button class="fl__sec-head" on:click={() => toggleSection('brand')}>
-                                <span>Značka</span>
-                                <svg class="fl__chev" class:is-open={openSections.brand} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                            </button>
-                            {#if openSections.brand}
-                                <div class="fl__body">
-                                    {#if brands.length > 8}
-                                        <div class="fl__search">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                            <input type="text" placeholder="Hľadať značku..." bind:value={brandSearch}>
-                                        </div>
-                                    {/if}
-                                    <div class="fl__opts">
-                                        {#each filteredBrands.slice(0, 20) as brand}
-                                            <label class="fl__opt" class:is-active={selectedBrand === brand.name}>
-                                                <span class="fl__check" class:is-checked={selectedBrand === brand.name}>
-                                                    {#if selectedBrand === brand.name}
-                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                                                    {/if}
-                                                </span>
-                                                <input type="radio" name="brand" class="sr-only" checked={selectedBrand === brand.name} on:change={() => selectBrand(brand.name)}>
-                                                <span class="fl__opt-name">{brand.name}</span>
-                                                <span class="fl__opt-count">{brand.count}</span>
-                                            </label>
-                                        {/each}
-                                        {#if filteredBrands.length > 20}
-                                            <div class="fl__more">+{filteredBrands.length - 20} ďalších</div>
-                                        {/if}
-                                        {#if brandSearch && filteredBrands.length === 0}
-                                            <div class="fl__empty">Žiadne výsledky</div>
-                                        {/if}
+                            <div class="fl__sec-head"><span>Značka</span></div>
+                            <div class="fl__body">
+                                {#if brands.length > 8}
+                                    <div class="fl__search">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                        <input type="text" placeholder="Hľadať značku..." bind:value={brandSearch}>
                                     </div>
+                                {/if}
+                                <div class="fl__opts">
+                                    {#each filteredBrands.slice(0, 20) as brand}
+                                        <label class="fl__opt" class:is-active={selectedBrand === brand.name}>
+                                            <span class="fl__check" class:is-checked={selectedBrand === brand.name}>
+                                                {#if selectedBrand === brand.name}
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                                {/if}
+                                            </span>
+                                            <input type="radio" name="brand" class="sr-only" checked={selectedBrand === brand.name} on:change={() => selectBrand(brand.name)}>
+                                            <span class="fl__opt-name">{brand.name}</span>
+                                            <span class="fl__opt-count">{brand.count}</span>
+                                        </label>
+                                    {/each}
+                                    {#if filteredBrands.length > 20}
+                                        <div class="fl__more">+{filteredBrands.length - 20} ďalších</div>
+                                    {/if}
+                                    {#if brandSearch && filteredBrands.length === 0}
+                                        <div class="fl__empty">Žiadne výsledky</div>
+                                    {/if}
                                 </div>
-                            {/if}
+                            </div>
                         </div>
                     {/if}
 
@@ -339,28 +323,23 @@
                     {#each attributes as attr, i}
                         {#if attr.values && attr.values.length > 0}
                             <div class="fl__sec">
-                                <button class="fl__sec-head" on:click={() => { openSections['attr_'+i] = !openSections['attr_'+i]; openSections = openSections; }}>
-                                    <span>{attr.name}</span>
-                                    <svg class="fl__chev" class:is-open={openSections['attr_'+i]} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                                </button>
-                                {#if openSections['attr_'+i] !== false}
-                                    <div class="fl__body">
-                                        <div class="fl__opts">
-                                            {#each attr.values as val}
-                                                <label class="fl__opt" class:is-active={selectedAttributes[attr.name] === val.value}>
-                                                    <span class="fl__check" class:is-checked={selectedAttributes[attr.name] === val.value}>
-                                                        {#if selectedAttributes[attr.name] === val.value}
-                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                                                        {/if}
-                                                    </span>
-                                                    <input type="radio" name="attr_{attr.name}" class="sr-only" checked={selectedAttributes[attr.name] === val.value} on:change={() => selectAttribute(attr.name, val.value)}>
-                                                    <span class="fl__opt-name">{val.value}</span>
-                                                    <span class="fl__opt-count">{val.count}</span>
-                                                </label>
-                                            {/each}
-                                        </div>
+                                <div class="fl__sec-head"><span>{attr.name}</span></div>
+                                <div class="fl__body">
+                                    <div class="fl__opts">
+                                        {#each attr.values as val}
+                                            <label class="fl__opt" class:is-active={selectedAttributes[attr.name] === val.value}>
+                                                <span class="fl__check" class:is-checked={selectedAttributes[attr.name] === val.value}>
+                                                    {#if selectedAttributes[attr.name] === val.value}
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                                    {/if}
+                                                </span>
+                                                <input type="radio" name="attr_{attr.name}" class="sr-only" checked={selectedAttributes[attr.name] === val.value} on:change={() => selectAttribute(attr.name, val.value)}>
+                                                <span class="fl__opt-name">{val.value}</span>
+                                                <span class="fl__opt-count">{val.count}</span>
+                                            </label>
+                                        {/each}
                                     </div>
-                                {/if}
+                                </div>
                             </div>
                         {/if}
                     {/each}
@@ -600,8 +579,9 @@
 .fl {
     position: -webkit-sticky;
     position: sticky;
-    top: 12px;
-    max-height: calc(100vh - 24px);
+    top: 80px;
+    align-self: start;
+    max-height: calc(100vh - 92px);
     overflow-y: auto;
     overflow-x: hidden;
     background: #fff;
@@ -620,10 +600,7 @@
 /* Filter section */
 .fl__sec { border-bottom: 1px solid #f3f4f6; }
 .fl__sec:last-child { border-bottom: none; }
-.fl__sec-head { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 12px 16px; background: none; border: none; font-size: 13px; font-weight: 600; color: #374151; cursor: pointer; text-align: left; }
-.fl__sec-head:hover { background: #fafbfc; }
-.fl__chev { transition: transform 0.2s; color: #9ca3af; }
-.fl__chev.is-open { transform: rotate(180deg); }
+.fl__sec-head { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 12px 16px; background: none; border: none; font-size: 13px; font-weight: 600; color: #374151; text-align: left; }
 .fl__body { padding: 0 12px 12px; }
 
 /* Price filter */
