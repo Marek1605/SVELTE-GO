@@ -26,6 +26,10 @@
     let cleanupLoading = false, cleanupMsg = '';
     let activeTab = 'settings';
 
+    // AUDIT
+    let auditLoading = false, auditIssues = [], auditStats = {}, auditFilter = 'all';
+    let fixingId = '', fixMsg = '';
+
     onMount(async () => { await Promise.all([loadSettings(), loadShops(), loadProgress(), loadDisplayStats()]); loading = false; });
     onDestroy(() => { if (polling) clearInterval(polling); });
 
@@ -47,6 +51,22 @@
     async function runCleanup(delP, delC, delAllC = false) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delAllC) m += '- Zmazať VŠETKY kategórie pre tohto vendora!\n'; else if (delC) m += '- Zmazať prázdne kategórie\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_all_categories: delAllC }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 8000); }
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
     function shortDate(s) { if (!s) return '—'; return s.length > 19 ? s.slice(0, 19).replace('T', ' ') : s; }
+
+    // AUDIT functions
+    async function runAudit() { auditLoading = true; auditIssues = []; const r = await apiFetch('/admin/ai/tree-audit'); if (r?.success) { auditIssues = r.issues || []; auditStats = r.stats || {}; } else { alert(r?.error || 'Chyba'); } auditLoading = false; }
+    function switchToAudit() { activeTab = 'audit'; if (auditIssues.length === 0 && !auditLoading) runAudit(); }
+    $: filteredAuditIssues = auditFilter === 'all' ? auditIssues : auditIssues.filter(i => i.type === auditFilter);
+    async function applyFix(issue, action, newName = '') {
+        fixingId = issue.id; fixMsg = '';
+        const body = { category_id: issue.category_id, action };
+        if (action === 'rename') { const suggested = issue.suggestion?.replace('Premenovať na: "', '').replace('"', '') || ''; body.new_name = newName || prompt('Nový názov:', suggested); if (!body.new_name) { fixingId = ''; return; } }
+        if (action === 'delete' && !confirm(`Zmazať kategóriu "${issue.name}"?`)) { fixingId = ''; return; }
+        const r = await apiFetch('/admin/ai/apply-fix', { method: 'POST', body: JSON.stringify(body) });
+        if (r?.success) { fixMsg = '✅ ' + r.message; auditIssues = auditIssues.filter(i => i.id !== issue.id); } else { fixMsg = '❌ ' + (r?.error || 'Chyba'); }
+        fixingId = ''; setTimeout(() => fixMsg = '', 5000);
+    }
+    function typeLabel(t) { switch(t) { case 'foreign': return '🌍 Cudzí jazyk'; case 'duplicate': return '🔁 Duplicita'; case 'empty_branch': return '📭 Prázdna'; case 'too_deep': return '📏 Príliš hlboká'; case 'illogical': return '⚠️ Nelogická'; default: return t; } }
+    function sevColor(s) { switch(s) { case 'high': return '#ef4444'; case 'medium': return '#f59e0b'; default: return '#6b7280'; } }
 </script>
 
 <svelte:head><title>AI Kategorizácia | Admin</title></svelte:head>
@@ -57,6 +77,7 @@
         <div class="tab-bar">
             <button class="tab" class:active={activeTab === 'settings'} on:click={() => activeTab = 'settings'}>⚙️ Nastavenia</button>
             <button class="tab" class:active={activeTab === 'report'} on:click={switchToReport}>📊 Report</button>
+            <button class="tab" class:active={activeTab === 'audit'} on:click={switchToAudit}>🔍 Audit stromu</button>
             <button class="tab" class:active={activeTab === 'cleanup'} on:click={() => activeTab = 'cleanup'}>🗑️ Vyčistenie</button>
         </div>
     </div>
@@ -147,6 +168,69 @@
         {/if}
     </div>
 
+    <!-- ============ AUDIT TAB ============ -->
+    {:else if activeTab === 'audit'}
+    <div class="section">
+        <div class="audit-head">
+            <div>
+                <h2>🔍 Audit stromu kategórií</h2>
+                <p class="desc">AI kontrola cudzích názvov, duplicít, prázdnych vetiev a nelogických štruktúr</p>
+            </div>
+            <button class="btn blue" on:click={runAudit} disabled={auditLoading}>{auditLoading ? '⏳ Analyzujem...' : '🔄 Spustiť audit'}</button>
+        </div>
+
+        {#if auditStats.total}
+        <div class="stats-grid stats-sm">
+            <div class="stat"><span class="n">{fmt(auditStats.total)}</span><span class="l">Kategórií</span></div>
+            <div class="stat" class:warn={auditStats.issues > 0}><span class="n">{fmt(auditStats.issues)}</span><span class="l">Problémov</span></div>
+            <div class="stat" class:warn={auditStats.foreign > 0}><span class="n">{fmt(auditStats.foreign || 0)}</span><span class="l">Cudzí jazyk</span></div>
+            <div class="stat"><span class="n">{fmt(auditStats.duplicate || 0)}</span><span class="l">Duplicity</span></div>
+            <div class="stat"><span class="n">{fmt(auditStats.empty_branch || 0)}</span><span class="l">Prázdne</span></div>
+        </div>
+        {/if}
+
+        {#if fixMsg}<div class="cleanup-result">{fixMsg}</div>{/if}
+
+        {#if auditIssues.length > 0}
+        <div class="filter-tabs" style="margin-bottom:12px">
+            <button class:active={auditFilter==='all'} on:click={() => auditFilter='all'}>Všetky ({auditIssues.length})</button>
+            <button class:active={auditFilter==='foreign'} on:click={() => auditFilter='foreign'}>🌍 Cudzie ({auditIssues.filter(i=>i.type==='foreign').length})</button>
+            <button class:active={auditFilter==='duplicate'} on:click={() => auditFilter='duplicate'}>🔁 Duplicity ({auditIssues.filter(i=>i.type==='duplicate').length})</button>
+            <button class:active={auditFilter==='empty_branch'} on:click={() => auditFilter='empty_branch'}>📭 Prázdne ({auditIssues.filter(i=>i.type==='empty_branch').length})</button>
+            <button class:active={auditFilter==='too_deep'} on:click={() => auditFilter='too_deep'}>📏 Hlboké ({auditIssues.filter(i=>i.type==='too_deep').length})</button>
+        </div>
+
+        <div class="audit-list">
+            {#each filteredAuditIssues as issue (issue.id)}
+            <div class="audit-item">
+                <div class="audit-row">
+                    <span class="audit-type">{typeLabel(issue.type)}</span>
+                    <span class="audit-sev" style="color:{sevColor(issue.severity)}">{issue.severity === 'high' ? '🔴' : issue.severity === 'medium' ? '🟡' : '⚪'}</span>
+                    <strong class="audit-name">{issue.name}</strong>
+                    <span class="audit-path">{issue.full_path}</span>
+                </div>
+                <div class="audit-detail">{issue.detail}</div>
+                {#if issue.suggestion}<div class="audit-suggestion">💡 {issue.suggestion}</div>{/if}
+                <div class="audit-actions">
+                    {#if issue.type === 'foreign' && issue.suggestion}
+                        <button class="btn-sm green" on:click={() => applyFix(issue, 'rename', issue.suggestion.replace('Premenovať na: "','').replace('"',''))} disabled={fixingId===issue.id}>✅ Premenovať</button>
+                    {/if}
+                    {#if issue.type === 'foreign'}
+                        <button class="btn-sm blue" on:click={() => applyFix(issue, 'rename')} disabled={fixingId===issue.id}>✏️ Vlastný názov</button>
+                    {/if}
+                    {#if issue.type === 'empty_branch' || issue.type === 'duplicate'}
+                        <button class="btn-sm red" on:click={() => applyFix(issue, 'delete')} disabled={fixingId===issue.id}>🗑️ Zmazať</button>
+                    {/if}
+                    <button class="btn-sm outline" on:click={() => auditIssues = auditIssues.filter(i => i.id !== issue.id)}>✖ Ignorovať</button>
+                </div>
+            </div>
+            {/each}
+        </div>
+        {:else if !auditLoading}
+        <div class="empty-msg">✅ Žiadne problémy nenájdené! Strom kategórií je v poriadku.</div>
+        {/if}
+    </div>
+
     <!-- ============ CLEANUP TAB ============ -->
     {:else if activeTab === 'cleanup'}
     <div class="section">
@@ -231,5 +315,19 @@ tr.row-created{background:#fffbeb} tr.row-matched{background:#f0fdf4} tr.row-ful
 .cleanup-warn{padding:14px 18px;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;color:#92400e;font-size:13px;margin-bottom:20px;line-height:1.5}
 .cleanup-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 .cleanup-result{margin-top:16px;padding:14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:14px;font-weight:500;color:#166534}
+.audit-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+.audit-list{display:flex;flex-direction:column;gap:8px}
+.audit-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px}
+.audit-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.audit-type{font-size:12px;font-weight:600;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:4px}
+.audit-sev{font-size:14px}
+.audit-name{font-size:14px;color:#1e293b}
+.audit-path{font-size:11px;color:#64748b;margin-left:auto}
+.audit-detail{font-size:13px;color:#475569;margin:6px 0 2px}
+.audit-suggestion{font-size:13px;color:#059669;font-weight:500;margin:4px 0}
+.audit-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.btn-sm{padding:5px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-sm.green{background:#10b981;color:#fff} .btn-sm.blue{background:#3b82f6;color:#fff}
+.btn-sm.red{background:#ef4444;color:#fff} .btn-sm.outline{background:#fff;color:#64748b;border:1px solid #d1d5db}
 @media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr)} .report-head,.filter-row,.cleanup-actions{flex-direction:column}}
 </style>
