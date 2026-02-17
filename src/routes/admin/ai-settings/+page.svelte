@@ -1,8 +1,25 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
     const API_BASE = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
-    let settings = { ai_provider: 'openai', openai_api_key: '', anthropic_api_key: '', ai_model_openai: 'gpt-4o-mini', ai_model_anthropic: 'claude-3-haiku-20240307' };
+    let settings = { ai_provider: 'openai', openai_api_key: '', anthropic_api_key: '', ai_model_openai: 'gpt-4o-mini', ai_model_anthropic: 'claude-sonnet-4-20250514' };
     let loading = true, saving = false, saveMsg = '';
+
+    const openaiModels = [
+        { value: 'gpt-4o', label: 'GPT-4o (najlepší)' },
+        { value: 'gpt-4o-mini', label: 'GPT-4o Mini (lacnejší)' },
+        { value: 'gpt-4.1', label: 'GPT-4.1' },
+        { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
+        { value: 'gpt-4.1-nano', label: 'GPT-4.1 Nano (najlacnejší)' },
+        { value: 'o4-mini', label: 'o4-mini (reasoning)' },
+    ];
+    const anthropicModels = [
+        { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4 (odporúčaný)' },
+        { value: 'claude-haiku-4-20250414', label: 'Claude Haiku 4 (lacnejší)' },
+        { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+        { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (najlacnejší)' },
+    ];
+    $: currentModels = settings.ai_provider === 'anthropic' ? anthropicModels : openaiModels;
+    $: currentModelKey = settings.ai_provider === 'anthropic' ? 'ai_model_anthropic' : 'ai_model_openai';
     let shops = [], selectedShopId = '', reportShopId = '', cleanupShopId = '';
     let job = null, polling = null, starting = false, displayStats = null;
     let reportData = [], reportStats = {}, reportTotal = 0, reportPage = 1, reportTotalPages = 1, reportLoading = false, reportFilter = 'all';
@@ -25,6 +42,7 @@
     function changeReportPage(p) { if (p >= 1 && p <= reportTotalPages) { reportPage = p; loadReport(); } }
     function changeReportShop() { reportPage = 1; loadReport(); }
     function downloadCSV() { let u = `${API_BASE}/admin/ai/categorization-report/csv`; if (reportShopId) u += `?shop_id=${reportShopId}`; window.open(u, '_blank'); }
+    function downloadXLSX() { let u = `${API_BASE}/admin/ai/categorization-report/csv?format=xlsx`; if (reportShopId) u += `&shop_id=${reportShopId}`; window.open(u, '_blank'); }
     function switchToReport() { activeTab = 'report'; if (reportData.length === 0) loadReport(); }
     async function runCleanup(delP, delC, delAllC = false) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delAllC) m += '- Zmazať VŠETKY kategórie pre tohto vendora!\n'; else if (delC) m += '- Zmazať prázdne kategórie\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_all_categories: delAllC }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 8000); }
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
@@ -62,6 +80,7 @@
         <h2>⚙️ AI Nastavenia</h2>
         <div class="form-grid">
             <div class="form-row"><label>AI Provider</label><select bind:value={settings.ai_provider}><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></div>
+            <div class="form-row"><label>Model</label><select bind:value={settings[currentModelKey]}>{#each currentModels as m}<option value={m.value}>{m.label}</option>{/each}</select><span class="model-hint">Aktuálny: <code>{settings[currentModelKey]}</code></span></div>
             <div class="form-row"><label>OpenAI API kľúč</label><input type="password" bind:value={settings.openai_api_key} placeholder="sk-proj-..."></div>
             <div class="form-row"><label>Anthropic API kľúč</label><input type="password" bind:value={settings.anthropic_api_key} placeholder="sk-ant-..."></div>
         </div>
@@ -88,7 +107,7 @@
     <!-- ============ REPORT TAB ============ -->
     {:else if activeTab === 'report'}
     <div class="section">
-        <div class="report-head"><div><h2>📊 Report kategorizácie</h2><p class="desc">Feed kategória vs. priradená kategória — všetky typy párovania</p></div><button class="csv-btn" on:click={downloadCSV}>📥 CSV</button></div>
+        <div class="report-head"><div><h2>📊 Report kategorizácie</h2><p class="desc">Feed kategória vs. priradená kategória — všetky typy párovania</p></div><div class="export-btns"><button class="xlsx-btn" on:click={downloadXLSX}>📥 Excel (XLSX)</button><button class="csv-btn" on:click={downloadCSV}>📥 CSV</button></div></div>
         <div class="stats-grid stats-sm">
             <div class="stat"><span class="n">{fmt(reportStats.total_products)}</span><span class="l">Produktov</span></div>
             <div class="stat ok"><span class="n">{fmt(reportStats.total_matched)}</span><span class="l">EAN</span></div>
@@ -165,6 +184,7 @@ h1{font-size:24px;margin:0;color:#1e293b} h2{font-size:18px;margin:0 0 8px;color
 .form-row label{font-size:13px;font-weight:600;color:#374151}
 .form-row input,.form-row select{padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
 .form-row input:focus,.form-row select:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.model-hint{font-size:12px;color:#64748b;margin-top:2px} .model-hint code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:11px;color:#1e293b}
 .actions{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap} .msg{font-size:14px;font-weight:500}
 .btn{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
 .btn.blue{background:#3b82f6;color:#fff} .btn.green{background:#10b981;color:#fff} .btn.red{background:#ef4444;color:#fff}
@@ -181,8 +201,11 @@ h1{font-size:24px;margin:0;color:#1e293b} h2{font-size:18px;margin:0 0 8px;color
 .progress-text{text-align:center;font-size:12px;color:#475569;margin-bottom:10px}
 .job-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:#475569}
 .report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+.export-btns{display:flex;gap:8px}
 .csv-btn{padding:10px 20px;background:#059669;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
 .csv-btn:hover{background:#047857}
+.xlsx-btn{padding:10px 20px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.xlsx-btn:hover{background:#1d4ed8}
 .filter-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
 .filter-row select{padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px}
 .filter-tabs{display:flex;gap:2px;background:#f1f5f9;padding:3px;border-radius:8px}
