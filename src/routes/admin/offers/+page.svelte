@@ -237,6 +237,18 @@
 
     function formatDate(d) { return d ? new Date(d).toLocaleString('sk-SK') : 'Nikdy'; }
     function getStatus(s) { return { active: '🟢', idle: '⚪', running: '🔵', error: '🔴', completed: '✅', cancelled: '🟡' }[s] || '⚪'; }
+
+    async function stopFeedAction(feed) {
+        try {
+            // Stop regular import
+            await fetch(`${API_BASE}/admin/offer-feeds/${feed.id}/stop`, { method: 'POST' });
+            // Also cancel AI bulk categorization
+            await fetch(`${API_BASE}/admin/ai/bulk-categorize/cancel`, { method: 'POST' });
+            feedResult = { ...feedResult, [feed.id]: '⏹️ Zastavené' };
+            feedProcessing = null;
+            await loadData();
+        } catch (e) { console.error(e); }
+    }
 </script>
 
 <svelte:head><title>Ponuky predajcov | Admin</title></svelte:head>
@@ -284,6 +296,7 @@
                             <td class="actions">
                                 {#if feedProcessing === f.id}
                                     <span class="proc-msg">{feedResult[f.id] || '⏳...'}</span>
+                                    <button class="btn small danger" on:click={() => stopFeedAction(f)} title="Zastaviť">⏹️ Stop</button>
                                 {:else}
                                     {#if f.sync_status === 'running'}
                                         <button class="btn small warning" on:click={stopImport}>⏹</button>
