@@ -43,7 +43,10 @@
     ];
     
     onMount(loadData);
-    onDestroy(() => { if (progressInterval) clearInterval(progressInterval); });
+    onDestroy(() => {
+        if (progressInterval) clearInterval(progressInterval);
+        if (feedPollInterval) clearInterval(feedPollInterval);
+    });
     
     async function loadData() {
         loading = true; error = null;
@@ -56,6 +59,14 @@
             const sData = await sRes.json();
             if (fData.success) { feeds = fData.data || []; stats = fData.stats || stats; }
             if (sData.success) { shops = sData.data || []; }
+            // Auto-detect running imports
+            for (const f of feeds) {
+                if (f.sync_status === 'running' && !feedProcessing) {
+                    feedProcessing = f.id;
+                    feedResult = { ...feedResult, [f.id]: '⏳ Import beží...' };
+                    pollFeedAction(f.id, f.match_mode || 'ean');
+                }
+            }
         } catch (e) { error = 'Chyba: ' + e.message; }
         loading = false;
     }
@@ -178,6 +189,7 @@
     
     let feedProcessing = null;
     let feedResult = {};
+    let feedPollInterval = null;
 
     async function feedAction(feed, mode) {
         const labels = { ean: 'EAN párovanie', ai: 'AI kategorizáciu', fulltext: 'Fulltext (len import)' };
@@ -186,19 +198,16 @@
         feedResult = { ...feedResult, [feed.id]: `⏳ Nastavujem režim a spúšťam import...` };
         
         try {
-            // 1. Update match_mode on feed
             await fetch(API_BASE + '/admin/offer-feeds/' + feed.id, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...feed, match_mode: mode })
             });
             
-            // 2. Start import (uses match_mode from feed)
             const res = await fetch(API_BASE + '/admin/offer-feeds/' + feed.id + '/import', { method: 'POST' });
             const data = await res.json();
             
             if (data.success) {
                 feedResult = { ...feedResult, [feed.id]: `⏳ Import beží (režim: ${labels[mode]})...` };
-                // Poll progress
                 pollFeedAction(feed.id, mode);
             } else {
                 feedResult = { ...feedResult, [feed.id]: '❌ ' + (data.error || 'Chyba pri štarte') };
@@ -213,7 +222,8 @@
     async function pollFeedAction(feedId, mode) {
         const labels = { ean: 'EAN', ai: 'AI', fulltext: 'Fulltext' };
         let polls = 0;
-        const interval = setInterval(async () => {
+        if (feedPollInterval) clearInterval(feedPollInterval);
+        feedPollInterval = setInterval(async () => {
             try {
                 const res = await fetch(API_BASE + '/admin/offer-feeds/' + feedId + '/progress');
                 const data = await res.json();
@@ -222,7 +232,7 @@
                     if (p.status === 'completed' || p.status === 'error' || p.status === 'cancelled') {
                         feedResult = { ...feedResult, [feedId]: `✅ ${labels[mode]}: ${p.processed || 0} spracovaných, ${p.created || 0} nových, ${p.matched || 0} spárovaných, ${p.errors || 0} chýb` };
                         feedProcessing = null;
-                        clearInterval(interval);
+                        clearInterval(feedPollInterval); feedPollInterval = null;
                         await loadData();
                     } else {
                         const pct = p.percent || 0;
@@ -231,7 +241,7 @@
                 }
             } catch (e) { /* retry */ }
             polls++;
-            if (polls > 600) { clearInterval(interval); feedProcessing = null; } // 10min timeout
+            if (polls > 600) { clearInterval(feedPollInterval); feedPollInterval = null; feedProcessing = null; }
         }, 1000);
     }
 
@@ -240,14 +250,17 @@
 
     async function stopFeedAction(feed) {
         try {
+            // Stop polling first
+            if (feedPollInterval) { clearInterval(feedPollInterval); feedPollInterval = null; }
+            if (progressInterval) { clearInterval(progressInterval); progressInterval = null; }
             // Stop regular import
             await fetch(`${API_BASE}/admin/offer-feeds/${feed.id}/stop`, { method: 'POST' });
-            // Also cancel AI bulk categorization
+            // Cancel AI bulk categorization
             await fetch(`${API_BASE}/admin/ai/bulk-categorize/cancel`, { method: 'POST' });
             feedResult = { ...feedResult, [feed.id]: '⏹️ Zastavené' };
             feedProcessing = null;
             await loadData();
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error(e); feedProcessing = null; }
     }
 </script>
 
@@ -294,15 +307,11 @@
                             <td>{f.total_offers || 0} {#if f.matched_offers}<span class="green">({f.matched_offers})</span>{/if}</td>
                             <td>{formatDate(f.last_import_at)}</td>
                             <td class="actions">
-                                {#if feedProcessing === f.id}
-                                    <span class="proc-msg">{feedResult[f.id] || '⏳...'}</span>
+                                {#if feedProcessing === f.id || f.sync_status === 'running'}
+                                    <span class="proc-msg">{feedResult[f.id] || '⏳ Import beží...'}</span>
                                     <button class="btn small danger" on:click={() => stopFeedAction(f)} title="Zastaviť">⏹️ Stop</button>
                                 {:else}
-                                    {#if f.sync_status === 'running'}
-                                        <button class="btn small warning" on:click={stopImport}>⏹</button>
-                                    {:else}
-                                        <button class="btn small success" on:click={() => startImport(f)} title="Import">▶</button>
-                                    {/if}
+                                    <button class="btn small success" on:click={() => startImport(f)} title="Import">▶</button>
                                     <button class="btn small ean-btn" on:click={() => feedAction(f, 'ean')} title="EAN párovanie">📦</button>
                                     <button class="btn small ai-btn" on:click={() => feedAction(f, 'ai')} title="AI kategorizácia">🤖</button>
                                     <button class="btn small ft-btn" on:click={() => feedAction(f, 'fulltext')} title="Fulltext only">🔍</button>
