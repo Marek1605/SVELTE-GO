@@ -48,7 +48,7 @@
     function downloadCSV() { let u = `${API_BASE}/admin/ai/categorization-report/csv`; if (reportShopId) u += `?shop_id=${reportShopId}`; window.open(u, '_blank'); }
     function downloadXLSX() { let u = `${API_BASE}/admin/ai/categorization-report/csv?format=xlsx`; if (reportShopId) u += `&shop_id=${reportShopId}`; window.open(u, '_blank'); }
     function switchToReport() { activeTab = 'report'; if (reportData.length === 0) loadReport(); }
-    async function runCleanup(delP, delC, delAllC = false) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delAllC) m += '- Zmazať VŠETKY kategórie pre tohto vendora!\n'; else if (delC) m += '- Zmazať prázdne kategórie\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_all_categories: delAllC }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 8000); }
+    async function runCleanup(delP, delC, delAllC = false) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delAllC) m += '- Zmazať VŠETKY kategórie pre tohto vendora!\n'; else if (delC) m += '- Zmazať prázdne kategórie\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_all_categories: delAllC }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; if (r.logs?.length) cleanupMsg += '\n' + r.logs.join('\n'); await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 15000); }
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
     function shortDate(s) { if (!s) return '—'; return s.length > 19 ? s.slice(0, 19).replace('T', ' ') : s; }
 
@@ -314,7 +314,7 @@ tr.row-created{background:#fffbeb} tr.row-matched{background:#f0fdf4} tr.row-ful
 .empty-msg{padding:40px;text-align:center;color:#64748b;background:#f8fafc;border-radius:8px}
 .cleanup-warn{padding:14px 18px;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;color:#92400e;font-size:13px;margin-bottom:20px;line-height:1.5}
 .cleanup-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-.cleanup-result{margin-top:16px;padding:14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:14px;font-weight:500;color:#166534}
+.cleanup-result{margin-top:16px;padding:14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:14px;font-weight:500;color:#166534;white-space:pre-line}
 .audit-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
 .audit-list{display:flex;flex-direction:column;gap:8px}
 .audit-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px}
