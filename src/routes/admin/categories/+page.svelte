@@ -103,6 +103,7 @@
         if (searchQuery) list = list.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.path.toLowerCase().includes(searchQuery.toLowerCase()));
         if (filterMode === 'no_image') list = list.filter(c => !c.image_url);
         if (filterMode === 'empty') list = list.filter(c => (c.product_count || 0) === 0);
+        if (filterMode === 'hidden') list = list.filter(c => !c.is_active);
         return list;
     })();
 
@@ -110,7 +111,8 @@
         total: allFlat.length,
         withImage: allFlat.filter(c => c.image_url).length,
         noImage: allFlat.filter(c => !c.image_url).length,
-        empty: allFlat.filter(c => (c.product_count || 0) === 0).length
+        empty: allFlat.filter(c => (c.product_count || 0) === 0).length,
+        hidden: allFlat.filter(c => !c.is_active).length
     };
 
     function toggle(id) {
@@ -156,7 +158,7 @@
         savingId = editCat.id;
         await fetch(`${API}/admin/categories/${editCat.id}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: editCat.name, image_url: editImageUrl, slug: editCat.slug })
+            body: JSON.stringify({ name: editCat.name, image_url: editImageUrl, slug: editCat.slug, is_active: editCat.is_active })
         });
         savingId = null; showEditModal = false;
         await loadCategories();
@@ -180,6 +182,25 @@
     async function deleteCat(id, name) {
         if (!confirm(`Zmazať "${name}"?`)) return;
         await fetch(`${API}/admin/categories/${id}`, { method: 'DELETE' });
+        await loadCategories();
+    }
+
+    async function toggleActive(cat) {
+        await fetch(`${API}/admin/categories/${cat.id}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: !cat.is_active })
+        });
+        await loadCategories();
+    }
+
+    async function toggleTree(cat) {
+        const newState = !cat.is_active;
+        const action = newState ? 'Zobraziť' : 'Skryť';
+        if (!confirm(`${action} "${cat.name}" aj so všetkými podkategóriami?`)) return;
+        await fetch(`${API}/admin/categories/${cat.id}/toggle-tree`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: newState })
+        });
         await loadCategories();
     }
     function exportCSV() {
@@ -212,7 +233,7 @@
     <div class="header">
         <div>
             <h1>📁 Kategórie</h1>
-            <p class="sub">{stats.total} kategórií · {stats.withImage} s obrázkom · {stats.noImage} bez · {stats.empty} prázdnych</p>
+            <p class="sub">{stats.total} kategórií · {stats.withImage} s obrázkom · {stats.noImage} bez · {stats.empty} prázdnych{#if stats.hidden > 0} · <strong>{stats.hidden} skrytých</strong>{/if}</p>
         </div>
         <div class="actions">
             <button class="btn sm" on:click={exportCSV}>📥 CSV</button>
@@ -252,6 +273,7 @@
                 <option value="">Všetky</option>
                 <option value="no_image">❌ Bez obrázka ({stats.noImage})</option>
                 <option value="empty">📭 Prázdne ({stats.empty})</option>
+                <option value="hidden">👁️ Skryté ({stats.hidden})</option>
             </select>
             <button class="btn xs" on:click={expandAll}>➕ Rozbaliť</button>
             <button class="btn xs" on:click={collapseAll}>➖ Zbaliť</button>
@@ -283,7 +305,7 @@
                 </tr></thead>
                 <tbody>
                     {#each filtered as cat}
-                        <tr class:selected={selectedIds.has(cat.id)} class:empty-cat={!cat.product_count}>
+                        <tr class:selected={selectedIds.has(cat.id)} class:empty-cat={!cat.product_count} class:hidden-cat={!cat.is_active}>
                             <td><input type="checkbox" checked={selectedIds.has(cat.id)} on:change={() => toggleSelect(cat.id)}></td>
                             <td class="thumb">
                                 {#if cat.image_url}
@@ -299,7 +321,8 @@
                                             {expandedIds.has(cat.id) ? '▼' : '▶'}
                                         </button>
                                     {/if}
-                                    <span class="cat-name">{cat.name}</span>
+                                    <span class="cat-name" class:cat-hidden={!cat.is_active}>{cat.name}</span>
+                                    {#if !cat.is_active}<span class="badge-hidden">skryté</span>{/if}
                                     {#if searchQuery && cat.level > 0}
                                         <span class="cat-path">{cat.path}</span>
                                     {/if}
@@ -307,6 +330,14 @@
                             </td>
                             <td class="count">{cat.product_count || 0}</td>
                             <td class="act">
+                                <button class="ico-btn" on:click={() => toggleActive(cat)} title={cat.is_active ? 'Skryť' : 'Zobraziť'}>
+                                    {cat.is_active ? '👁️' : '👁️‍🗨️'}
+                                </button>
+                                {#if cat.hasChildren}
+                                    <button class="ico-btn" on:click={() => toggleTree(cat)} title={cat.is_active ? 'Skryť celý strom' : 'Zobraziť celý strom'}>
+                                        {cat.is_active ? '🌲' : '🌲'}
+                                    </button>
+                                {/if}
                                 <button class="ico-btn" on:click={() => regenImage(cat.id)} title="Pregenerovať obrázok" disabled={regeneratingId === cat.id}>
                                     {regeneratingId === cat.id ? '⏳' : '🖼️'}
                                 </button>
@@ -331,6 +362,10 @@
             <label>Slug<input type="text" bind:value={editCat.slug}></label>
             <label>Obrázok URL<input type="text" bind:value={editImageUrl} placeholder="https://..."></label>
             {#if editImageUrl}<img src={editImageUrl} alt="" class="preview-img">{/if}
+            <label class="checkbox-label">
+                <input type="checkbox" bind:checked={editCat.is_active}>
+                <span>Viditeľná na webe</span>
+            </label>
         </div>
         <div class="modal-f">
             <button class="btn" on:click={() => showEditModal = false}>Zrušiť</button>
@@ -363,7 +398,10 @@
     td{padding:4px 8px;border-bottom:1px solid #f1f5f9}
     tr:hover{background:#f8fafc}tr.selected{background:#eff6ff}
     tr.empty-cat{opacity:.6}
-    .w28{width:28px}.w32{width:32px}.w80{width:80px;text-align:center}.w100{width:100px}
+    tr.hidden-cat{opacity:.45;background:#fef2f2}
+    .cat-hidden{text-decoration:line-through;color:#94a3b8}
+    .badge-hidden{font-size:9px;font-weight:600;color:#ef4444;background:#fef2f2;border:1px solid #fecaca;padding:1px 6px;border-radius:4px;margin-left:6px}
+    .w28{width:28px}.w32{width:32px}.w80{width:80px;text-align:center}.w100{width:140px}
     .thumb img{width:24px;height:24px;object-fit:cover;border-radius:3px;display:block}
     .no-img{font-size:14px;opacity:.3}
     .name-cell{display:flex;align-items:center;gap:4px}
@@ -384,6 +422,9 @@
     .modal-b{padding:20px;display:flex;flex-direction:column;gap:12px}
     .modal-b label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;color:#374151}
     .modal-b input{padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px}
+    .modal-b input[type="checkbox"]{width:auto;padding:0}
+    .checkbox-label{flex-direction:row !important;gap:8px !important;align-items:center}
+    .checkbox-label span{font-weight:400}
     .preview-img{max-width:100px;max-height:60px;border-radius:4px;margin-top:4px}
     .modal-f{display:flex;justify-content:flex-end;gap:8px;padding:16px 20px;border-top:1px solid #e2e8f0}
 
