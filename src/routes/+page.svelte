@@ -440,7 +440,7 @@
 .cats__grid--extra{margin-top:12px}
 .cat-card{
     display:flex;align-items:center;gap:12px;
-    padding:14px 16px;background:#f8fafc;border:1px solid #e2e8f0;
+    padding:14px 16px;background:#fff;border:1px solid #e2e8f0;
     border-radius:10px;text-decoration:none;color:#0f172a;transition:all .15s;
 }
 .cat-card:hover{border-color:#c4956a;box-shadow:0 2px 12px rgba(196,149,106,0.08);transform:translateY(-1px)}
@@ -464,9 +464,9 @@
 .cats__more-btn:hover{border-color:#c4956a;color:#c4956a}
 
 /* ============ PRODUCTS ============ */
-.products,.cat-products{padding:32px 0;background:#f8fafc}
+.products,.cat-products{padding:32px 0;background:#fff}
 .cat-products{background:#fff}
-.cat-products:nth-child(even){background:#f8fafc}
+.cat-products:nth-child(even){background:#fff}
 .products__inner,.cat-products__inner{max-width:1200px;margin:0 auto;padding:0 24px}
 
 .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
@@ -500,7 +500,7 @@
 .prod__offers{font-size:11px;color:#64748b;margin-bottom:10px}
 .prod__cta{
     margin-top:auto;padding:9px;text-align:center;
-    background:#f8fafc;border-radius:7px;
+    background:#fff;border-radius:7px;
     font-size:12px;font-weight:600;color:#c4956a;transition:all .15s;
 }
 .prod:hover .prod__cta{background:#c4956a;color:#fff}
@@ -519,7 +519,7 @@
 }
 .how__icon{
     width:64px;height:64px;margin:0 auto 12px;
-    background:#f8fafc;border-radius:50%;
+    background:#fff;border-radius:50%;
     display:flex;align-items:center;justify-content:center;color:#c4956a;border:2px solid #e2e8f0;
 }
 .how__title{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:6px}

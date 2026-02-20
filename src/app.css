@@ -10,9 +10,9 @@
     --mp-text-light: #6b7280;
     --mp-text-lighter: #9ca3af;
     
-    --mp-bg: #f8f9fa;
+    --mp-bg: #ffffff;
     --mp-bg-white: #ffffff;
-    --mp-bg-gray: #f3f4f6;
+    --mp-bg-gray: #f8f9fa;
     
     --mp-border: #e5e7eb;
     --mp-border-light: #f3f4f6;
@@ -35,9 +35,8 @@
 
 /* Global Container */
 .mp-container {
-    max-width: var(--mp-container);
-    margin: 0 auto;
-    padding: 0 24px;
+    width: 100%;
+    padding: 0 32px;
 }
 
 @media (max-width: 768px) {

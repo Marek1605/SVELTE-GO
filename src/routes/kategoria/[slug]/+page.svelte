@@ -545,8 +545,8 @@
 
 <style>
 /* === BASE === */
-.cat-page { padding: 12px 0 60px; background: #f8f9fb; min-height: 100vh; }
-.cat-container { max-width: 1400px; margin: 0 auto; padding: 0 12px; }
+.cat-page { padding: 12px 0 60px; background: #fff; min-height: 100vh; }
+.cat-container { width: 100%; padding: 0 32px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 
 /* Breadcrumb */
