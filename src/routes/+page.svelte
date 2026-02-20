@@ -184,6 +184,23 @@
                 <a href="/kategorie" class="sec-link">Všetky kategórie <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>
             </div>
             
+            <!-- Mobile: horizontal scroll icons -->
+            <div class="cats__scroll">
+                {#each categories as cat}
+                    <a href="/kategoria/{cat.slug}" class="cats__icon-item">
+                        <div class="cats__icon-circle">
+                            {#if cat.image_url}
+                                <img src={cat.image_url} alt={cat.name} />
+                            {:else}
+                                <span>{cat.icon || '📦'}</span>
+                            {/if}
+                        </div>
+                        <span class="cats__icon-name">{cat.name}</span>
+                    </a>
+                {/each}
+            </div>
+
+            <!-- Desktop: grid cards -->
             <div class="cats__grid">
                 {#each visibleCats as cat}
                     <a href="/kategoria/{cat.slug}" class="cat-card">
@@ -417,7 +434,7 @@
 }
 .hero__tag:hover{background:rgba(196,149,106,0.15);color:#c4956a;border-color:rgba(196,149,106,0.3)}
 
-/* ============ TRUST BAR — floating card ============ */
+/* ============ TRUST BAR ============ */
 .trust{
     padding:0;margin-top:-28px;position:relative;z-index:2;
 }
@@ -436,6 +453,11 @@
 /* ============ CATEGORIES ============ */
 .cats{padding:48px 0 32px}
 .cats__inner{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* Mobile scroll icons - hidden on desktop */
+.cats__scroll{display:none}
+
+/* Desktop grid */
 .cats__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .cats__grid--extra{margin-top:12px}
 .cat-card{
@@ -466,7 +488,6 @@
 /* ============ PRODUCTS ============ */
 .products,.cat-products{padding:32px 0;background:#fff}
 .cat-products{background:#fff}
-.cat-products:nth-child(even){background:#fff}
 .products__inner,.cat-products__inner{max-width:1200px;margin:0 auto;padding:0 24px}
 
 .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
@@ -476,7 +497,6 @@
     text-decoration:none;color:#0f172a;overflow:hidden;
     transition:all .15s;display:flex;flex-direction:column;position:relative;
 }
-.cat-products .prod{background:#fff}
 .prod:hover{box-shadow:0 6px 20px rgba(0,0,0,0.06);transform:translateY(-2px);border-color:#d1d5db}
 .prod__badge{
     position:absolute;top:8px;left:8px;z-index:1;
@@ -550,18 +570,125 @@
 .vendor-cta__card-row span{color:#94a3b8}
 .vendor-cta__card-row strong{color:#c4956a;font-weight:700}
 
-/* ============ RESPONSIVE ============ */
-@media(max-width:1024px){.cats__grid{grid-template-columns:repeat(3,1fr)}.prod-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:768px){
-    .hero{padding:32px 0 28px}.hero__title{font-size:26px}
-    .hero__search{flex-direction:column;border-radius:12px}
-    .hero__input{padding:12px 14px;border-radius:12px 12px 0 0;text-align:center}.hero__search-icon{display:none}
-    .hero__btn{border-radius:0 0 12px 12px;width:100%}
-    .trust__inner{flex-wrap:wrap;gap:16px;padding:16px 20px;justify-content:center}.trust__sep{display:none}
-    .cats__grid,.prod-grid{grid-template-columns:repeat(2,1fr)}
-    .how__grid{flex-direction:column;gap:20px}.how__arrow{display:none}
-    .vendor-cta__inner{flex-direction:column;text-align:center}.vendor-cta__features{align-items:center}
-    .sec-head{flex-direction:column;align-items:flex-start;gap:6px}
+/* ============ RESPONSIVE — TABLET ============ */
+@media(max-width:1024px){
+    .cats__grid{grid-template-columns:repeat(3,1fr)}
+    .prod-grid{grid-template-columns:repeat(3,1fr)}
 }
-@media(max-width:480px){.cats__grid,.prod-grid{grid-template-columns:1fr}.trust__inner{flex-direction:column;gap:10px;padding:16px}}
+
+/* ============ RESPONSIVE — MOBILE ============ */
+@media(max-width:768px){
+    /* Hero compact */
+    .hero{padding:24px 0 20px}
+    .hero__inner{padding:0 16px}
+    .hero__title{font-size:22px;letter-spacing:-.3px;margin-bottom:6px}
+    .hero__sub{font-size:13px;margin-bottom:18px}
+    .hero__search{border-radius:12px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
+    .hero__input{padding:11px 12px 11px 40px;font-size:14px}
+    .hero__search-icon{left:14px}
+    .hero__btn{padding:11px 18px;font-size:13px;border-radius:8px}
+    .hero__tags{gap:4px}
+    .hero__tags-label{font-size:11px}
+    .hero__tag{padding:3px 8px;font-size:10px}
+    
+    /* Trust bar: 2x2 grid */
+    .trust{margin-top:-16px}
+    .trust__inner{
+        display:grid;grid-template-columns:1fr 1fr;gap:0;
+        padding:0;border-radius:12px;max-width:calc(100% - 24px);
+        overflow:hidden;
+    }
+    .trust__item{padding:12px 8px;gap:6px;border-bottom:1px solid #f0f1f3;border-right:1px solid #f0f1f3;justify-content:flex-start}
+    .trust__item:nth-child(even){border-right:none}
+    .trust__item:nth-child(n+3){border-bottom:none}
+    .trust__item svg{width:18px;height:18px}
+    .trust__num{font-size:13px}
+    .trust__label{font-size:10px}
+    .trust__sep{display:none}
+    
+    /* Categories: show scroll, hide grid */
+    .cats{padding:28px 0 20px}
+    .cats__inner{padding:0 16px}
+    .cats__grid{display:none !important}
+    .cats__overflow{display:none}
+    .cats__scroll{
+        display:flex;gap:12px;
+        overflow-x:auto;-webkit-overflow-scrolling:touch;
+        padding:4px 0 8px;margin:0 -16px;padding-left:16px;padding-right:16px;
+        scroll-snap-type:x proximity;
+    }
+    .cats__scroll::-webkit-scrollbar{display:none}
+    .cats__icon-item{
+        display:flex;flex-direction:column;align-items:center;gap:6px;
+        flex-shrink:0;width:68px;text-decoration:none;scroll-snap-align:start;
+    }
+    .cats__icon-circle{
+        width:52px;height:52px;border-radius:50%;
+        background:#f8f9fb;border:2px solid #e5e7eb;
+        display:flex;align-items:center;justify-content:center;
+        overflow:hidden;transition:all .15s;
+    }
+    .cats__icon-item:active .cats__icon-circle{border-color:#c4956a;transform:scale(0.95)}
+    .cats__icon-circle img{width:100%;height:100%;object-fit:cover}
+    .cats__icon-circle span{font-size:22px}
+    .cats__icon-name{
+        font-size:10px;font-weight:600;color:#4b5563;text-align:center;
+        line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;
+        -webkit-box-orient:vertical;overflow:hidden;word-break:break-word;
+    }
+    
+    /* Products grid mobile */
+    .products,.cat-products{padding:20px 0}
+    .products__inner,.cat-products__inner{padding:0 12px}
+    .prod-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+    .prod{border-radius:10px}
+    .prod__img{height:120px;padding:8px}
+    .prod__body{padding:10px}
+    .prod__badge{top:6px;left:6px;font-size:14px}
+    .prod__brand{font-size:9px;margin-bottom:2px}
+    .prod__title{font-size:12px;margin:0 0 4px;-webkit-line-clamp:2}
+    .prod__price-from{font-size:10px}
+    .prod__price-val{font-size:16px}
+    .prod__offers{font-size:10px;margin-bottom:6px}
+    .prod__cta{padding:7px;font-size:11px;border-radius:6px}
+    
+    /* How section */
+    .how{padding:28px 0}
+    .how__grid{flex-direction:column;gap:16px;margin-top:20px}
+    .how__step{padding:0 16px}
+    .how__icon{width:52px;height:52px}
+    .how__icon svg{width:24px;height:24px}
+    .how__num{width:20px;height:20px;font-size:10px;top:-8px}
+    .how__title{font-size:14px}
+    .how__text{font-size:12px}
+    .how__arrow{display:none}
+    
+    /* Vendor CTA */
+    .vendor-cta{padding:28px 0}
+    .vendor-cta__inner{flex-direction:column;text-align:center;gap:20px;padding:0 16px}
+    .vendor-cta__title{font-size:20px}
+    .vendor-cta__text{font-size:13px}
+    .vendor-cta__features{align-items:center}
+    .vendor-cta__feat{font-size:12px}
+    .vendor-cta__btn{font-size:13px;padding:10px 20px}
+    .vendor-cta__card{min-width:0;width:100%;max-width:260px}
+    
+    /* Section heads */
+    .sec-head{margin-bottom:16px;gap:4px}
+    .sec-title{font-size:18px}
+    .sec-sub{font-size:12px;margin:2px 0 0}
+    .sec-link{font-size:12px}
+}
+
+@media(max-width:380px){
+    .cats__icon-item{width:60px}
+    .cats__icon-circle{width:46px;height:46px}
+    .cats__icon-circle span{font-size:18px}
+    .cats__icon-name{font-size:9px}
+    .prod-grid{gap:6px}
+    .prod__img{height:100px}
+    .prod__body{padding:8px}
+    .prod__price-val{font-size:14px}
+    .hero__title{font-size:20px}
+}
 </style>

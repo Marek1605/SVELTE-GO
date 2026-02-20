@@ -166,6 +166,14 @@
                 {#if showCart}<a href="/kosik" class="mp-header__action mp-header__action--cart"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span>Košík</span></a>{/if}
             </nav>
         </div>
+        <!-- Mobile search bar -->
+        <div class="mp-mobile-search">
+            <form class="mp-mobile-search__form" on:submit={handleSearch}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Hľadaj produkt, značku..." bind:value={searchQuery}>
+                <button type="submit">Hľadať</button>
+            </form>
+        </div>
     </header>
 
     <nav class="mp-catnav" class:is-collapsed={isCollapsed}>
@@ -394,9 +402,20 @@
 @media (max-width: 768px) {
     .mp-header__inner { gap: 12px; padding: 10px 16px; }
     .mp-search { display: none; }
-    .mp-header__actions { gap: 4px; }
-    .mp-header__action { padding: 8px; }
+    .mp-header__actions { gap: 2px; }
+    .mp-header__action { padding: 6px; }
     .mp-header__action span:last-child { display: none; }
+}
+
+/* MOBILE SEARCH */
+.mp-mobile-search { display: none; }
+@media (max-width: 768px) {
+    .mp-mobile-search { display: block; padding: 0 12px 10px; background: #fff; }
+    .mp-mobile-search__form { display: flex; border: 1.5px solid #e5e7eb; border-radius: 10px; overflow: hidden; background: #f9fafb; }
+    .mp-mobile-search__form svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+    .mp-mobile-search__form { position: relative; }
+    .mp-mobile-search__form input { flex: 1; border: none; background: none; padding: 10px 12px 10px 38px; font-size: 14px; outline: none; min-width: 0; }
+    .mp-mobile-search__form button { padding: 10px 16px; background: #c4956a; color: #fff; border: none; font-size: 13px; font-weight: 600; white-space: nowrap; }
 }
 
 /* ═══ CATNAV ═══ */
@@ -523,10 +542,12 @@
 .cn-drop__subcat-name { font-size: 12px; color: #4b5563; white-space: nowrap; }
 @media (max-width: 768px) {
     .mp-catnav__inner { padding: 0 0 0 8px; }
-    .mp-catnav__list { padding: 6px 0 6px 0; gap: 3px; }
-    .mp-catnav__end { padding-right: 8px; padding-left: 12px; }
+    .mp-catnav__list { padding: 6px 0 6px 0; gap: 3px; overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+    .mp-catnav__end { padding-right: 8px; padding-left: 8px; }
     .mp-catnav__collapsed-actions { display: none !important; }
     .mp-catnav__arrow { display: none; }
+    .cn-pill { scroll-snap-align: start; }
+    .cn-pill__txt { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
 }
 
 /* MEGA MENU */
