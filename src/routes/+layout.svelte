@@ -373,17 +373,17 @@
 
 /* HEADER */
 .mp-header { background: #fff; border-bottom: 1px solid #f0f0f0; position: relative; z-index: 1000; }
-.mp-header__inner { display: flex; align-items: center; gap: 24px; padding: 12px 32px; width: 100%; }
+.mp-header__inner { display: flex; align-items: center; gap: 24px; padding: 12px 32px; max-width: 1800px; margin: 0 auto; width: 100%; }
 .mp-header__logo { flex-shrink: 0; }
 .mp-header__logo-text { font-size: 24px; font-weight: 700; color: #ff6b35; }
 .mp-header__logo-img { height: 40px; max-width: 300px; object-fit: contain; display: block; }
-.mp-search { flex: 1; max-width: 640px; margin: 0 auto; display: flex; }
+.mp-search { flex: 1; max-width: 640px; display: flex; }
 .mp-search__input { flex: 1; padding: 12px 20px; border: 2px solid #e5e7eb; border-right: none; border-radius: 10px 0 0 10px; font-size: 15px; outline: none; transition: border-color 0.2s; background: #fff; }
 .mp-search__input:focus { border-color: #ff6b35; }
 .mp-search__input::placeholder { color: #9ca3af; }
 .mp-search__btn { padding: 12px 24px; background: #ff6b35; border: none; border-radius: 0 10px 10px 0; color: #fff; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
 .mp-search__btn:hover { background: #e55a2b; }
-.mp-header__actions { display: flex; gap: 6px; flex-shrink: 0; margin-left: auto; }
+.mp-header__actions { display: flex; gap: 6px; flex-shrink: 0; }
 .mp-header__action { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 12px; border-radius: 10px; color: #4b5563; font-size: 11px; font-weight: 500; transition: all 0.2s; }
 .mp-header__action:hover { background: #f3f4f6; color: #ff6b35; }
 .mp-header__action--cart { background: #ff6b35; color: #fff !important; }
