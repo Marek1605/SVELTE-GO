@@ -2,6 +2,10 @@
     import { onMount, onDestroy } from 'svelte';
     import { adminFetch as apiFetch } from '$lib/adminApi.js';
     const API_BASE = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+    function getAuthHeaders() {
+        const u = sessionStorage.getItem('adm_u'), p = sessionStorage.getItem('adm_p');
+        return (u && p) ? { 'Authorization': 'Basic ' + btoa(u + ':' + p) } : {};
+    }
     let settings = { ai_provider: 'openai', openai_api_key: '', anthropic_api_key: '', ai_model_openai: 'gpt-4o-mini', ai_model_anthropic: 'claude-sonnet-4-20250514' };
     let loading = true, saving = false, saveMsg = '';
 
@@ -46,8 +50,32 @@
     function changeReportFilter(f) { reportFilter = f; reportPage = 1; loadReport(); }
     function changeReportPage(p) { if (p >= 1 && p <= reportTotalPages) { reportPage = p; loadReport(); } }
     function changeReportShop() { reportPage = 1; loadReport(); }
-    function downloadCSV() { let u = `${API_BASE}/admin/ai/categorization-report/csv`; if (reportShopId) u += `?shop_id=${reportShopId}`; window.open(u, '_blank'); }
-    function downloadXLSX() { let u = `${API_BASE}/admin/ai/categorization-report/csv?format=xlsx`; if (reportShopId) u += `&shop_id=${reportShopId}`; window.open(u, '_blank'); }
+    async function downloadCSV() {
+        let u = `${API_BASE}/admin/ai/categorization-report/csv`;
+        if (reportShopId) u += `?shop_id=${reportShopId}`;
+        try {
+            const r = await fetch(u, { headers: { ...getAuthHeaders() } });
+            if (!r.ok) { alert('Chyba pri sťahovaní'); return; }
+            const blob = await r.blob();
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'categorization-report.csv';
+            a.click(); URL.revokeObjectURL(a.href);
+        } catch(e) { alert('Chyba: ' + e.message); }
+    }
+    async function downloadXLSX() {
+        let u = `${API_BASE}/admin/ai/categorization-report/csv?format=xlsx`;
+        if (reportShopId) u += `&shop_id=${reportShopId}`;
+        try {
+            const r = await fetch(u, { headers: { ...getAuthHeaders() } });
+            if (!r.ok) { alert('Chyba pri sťahovaní'); return; }
+            const blob = await r.blob();
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'categorization-report.xlsx';
+            a.click(); URL.revokeObjectURL(a.href);
+        } catch(e) { alert('Chyba: ' + e.message); }
+    }
     function switchToReport() { activeTab = 'report'; if (reportData.length === 0) loadReport(); }
     async function runCleanup(delP, delC, delAllC = false) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delAllC) m += '- Zmazať VŠETKY kategórie pre tohto vendora!\n'; else if (delC) m += '- Zmazať prázdne kategórie\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_all_categories: delAllC }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; if (r.logs?.length) cleanupMsg += '\n' + r.logs.join('\n'); await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 15000); }
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
