@@ -73,6 +73,7 @@
     const groups = [
         { key: 'catalog', label: 'Katalóg', items: [
             { href: '/admin/products', label: 'Produkty', icon: '📦' },
+            { href: '/admin/product-stats', label: 'TOP & Štatistiky', icon: '📊' },
             { href: '/admin/categories', label: 'Kategórie', icon: '📁' },
             { href: '/admin/filters', label: 'Filtre', icon: '🎛️' },
         ]},
