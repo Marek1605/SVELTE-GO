@@ -392,7 +392,8 @@
 }
 
 .mp-product__container {
-    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
     padding: 0 32px;
 }
 
@@ -462,7 +463,7 @@
     flex: 1;
     max-width: 400px;
     aspect-ratio: 1;
-    background: #f9fafb;
+    background: #fff;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -510,7 +511,7 @@
     width: 44px;
     height: 44px;
     padding: 0;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #f0f0f0;
     border-radius: 50%;
     background: #fff;
     color: #6b7280;
@@ -522,8 +523,8 @@
 
 /* AI Assistant Box */
 .mp-ai-box {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+    background: #fff;
+    border: 1px solid #f0f0f0;
     border-radius: 12px;
     padding: 16px;
 }
@@ -547,7 +548,7 @@
 
 .mp-ai-box__btn {
     padding: 10px 14px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #f0f0f0;
     border-radius: 8px;
     background: #fff;
     font-size: 12px;
@@ -564,7 +565,8 @@
     background: #fff;
     border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 10px 24px rgba(0,0,0,0.08);
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     position: sticky;
     top: 100px;
     }
@@ -589,7 +591,7 @@
     gap: 12px;
     margin-bottom: 16px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .mp-buybox__logo {
@@ -703,7 +705,7 @@
 .mp-tabs {
     display: flex;
     gap: 0;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #f0f0f0;
     margin-bottom: 24px;
 }
 
@@ -741,8 +743,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .mp-offers__title {
@@ -770,7 +772,7 @@
 .mp-offers__filter {
     padding: 6px 14px;
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #f0f0f0;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 500;
@@ -795,7 +797,7 @@
     gap: 16px;
     padding: 14px 18px;
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #f0f0f0;
     border-radius: 10px;
     transition: all 0.2s;
 }
@@ -813,7 +815,7 @@
     height: 42px;
     border-radius: 10px;
     background: #f3f4f6;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #f0f0f0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -944,7 +946,7 @@
     display: flex;
     justify-content: space-between;
     padding: 12px 16px;
-    background: #f9fafb;
+    background: #fafafa;
     border-radius: 8px;
 }
 
