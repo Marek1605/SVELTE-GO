@@ -53,8 +53,8 @@
         loading = true; error = null;
         try {
             const [fRes, sRes] = await Promise.all([
-                fetch(`${API_BASE}/admin/offer-feeds/`),
-                fetch(`${API_BASE}/admin/shops`)
+                adminRawFetch(`${API_BASE}/admin/offer-feeds/`),
+                adminRawFetch(`${API_BASE}/admin/shops`)
             ]);
             const fData = await fRes.json();
             const sData = await sRes.json();
