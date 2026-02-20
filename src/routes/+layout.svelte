@@ -25,6 +25,7 @@
     let showAccount = true;
     let showWishlist = true;
     let showCompare = true;
+    let expandedCats = new Set();
     function toggleAllCats() { showAllCats = !showAllCats; if (!showAllCats) editMode = false; }
     function closeAllCats() { showAllCats = false; editMode = false; }
     function toggleEditMode() { editMode = !editMode; }
@@ -61,6 +62,12 @@
     function handleCatnavSearch(e) { e.preventDefault(); if (catnavSearchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(catnavSearchQuery)}`; }
     function scrollCategories(direction) { const list = document.querySelector('.mp-catnav__list'); if (list) list.scrollBy({ left: direction * 200, behavior: 'smooth' }); }
     function closeMobileMenu() { mobileMenuOpen = false; document.body.style.overflow = ''; }
+    function openMobileMenu() { mobileMenuOpen = true; document.body.style.overflow = 'hidden'; }
+    function toggleCatExpand(catId) {
+        const next = new Set(expandedCats);
+        if (next.has(catId)) next.delete(catId); else next.add(catId);
+        expandedCats = next;
+    }
     function openMegaMenu(cat) {
         if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; }
         if (cat.children && cat.children.length > 0) { activeCategoryId = cat.id; activeCategoryData = cat; megaMenuOpen = true; }
@@ -145,6 +152,9 @@
 <div class="mp-site">
     <header class="mp-header">
         <div class="mp-header__inner">
+            <button class="mp-header__hamburger" on:click={openMobileMenu} aria-label="Menu">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
             <a href="/" class="mp-header__logo">
                 {#if logoUrl}
                     <img src={logoUrl} alt="MegaPrice" class="mp-header__logo-img" style="height:{logoSize}px" />
@@ -165,14 +175,6 @@
                 {#if showCompare}<a href="/porovnanie" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg>{#if compareCount > 0}<span class="mp-header__action-badge mp-header__action-badge--blue">{compareCount}</span>{/if}</span><span>Porovnať</span></a>{/if}
                 {#if showCart}<a href="/kosik" class="mp-header__action mp-header__action--cart"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span>Košík</span></a>{/if}
             </nav>
-        </div>
-        <!-- Mobile search bar -->
-        <div class="mp-mobile-search">
-            <form class="mp-mobile-search__form" on:submit={handleSearch}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" placeholder="Hľadaj produkt, značku..." bind:value={searchQuery}>
-                <button type="submit">Hľadať</button>
-            </form>
         </div>
     </header>
 
@@ -347,24 +349,94 @@
 
     <nav class="mp-bottom-nav">
         <a href="/" class="mp-bottom-nav__item" class:is-active={$page.url.pathname === '/'}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Domov</span></a>
-        <a href="/kategorie" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Kategórie</span></a>
+        <button class="mp-bottom-nav__item" on:click={openMobileMenu}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Kategórie</span></button>
         {#if showWishlist}<a href="/oblubene" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Obľúbené</span></a>{/if}
         {#if showAccount}<a href="/ucet" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Účet</span></a>{/if}
     </nav>
 
     {#if mobileMenuOpen}
-        <div class="mp-mobile-overlay" on:click={closeMobileMenu}></div>
-        <div class="mp-mobile-menu">
-            <div class="mp-mobile-menu__header">
-                <span class="mp-mobile-menu__title">Kategórie</span>
-                <button class="mp-mobile-menu__close" on:click={closeMobileMenu}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <div class="mp-drawer-overlay" on:click={closeMobileMenu}></div>
+        <div class="mp-drawer">
+            <div class="mp-drawer__header">
+                <a href="/" class="mp-drawer__logo" on:click={closeMobileMenu}>
+                    {#if logoUrl}
+                        <img src={logoUrl} alt="MegaPrice" style="height:28px" />
+                    {:else}
+                        <span class="mp-drawer__logo-text">megaprice</span>
+                    {/if}
+                </a>
+                <button class="mp-drawer__close" on:click={closeMobileMenu}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
-            <div class="mp-mobile-menu__content">
+
+            <div class="mp-drawer__search">
+                <form on:submit|preventDefault={() => { if (searchQuery.trim()) { closeMobileMenu(); window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`; } }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" placeholder="Hľadať produkty..." bind:value={searchQuery}>
+                </form>
+            </div>
+
+            <nav class="mp-drawer__nav">
+                <div class="mp-drawer__label">Kategórie</div>
                 {#each visibleCategories as cat}
-                    <a href={"/kategoria/" + (cat.slug || cat.id)} class="mp-mobile-menu__link" on:click={closeMobileMenu}>
-                        <span class="mp-mobile-menu__icon">{getCategoryEmoji(cat.name)}</span>{cat.name}
-                    </a>
+                    <div class="mp-drawer__cat" class:is-expanded={expandedCats.has(cat.id)}>
+                        <div class="mp-drawer__cat-row">
+                            <a href={"/kategoria/" + (cat.slug || cat.id)} class="mp-drawer__cat-link" on:click={closeMobileMenu}>
+                                <span class="mp-drawer__cat-ico">
+                                    {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                                </span>
+                                <span class="mp-drawer__cat-name">{cat.name}</span>
+                            </a>
+                            {#if cat.children && cat.children.length > 0}
+                                <button class="mp-drawer__cat-toggle" on:click={() => toggleCatExpand(cat.id)}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                </button>
+                            {/if}
+                        </div>
+
+                        {#if expandedCats.has(cat.id) && cat.children}
+                            <div class="mp-drawer__sub">
+                                <a href={"/kategoria/" + (cat.slug || cat.id)} class="mp-drawer__sub-all" on:click={closeMobileMenu}>
+                                    Zobraziť všetko v {cat.name}
+                                </a>
+                                {#each cat.children.filter(c => !hiddenCats.has(c.id)) as sub}
+                                    <div class="mp-drawer__sub-cat" class:is-expanded={expandedCats.has(sub.id)}>
+                                        <div class="mp-drawer__sub-row">
+                                            <a href={"/kategoria/" + (sub.slug || sub.id)} class="mp-drawer__sub-link" on:click={closeMobileMenu}>
+                                                {sub.name}
+                                            </a>
+                                            {#if sub.grandchildren && sub.grandchildren.length > 0}
+                                                <button class="mp-drawer__sub-toggle" on:click={() => toggleCatExpand(sub.id)}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                                </button>
+                                            {/if}
+                                        </div>
+
+                                        {#if expandedCats.has(sub.id) && sub.grandchildren}
+                                            <div class="mp-drawer__leaf">
+                                                {#each sub.grandchildren.filter(g => !hiddenCats.has(g.id)) as leaf}
+                                                    <a href={"/kategoria/" + (leaf.slug || leaf.id)} class="mp-drawer__leaf-link" on:click={closeMobileMenu}>{leaf.name}</a>
+                                                {/each}
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {/each}
+                            </div>
+                        {/if}
+                    </div>
                 {/each}
+            </nav>
+
+            <div class="mp-drawer__footer">
+                <a href="/pre-predajcov" class="mp-drawer__footer-link" on:click={closeMobileMenu}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    Pre predajcov
+                </a>
+                <a href="/kontakt" class="mp-drawer__footer-link" on:click={closeMobileMenu}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Kontakt
+                </a>
             </div>
         </div>
     {/if}
@@ -385,6 +457,11 @@
 .mp-header__logo { flex-shrink: 0; }
 .mp-header__logo-text { font-size: 24px; font-weight: 700; color: #ff6b35; }
 .mp-header__logo-img { height: 40px; max-width: 300px; object-fit: contain; display: block; }
+.mp-header__hamburger {
+    display: none; width: 36px; height: 36px; align-items: center; justify-content: center;
+    background: none; border: none; color: #374151; flex-shrink: 0; border-radius: 8px;
+}
+.mp-header__hamburger:active { background: #f3f4f6; }
 .mp-search { flex: 1; max-width: 640px; display: flex; }
 .mp-search__input { flex: 1; padding: 12px 20px; border: 2px solid #e5e7eb; border-right: none; border-radius: 10px 0 0 10px; font-size: 15px; outline: none; transition: border-color 0.2s; background: #fff; }
 .mp-search__input:focus { border-color: #ff6b35; }
@@ -401,23 +478,13 @@
 .mp-header__action-badge--blue { background: #3b82f6; }
 @media (max-width: 768px) {
     .mp-header__inner { gap: 8px; padding: 8px 12px; }
-    .mp-header__logo-img { max-height: 32px !important; height: 32px !important; width: auto; }
+    .mp-header__hamburger { display: flex; }
+    .mp-header__logo-img { max-height: 30px !important; height: 30px !important; width: auto; }
     .mp-search { display: none; }
     .mp-header__actions { gap: 0; }
     .mp-header__action { padding: 6px 4px; }
     .mp-header__action span:last-child { display: none; }
     .mp-header__action-icon svg { width: 20px; height: 20px; }
-}
-
-/* MOBILE SEARCH */
-.mp-mobile-search { display: none; }
-@media (max-width: 768px) {
-    .mp-mobile-search { display: block; padding: 0 12px 10px; background: #fff; }
-    .mp-mobile-search__form { display: flex; border: 1.5px solid #e5e7eb; border-radius: 10px; overflow: hidden; background: #f9fafb; }
-    .mp-mobile-search__form svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-    .mp-mobile-search__form { position: relative; }
-    .mp-mobile-search__form input { flex: 1; border: none; background: none; padding: 10px 12px 10px 38px; font-size: 14px; outline: none; min-width: 0; }
-    .mp-mobile-search__form button { padding: 10px 16px; background: #c4956a; color: #fff; border: none; font-size: 13px; font-weight: 600; white-space: nowrap; }
 }
 
 /* ═══ CATNAV ═══ */
@@ -543,28 +610,7 @@
 .cn-drop__subcat-row.is-hidden { opacity: 0.45; }
 .cn-drop__subcat-name { font-size: 12px; color: #4b5563; white-space: nowrap; }
 @media (max-width: 768px) {
-    .mp-catnav__inner { padding: 0 0 0 8px; }
-    .mp-catnav__list { padding: 6px 0; gap: 3px; overflow-x: auto !important; overflow-y: hidden !important; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    .mp-catnav__list::-webkit-scrollbar { display: none; }
-    .mp-catnav__end { padding-right: 8px; padding-left: 8px; }
-    .mp-catnav__collapsed-actions { display: none !important; }
-    .mp-catnav__arrow { display: none; }
-    /* Compact pills on mobile */
-    .cn-pill { padding: 4px 10px 4px 4px; font-size: 11px; gap: 5px; }
-    .cn-pill__ico { width: 24px; height: 24px; }
-    .cn-pill__ico span { font-size: 12px; }
-    .cn-pill__txt { max-width: 72px; overflow: hidden; text-overflow: ellipsis; }
-    /* Compact icons on mobile */
-    .cn-ico { padding: 3px 6px; gap: 2px; }
-    .cn-ico__circle { width: 36px; height: 36px; border-width: 1.5px; }
-    .cn-ico__circle span { font-size: 14px; }
-    .cn-ico__name { font-size: 9px; max-width: 52px; }
-    /* Compact cards on mobile */
-    .cn-card { padding: 4px 10px 4px 4px; font-size: 11px; }
-    .cn-card__img { width: 26px; height: 26px; border-radius: 6px; }
-    .cn-card__img span { font-size: 13px; }
-    /* Compact minimal on mobile */
-    .cn-min { padding: 8px 12px; font-size: 12px; }
+    .mp-catnav { display: none; }
 }
 
 /* MEGA MENU */
@@ -607,19 +653,124 @@
 
 /* BOTTOM NAV */
 .mp-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e5e7eb; display: none; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 1100; }
-.mp-bottom-nav__item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 12px; color: #6b7280; font-size: 10px; font-weight: 500; }
+.mp-bottom-nav__item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 12px; color: #6b7280; font-size: 10px; font-weight: 500; background: none; border: none; }
 .mp-bottom-nav__item.is-active, .mp-bottom-nav__item:hover { color: #ff6b35; }
 @media (max-width: 768px) { .mp-bottom-nav { display: flex; } }
 
-/* MOBILE MENU */
-.mp-mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1200; }
-.mp-mobile-menu { position: fixed; top: 0; left: 0; bottom: 0; width: 300px; max-width: 85vw; background: #fff; z-index: 1300; display: flex; flex-direction: column; animation: slideIn 0.3s ease; }
-@keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-.mp-mobile-menu__header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: linear-gradient(135deg, #ff6b35, #e55a2b); color: #fff; }
-.mp-mobile-menu__title { font-size: 18px; font-weight: 700; }
-.mp-mobile-menu__close { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; color: #fff; }
-.mp-mobile-menu__content { flex: 1; overflow-y: auto; padding: 8px; }
-.mp-mobile-menu__link { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; color: #374151; font-weight: 500; font-size: 15px; }
-.mp-mobile-menu__link:hover { background: #f3f4f6; }
-.mp-mobile-menu__icon { font-size: 18px; }
+/* MOBILE DRAWER */
+.mp-drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1200; animation: drawerFadeIn 0.2s ease; }
+@keyframes drawerFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.mp-drawer {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 78vw; max-width: 360px;
+    background: #fff; z-index: 1300; display: flex; flex-direction: column;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+    animation: drawerSlideIn 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes drawerSlideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+
+.mp-drawer__header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border-bottom: 1px solid #f0f0f0; flex-shrink: 0;
+}
+.mp-drawer__logo { display: flex; align-items: center; }
+.mp-drawer__logo img { height: 28px; object-fit: contain; }
+.mp-drawer__logo-text { font-size: 20px; font-weight: 700; color: #c4956a; }
+.mp-drawer__close {
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    background: #f3f4f6; border: none; border-radius: 50%; color: #6b7280; transition: all 0.15s;
+}
+.mp-drawer__close:hover { background: #fee2e2; color: #ef4444; }
+
+.mp-drawer__search { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+.mp-drawer__search form {
+    display: flex; align-items: center; gap: 8px;
+    background: #f8f9fb; border: 1.5px solid #e5e7eb; border-radius: 10px;
+    padding: 0 12px; position: relative;
+}
+.mp-drawer__search svg { flex-shrink: 0; }
+.mp-drawer__search input {
+    flex: 1; border: none; background: none; padding: 10px 0; font-size: 14px;
+    outline: none; color: #1f2937; min-width: 0;
+}
+
+.mp-drawer__nav { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.mp-drawer__label {
+    padding: 12px 16px 6px; font-size: 11px; font-weight: 700; color: #9ca3af;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* Level 1 - main categories */
+.mp-drawer__cat { border-bottom: 1px solid #f5f5f5; }
+.mp-drawer__cat-row { display: flex; align-items: center; }
+.mp-drawer__cat-link {
+    flex: 1; display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; color: #1f2937; font-size: 14px; font-weight: 600;
+    min-width: 0; transition: background 0.1s;
+}
+.mp-drawer__cat-link:active { background: #f8f9fb; }
+.mp-drawer__cat-ico {
+    width: 32px; height: 32px; border-radius: 8px; background: #f8f9fb;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0; border: 1px solid #e5e7eb;
+}
+.mp-drawer__cat-ico img { width: 100%; height: 100%; object-fit: cover; }
+.mp-drawer__cat-ico span { font-size: 16px; }
+.mp-drawer__cat-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-drawer__cat-toggle {
+    width: 44px; height: 48px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; border-left: 1px solid #f0f0f0;
+    color: #9ca3af; transition: all 0.2s; flex-shrink: 0;
+}
+.mp-drawer__cat-toggle:active { background: #f3f4f6; }
+.mp-drawer__cat.is-expanded .mp-drawer__cat-toggle { color: #c4956a; }
+.mp-drawer__cat.is-expanded .mp-drawer__cat-toggle svg { transform: rotate(90deg); }
+
+/* Level 2 - subcategories */
+.mp-drawer__sub {
+    background: #fafbfc; border-top: 1px solid #f0f0f0;
+    animation: drawerSubOpen 0.2s ease;
+}
+@keyframes drawerSubOpen { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 2000px; } }
+.mp-drawer__sub-all {
+    display: block; padding: 10px 16px 10px 58px; color: #c4956a;
+    font-size: 12px; font-weight: 600; border-bottom: 1px solid #f0f0f0;
+}
+.mp-drawer__sub-cat { border-bottom: 1px solid #f0f0f0; }
+.mp-drawer__sub-cat:last-child { border-bottom: none; }
+.mp-drawer__sub-row { display: flex; align-items: center; }
+.mp-drawer__sub-link {
+    flex: 1; padding: 10px 16px 10px 58px; color: #374151; font-size: 13px;
+    font-weight: 500; transition: background 0.1s;
+}
+.mp-drawer__sub-link:active { background: #f0f1f3; }
+.mp-drawer__sub-toggle {
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; border-left: 1px solid #f0f0f0;
+    color: #9ca3af; transition: all 0.2s; flex-shrink: 0;
+}
+.mp-drawer__sub-toggle:active { background: #f0f1f3; }
+.mp-drawer__sub-cat.is-expanded .mp-drawer__sub-toggle { color: #c4956a; }
+.mp-drawer__sub-cat.is-expanded .mp-drawer__sub-toggle svg { transform: rotate(90deg); }
+
+/* Level 3 - leaf categories */
+.mp-drawer__leaf { background: #f3f4f6; }
+.mp-drawer__leaf-link {
+    display: block; padding: 8px 16px 8px 72px; color: #6b7280;
+    font-size: 12px; border-bottom: 1px solid #eaebec; transition: background 0.1s;
+}
+.mp-drawer__leaf-link:last-child { border-bottom: none; }
+.mp-drawer__leaf-link:active { background: #e5e7eb; color: #1f2937; }
+
+/* Drawer footer */
+.mp-drawer__footer {
+    flex-shrink: 0; border-top: 1px solid #e5e7eb; padding: 8px;
+}
+.mp-drawer__footer-link {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 8px; color: #6b7280; font-size: 13px; font-weight: 500;
+    transition: background 0.15s;
+}
+.mp-drawer__footer-link:active { background: #f3f4f6; }
+.mp-drawer__footer-link svg { color: #9ca3af; }
 </style>

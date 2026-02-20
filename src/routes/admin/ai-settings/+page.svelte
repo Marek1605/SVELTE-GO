@@ -1,11 +1,6 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
-    import { adminFetch as apiFetch } from '$lib/adminApi.js';
-    const API_BASE = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
-    function getAuthHeaders() {
-        const u = sessionStorage.getItem('adm_u'), p = sessionStorage.getItem('adm_p');
-        return (u && p) ? { 'Authorization': 'Basic ' + btoa(u + ':' + p) } : {};
-    }
+    import { adminFetch as apiFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     let settings = { ai_provider: 'openai', openai_api_key: '', anthropic_api_key: '', ai_model_openai: 'gpt-4o-mini', ai_model_anthropic: 'claude-sonnet-4-20250514' };
     let loading = true, saving = false, saveMsg = '';
 
@@ -54,7 +49,7 @@
         let u = `${API_BASE}/admin/ai/categorization-report/csv`;
         if (reportShopId) u += `?shop_id=${reportShopId}`;
         try {
-            const r = await fetch(u, { headers: { ...getAuthHeaders() } });
+            const r = await adminRawFetch(u);
             if (!r.ok) { alert('Chyba pri sťahovaní'); return; }
             const blob = await r.blob();
             const a = document.createElement('a');
@@ -67,7 +62,7 @@
         let u = `${API_BASE}/admin/ai/categorization-report/csv?format=xlsx`;
         if (reportShopId) u += `&shop_id=${reportShopId}`;
         try {
-            const r = await fetch(u, { headers: { ...getAuthHeaders() } });
+            const r = await adminRawFetch(u);
             if (!r.ok) { alert('Chyba pri sťahovaní'); return; }
             const blob = await r.blob();
             const a = document.createElement('a');
