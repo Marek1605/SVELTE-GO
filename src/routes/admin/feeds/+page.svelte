@@ -1,4 +1,5 @@
 <script>
+    import { adminRawFetch } from '$lib/adminApi.js';
     import { onMount, onDestroy } from 'svelte';
     import { api } from '$lib/api';
     import { PUBLIC_API_URL } from '$env/static/public';
@@ -61,7 +62,7 @@
     async function loadFeeds() {
         loading = true;
         try {
-            const res = await fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds');
+            const res = await adminRawFetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds');
             const data = await res.json();
             feeds = data.success ? (data.data || []) : [];
         } catch (err) {
@@ -82,7 +83,7 @@
         feedPreview = null;
 
         try {
-            const res = await fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/preview', {
+            const res = await adminRawFetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/preview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -146,7 +147,7 @@
         }
 
         try {
-            const res = await fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds', {
+            const res = await adminRawFetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newFeed)
@@ -170,7 +171,7 @@
         if (!confirm(`Vymazať feed "${name}"?`)) return;
 
         try {
-            await fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/' + id, { method: 'DELETE' });
+            await adminRawFetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/' + id, { method: 'DELETE' });
             loadFeeds();
         } catch (err) {
             alert('Chyba pri mazaní');
@@ -193,12 +194,12 @@
         };
 
         try {
-            await fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/' + feed.id + '/import', { method: 'POST' });
+            await adminRawFetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/' + feed.id + '/import', { method: 'POST' });
 
             // Poll for progress
             progressInterval = setInterval(async () => {
                 try {
-                    const res = await fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/' + feed.id + '/progress');
+                    const res = await adminRawFetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/' + feed.id + '/progress');
                     const data = await res.json();
                     
                     if (data.success && data.data) {
@@ -263,7 +264,7 @@
         }
 
         try {
-            const res = await fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/' + editingFeedId, {
+            const res = await adminRawFetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/admin/feeds/' + editingFeedId, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newFeed)

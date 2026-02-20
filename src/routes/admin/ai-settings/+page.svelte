@@ -1,5 +1,6 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
+    import { adminFetch as apiFetch } from '$lib/adminApi.js';
     const API_BASE = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
     let settings = { ai_provider: 'openai', openai_api_key: '', anthropic_api_key: '', ai_model_openai: 'gpt-4o-mini', ai_model_anthropic: 'claude-sonnet-4-20250514' };
     let loading = true, saving = false, saveMsg = '';
@@ -33,7 +34,7 @@
     onMount(async () => { await Promise.all([loadSettings(), loadShops(), loadProgress(), loadDisplayStats()]); loading = false; });
     onDestroy(() => { if (polling) clearInterval(polling); });
 
-    async function apiFetch(ep, opts = {}) { try { const r = await fetch(`${API_BASE}${ep}`, { headers: { 'Content-Type': 'application/json', ...opts.headers }, ...opts }); return await r.json(); } catch (e) { return { success: false, error: e.message }; } }
+    // apiFetch imported from $lib/adminApi.js
     async function loadSettings() { const r = await apiFetch('/admin/ai/settings'); if (r?.success && r.data) settings = { ...settings, ...r.data }; }
     async function loadShops() { const r = await apiFetch('/admin/shops'); if (r?.success) shops = r.data || []; }
     async function saveSettings() { saving = true; saveMsg = ''; const r = await apiFetch('/admin/ai/settings', { method: 'POST', body: JSON.stringify(settings) }); saveMsg = r?.success ? '✅ Uložené' : '❌ ' + (r?.error || 'Chyba'); saving = false; setTimeout(() => saveMsg = '', 3000); }

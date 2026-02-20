@@ -1,7 +1,7 @@
 <script>
+    import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     import { onMount } from 'svelte';
 
-    const API_BASE = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
 
     let loading = true;
     let systemInfo = null;
@@ -40,7 +40,7 @@
 
     async function apiFetch(endpoint, opts = {}) {
         try {
-            const res = await fetch(`${API_BASE}${endpoint}`, {
+            const res = await adminRawFetch(`${API_BASE}${endpoint}`, {
                 headers: { 'Content-Type': 'application/json', ...opts.headers },
                 ...opts
             });
@@ -108,7 +108,7 @@
         try {
             const formData = new FormData();
             formData.append('logo', logoFile);
-            const res = await fetch(`${API_BASE}/admin/upload-logo`, {
+            const res = await adminRawFetch(`${API_BASE}/admin/upload-logo`, {
                 method: 'POST',
                 body: formData
             });

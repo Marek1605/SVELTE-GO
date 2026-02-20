@@ -1,7 +1,8 @@
 <script>
+    import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     import { onMount } from 'svelte';
     
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+    
     
     let vendors = [];
     let filteredVendors = [];
@@ -31,7 +32,7 @@
         loading = true;
         error = null;
         try {
-            const res = await fetch(`${API_BASE}/admin/vendors`);
+            const res = await adminRawFetch(`${API_BASE}/admin/vendors`);
             const data = await res.json();
             if (data.success) {
                 vendors = data.data || [];
@@ -72,7 +73,7 @@
     async function saveVendor() {
         try {
             // Update vendor
-            const vendorRes = await fetch(`${API_BASE}/admin/vendors/${currentVendor.id}`, {
+            const vendorRes = await adminRawFetch(`${API_BASE}/admin/vendors/${currentVendor.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -86,7 +87,7 @@
             
             // Update shop if exists
             if (currentShop && currentShop.id) {
-                await fetch(`${API_BASE}/admin/shops/${currentShop.id}`, {
+                await adminRawFetch(`${API_BASE}/admin/shops/${currentShop.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -113,7 +114,7 @@
         if (!confirm(`Schváliť predajcu "${vendor.company_name || vendor.email}"?`)) return;
         
         try {
-            await fetch(`${API_BASE}/admin/vendors/${vendor.id}/approve`, {
+            await adminRawFetch(`${API_BASE}/admin/vendors/${vendor.id}/approve`, {
                 method: 'POST'
             });
             await loadVendors();
@@ -127,7 +128,7 @@
         if (reason === null) return;
         
         try {
-            await fetch(`${API_BASE}/admin/vendors/${vendor.id}/reject`, {
+            await adminRawFetch(`${API_BASE}/admin/vendors/${vendor.id}/reject`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reason })
@@ -142,7 +143,7 @@
         if (!confirm(`Naozaj zmazať predajcu "${vendor.company_name || vendor.email}"? Táto akcia je nevratná!`)) return;
         
         try {
-            await fetch(`${API_BASE}/admin/vendors/${vendor.id}`, {
+            await adminRawFetch(`${API_BASE}/admin/vendors/${vendor.id}`, {
                 method: 'DELETE'
             });
             await loadVendors();
@@ -166,7 +167,7 @@
         if (!vendor?.shop?.id) return;
         loadingHistory = true;
         try {
-            const res = await fetch(`${API_BASE}/admin/shops/${vendor.shop.id}/credit-history`);
+            const res = await adminRawFetch(`${API_BASE}/admin/shops/${vendor.shop.id}/credit-history`);
             const data = await res.json();
             if (data.success) {
                 creditHistory = data.data || [];
@@ -186,7 +187,7 @@
         
         creditLoading = true;
         try {
-            const res = await fetch(`${API_BASE}/admin/shops/${creditVendor.shop?.id}/credit`, {
+            const res = await adminRawFetch(`${API_BASE}/admin/shops/${creditVendor.shop?.id}/credit`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 

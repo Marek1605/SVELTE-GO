@@ -1,8 +1,9 @@
 <script>
+    import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     import { onMount, onDestroy } from 'svelte';
     
     // Use relative URL for same-domain API or env variable for cross-domain
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+    
     
     let feeds = [];
     let shops = [];
@@ -73,7 +74,7 @@
     
     async function createFeed() {
         try {
-            const res = await fetch(`${API_BASE}/admin/offer-feeds/`, {
+            const res = await adminRawFetch(`${API_BASE}/admin/offer-feeds/`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newFeed)
             });
@@ -86,7 +87,7 @@
     async function updateFeed() {
         if (!currentFeed) return;
         try {
-            const res = await fetch(`${API_BASE}/admin/offer-feeds/${currentFeed.id}`, {
+            const res = await adminRawFetch(`${API_BASE}/admin/offer-feeds/${currentFeed.id}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(currentFeed)
             });
@@ -96,7 +97,7 @@
     
     async function deleteFeed(feed) {
         if (!confirm(`Zmazať "${feed.name}"?`)) return;
-        await fetch(`${API_BASE}/admin/offer-feeds/${feed.id}`, { method: 'DELETE' });
+        await adminRawFetch(`${API_BASE}/admin/offer-feeds/${feed.id}`, { method: 'DELETE' });
         await loadData();
     }
     
@@ -111,7 +112,7 @@
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 120000); // 2min timeout
-            const res = await fetch(`${API_BASE}/admin/offer-feeds/preview`, {
+            const res = await adminRawFetch(`${API_BASE}/admin/offer-feeds/preview`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url, type, xml_item_path: xmlPath, limit: 5 }),
                 signal: controller.signal
@@ -137,7 +138,7 @@
     
     async function saveMappings() {
         if (!currentFeed) return;
-        await fetch(`${API_BASE}/admin/offer-feeds/${currentFeed.id}/mappings`, {
+        await adminRawFetch(`${API_BASE}/admin/offer-feeds/${currentFeed.id}/mappings`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mappings: fieldMapping })
         });
@@ -149,7 +150,7 @@
         importProgress = { status: 'starting', message: 'Spúšťam...', percent: 0, total: 0, processed: 0, created: 0, updated: 0, matched: 0, skipped: 0, errors: 0, logs: [] };
         showImportModal = true;
         try {
-            const res = await fetch(`${API_BASE}/admin/offer-feeds/${feed.id}/import`, { method: 'POST' });
+            const res = await adminRawFetch(`${API_BASE}/admin/offer-feeds/${feed.id}/import`, { method: 'POST' });
             if ((await res.json()).success) progressInterval = setInterval(() => pollProgress(feed.id), 1000);
             else { importProgress.status = 'error'; importProgress.message = 'Chyba spustenia'; }
         } catch (e) { importProgress.status = 'error'; importProgress.message = e.message; }
@@ -157,7 +158,7 @@
     
     async function pollProgress(feedId) {
         try {
-            const res = await fetch(`${API_BASE}/admin/offer-feeds/${feedId}/progress`);
+            const res = await adminRawFetch(`${API_BASE}/admin/offer-feeds/${feedId}/progress`);
             const data = await res.json();
             if (data.success && data.data) {
                 importProgress = data.data;
@@ -170,7 +171,7 @@
     
     async function stopImport() {
         if (!currentFeed) return;
-        await fetch(`${API_BASE}/admin/offer-feeds/${currentFeed.id}/stop`, { method: 'POST' });
+        await adminRawFetch(`${API_BASE}/admin/offer-feeds/${currentFeed.id}/stop`, { method: 'POST' });
         clearInterval(progressInterval); progressInterval = null;
         importProgress.status = 'cancelled'; importProgress.message = 'Zastavené';
     }
@@ -179,7 +180,7 @@
     
     async function createShop() {
         try {
-            const res = await fetch(`${API_BASE}/admin/shops`, {
+            const res = await adminRawFetch(`${API_BASE}/admin/shops`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newShop)
             });
@@ -198,12 +199,12 @@
         feedResult = { ...feedResult, [feed.id]: `⏳ Nastavujem režim a spúšťam import...` };
         
         try {
-            await fetch(API_BASE + '/admin/offer-feeds/' + feed.id, {
+            await adminRawFetch(API_BASE + '/admin/offer-feeds/' + feed.id, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...feed, match_mode: mode })
             });
             
-            const res = await fetch(API_BASE + '/admin/offer-feeds/' + feed.id + '/import', { method: 'POST' });
+            const res = await adminRawFetch(API_BASE + '/admin/offer-feeds/' + feed.id + '/import', { method: 'POST' });
             const data = await res.json();
             
             if (data.success) {
@@ -225,7 +226,7 @@
         if (feedPollInterval) clearInterval(feedPollInterval);
         feedPollInterval = setInterval(async () => {
             try {
-                const res = await fetch(API_BASE + '/admin/offer-feeds/' + feedId + '/progress');
+                const res = await adminRawFetch(API_BASE + '/admin/offer-feeds/' + feedId + '/progress');
                 const data = await res.json();
                 if (data.success && data.data) {
                     const p = data.data;
@@ -254,9 +255,9 @@
             if (feedPollInterval) { clearInterval(feedPollInterval); feedPollInterval = null; }
             if (progressInterval) { clearInterval(progressInterval); progressInterval = null; }
             // Stop regular import
-            await fetch(`${API_BASE}/admin/offer-feeds/${feed.id}/stop`, { method: 'POST' });
+            await adminRawFetch(`${API_BASE}/admin/offer-feeds/${feed.id}/stop`, { method: 'POST' });
             // Cancel AI bulk categorization
-            await fetch(`${API_BASE}/admin/ai/bulk-categorize/cancel`, { method: 'POST' });
+            await adminRawFetch(`${API_BASE}/admin/ai/bulk-categorize/cancel`, { method: 'POST' });
             feedResult = { ...feedResult, [feed.id]: '⏹️ Zastavené' };
             feedProcessing = null;
             await loadData();

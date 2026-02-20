@@ -1,6 +1,6 @@
 <script>
+    import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     import { onMount } from 'svelte';
-    const API_BASE = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
 
     let products = [], categories = [], loading = true, totalCount = 0, currentPage = 1, perPage = 20;
     let searchQuery = '', selectedCategory = '', priceMin = '', priceMax = '', sortBy = 'created_at', sortOrder = 'desc';
@@ -21,7 +21,7 @@
         if (priceMin) params.set('price_min', priceMin);
         if (priceMax) params.set('price_max', priceMax);
         try {
-            const res = await fetch(API_BASE + '/admin/products?' + params);
+            const res = await adminRawFetch(API_BASE + '/admin/products?' + params);
             const data = await res.json();
             products = data?.data?.items || []; totalCount = data?.data?.total || 0;
         } catch (e) { console.error(e); products = []; totalCount = 0; }
@@ -29,7 +29,7 @@
     }
 
     async function loadCategories() {
-        try { const r = await (await fetch(API_BASE + '/categories')).json(); categories = r?.data?.items || (Array.isArray(r?.data) ? r.data : []); } catch(e) {}
+        try { const r = await (await adminRawFetch(API_BASE + '/categories')).json(); categories = r?.data?.items || (Array.isArray(r?.data) ? r.data : []); } catch(e) {}
     }
 
     function applyFilters() { currentPage = 1; loadProducts(); }
@@ -46,7 +46,7 @@
     async function saveEdit() {
         saving = true;
         try {
-            const r = await (await fetch(API_BASE+'/admin/products/'+editProduct.id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+            const r = await (await adminRawFetch(API_BASE+'/admin/products/'+editProduct.id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
                 title: editProduct.title, description: editProduct.description||'', brand: editProduct.brand||'',
                 ean: editProduct.ean||'', image_url: editProduct.image_url||'', category_id: editProduct.category_id||null
             })})).json();
@@ -56,16 +56,16 @@
     }
     async function deleteOne(id) {
         if(!confirm('Zmazať produkt? Ponuky budú odpojené.')) return;
-        await fetch(API_BASE+'/admin/products/'+id,{method:'DELETE'}); loadProducts();
+        await adminRawFetch(API_BASE+'/admin/products/'+id,{method:'DELETE'}); loadProducts();
     }
     async function bulkDelete() {
         if(!selectedIds.size||!confirm(`Zmazať ${selectedIds.size} produktov?`)) return;
-        await fetch(API_BASE+'/admin/products/bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',ids:[...selectedIds]})}); loadProducts();
+        await adminRawFetch(API_BASE+'/admin/products/bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',ids:[...selectedIds]})}); loadProducts();
     }
     async function deleteAll() {
         const c = prompt(`Zmazať VŠETKÝCH ${totalCount} produktov? Napíš "ZMAZAT" pre potvrdenie:`);
         if(c!=='ZMAZAT') return;
-        await fetch(API_BASE+'/admin/products/all',{method:'DELETE'}); loadProducts();
+        await adminRawFetch(API_BASE+'/admin/products/all',{method:'DELETE'}); loadProducts();
     }
     function fmt(p) { return p ? Number(p).toFixed(2)+' €' : '—'; }
     function fmtD(d) { return d ? new Date(d).toLocaleDateString('sk-SK') : '—'; }

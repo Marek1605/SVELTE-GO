@@ -1,4 +1,5 @@
 <script>
+    import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     import { onMount } from 'svelte';
     
     const GO_API = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io';
@@ -27,14 +28,14 @@
     async function loadData() {
         loading = true;
         try {
-            const statsRes = await fetch(GO_API + '/api/v1/attributes/stats');
+            const statsRes = await adminRawFetch(GO_API + '/api/v1/attributes/stats');
             const statsData = await statsRes.json();
             
             if (statsData.success && statsData.data) {
                 attributes = statsData.data.sort((a, b) => b.product_count - a.product_count);
             }
             
-            const settingsRes = await fetch(GO_API + '/api/v1/filters');
+            const settingsRes = await adminRawFetch(GO_API + '/api/v1/filters');
             const settingsData = await settingsRes.json();
             
             if (settingsData.success && settingsData.data && settingsData.data.enabled) {
@@ -126,7 +127,7 @@
         filterSettings.display_limit = displayLimit;
         
         try {
-            const res = await fetch(GO_API + '/api/v1/filters', {
+            const res = await adminRawFetch(GO_API + '/api/v1/filters', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(filterSettings)

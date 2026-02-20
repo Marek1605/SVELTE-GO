@@ -1,8 +1,71 @@
 <script>
     import { page } from '$app/stores';
+    import { onMount } from 'svelte';
 
     let sidebarCollapsed = false;
     let openGroups = { catalog: true, vendors: true, tools: true, system: true };
+
+    // Auth
+    let authed = false;
+    let loginUser = '';
+    let loginPass = '';
+    let loginError = '';
+    let checking = true;
+
+    const API = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+
+    function getAuthHeader() {
+        const u = sessionStorage.getItem('adm_u') || '';
+        const p = sessionStorage.getItem('adm_p') || '';
+        if (!u || !p) return null;
+        return 'Basic ' + btoa(u + ':' + p);
+    }
+
+    // Make auth header globally accessible
+    function setGlobalAuth() {
+        const h = getAuthHeader();
+        if (h && typeof window !== 'undefined') {
+            window.__adminAuth = h;
+        }
+    }
+
+    async function checkAuth() {
+        checking = true;
+        const h = getAuthHeader();
+        if (!h) { checking = false; return; }
+        try {
+            const r = await fetch(`${API}/admin/dashboard`, { headers: { 'Authorization': h } });
+            if (r.ok) { authed = true; setGlobalAuth(); }
+            else { sessionStorage.removeItem('adm_u'); sessionStorage.removeItem('adm_p'); }
+        } catch(e) {}
+        checking = false;
+    }
+
+    async function doLogin() {
+        loginError = '';
+        const h = 'Basic ' + btoa(loginUser + ':' + loginPass);
+        try {
+            const r = await fetch(`${API}/admin/dashboard`, { headers: { 'Authorization': h } });
+            if (r.ok) {
+                sessionStorage.setItem('adm_u', loginUser);
+                sessionStorage.setItem('adm_p', loginPass);
+                authed = true;
+                setGlobalAuth();
+            } else {
+                loginError = 'Nesprávne meno alebo heslo';
+            }
+        } catch(e) { loginError = 'Chyba pripojenia'; }
+    }
+
+    function doLogout() {
+        sessionStorage.removeItem('adm_u');
+        sessionStorage.removeItem('adm_p');
+        window.__adminAuth = null;
+        authed = false;
+        loginUser = ''; loginPass = '';
+    }
+
+    onMount(() => { checkAuth(); });
 
     function toggleGroup(g) { openGroups[g] = !openGroups[g]; openGroups = openGroups; }
     function toggleSidebar() { sidebarCollapsed = !sidebarCollapsed; }
@@ -44,6 +107,22 @@
 </svelte:head>
 
 <div class="adm" class:collapsed={sidebarCollapsed}>
+{#if checking}
+    <div class="login-wrap"><div class="login-box"><p>Overujem...</p></div></div>
+{:else if !authed}
+    <div class="login-wrap">
+        <div class="login-box">
+            <div class="login-logo"><span>M</span></div>
+            <h2>MegaPrice Admin</h2>
+            <form on:submit|preventDefault={doLogin}>
+                <input type="text" placeholder="Meno" bind:value={loginUser} autocomplete="username">
+                <input type="password" placeholder="Heslo" bind:value={loginPass} autocomplete="current-password">
+                {#if loginError}<div class="login-err">{loginError}</div>{/if}
+                <button type="submit">Prihlásiť</button>
+            </form>
+        </div>
+    </div>
+{:else}
     <aside class="sb">
         <div class="sb__top">
             <a href="/admin" class="sb__logo">
@@ -90,12 +169,17 @@
                 <span class="sb__link-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
                 {#if !sidebarCollapsed}<span>Zobraziť web</span>{/if}
             </a>
+            <button class="sb__link sb__logout" on:click={doLogout} title="Odhlásiť">
+                <span class="sb__link-icon">🚪</span>
+                {#if !sidebarCollapsed}<span>Odhlásiť</span>{/if}
+            </button>
         </div>
     </aside>
 
     <main class="adm__main">
         <slot />
     </main>
+{/if}
 </div>
 
 <style>

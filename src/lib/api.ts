@@ -8,8 +8,16 @@ const API_URL = browser ? '/api/v1' : (PUBLIC_API_URL || 'http://localhost:8080/
 async function fetchApi(endpoint, options = {}) {
     const url = API_URL + endpoint;
     try {
+        // Add admin auth for /admin endpoints
+        const headers = { 'Content-Type': 'application/json', ...options.headers };
+        if (browser && endpoint.startsWith('/admin')) {
+            const u = sessionStorage.getItem('adm_u');
+            const p = sessionStorage.getItem('adm_p');
+            if (u && p) headers['Authorization'] = 'Basic ' + btoa(u + ':' + p);
+        }
+
         const response = await fetch(url, { 
-            headers: { 'Content-Type': 'application/json', ...options.headers },
+            headers,
             ...options 
         });
         

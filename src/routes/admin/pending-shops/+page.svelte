@@ -1,7 +1,8 @@
 <script>
+    import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     import { onMount } from 'svelte';
     
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+    
     
     let shops = [];
     let loading = true;
@@ -15,7 +16,7 @@
     async function loadPendingShops() {
         loading = true;
         try {
-            const res = await fetch(`${API_BASE}/admin/pending-shops`);
+            const res = await adminRawFetch(`${API_BASE}/admin/pending-shops`);
             const data = await res.json();
             if (data.success) {
                 shops = data.data || [];
@@ -32,7 +33,7 @@
         if (!confirm(`Schváliť obchod "${shop.shop_name}"?`)) return;
         
         try {
-            const res = await fetch(`${API_BASE}/admin/shops/${shop.id}/approve`, {
+            const res = await adminRawFetch(`${API_BASE}/admin/shops/${shop.id}/approve`, {
                 method: 'POST'
             });
             const data = await res.json();
@@ -54,7 +55,7 @@
     
     async function rejectShop() {
         try {
-            const res = await fetch(`${API_BASE}/admin/shops/${selectedShop.id}/reject`, {
+            const res = await adminRawFetch(`${API_BASE}/admin/shops/${selectedShop.id}/reject`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reason: rejectReason })

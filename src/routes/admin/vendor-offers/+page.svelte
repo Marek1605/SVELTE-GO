@@ -1,6 +1,6 @@
 <script>
+    import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     import { onMount } from 'svelte';
-    const API = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
 
     let offers=[], shops=[], categories=[], loading=true, error=null;
     let selectedShop='', searchQuery='', statusFilter='', matchFilter='', priceMin='', priceMax='', categoryFilter='', sortBy='created_at', sortOrder='desc';
@@ -16,8 +16,8 @@
 
     onMount(async()=>{ await loadShops(); await loadCategories(); await loadOffers(); });
 
-    async function loadShops() { try { const d=await(await fetch(`${API}/admin/shops`)).json(); if(d.success) shops=d.data||[]; } catch(e){} }
-    async function loadCategories() { try { const r=await(await fetch(`${API}/categories`)).json(); categories=r?.data?.items||(Array.isArray(r?.data)?r.data:[]); } catch(e){} }
+    async function loadShops() { try { const d=await(await adminRawFetch(`${API}/admin/shops`)).json(); if(d.success) shops=d.data||[]; } catch(e){} }
+    async function loadCategories() { try { const r=await(await adminRawFetch(`${API}/categories`)).json(); categories=r?.data?.items||(Array.isArray(r?.data)?r.data:[]); } catch(e){} }
     async function loadOffers() {
         loading=true; error=null;
         let p=`?page=${page}&limit=${limit}&sort=${sortBy}&order=${sortOrder}`;
@@ -29,12 +29,12 @@
         if(priceMax) p+=`&price_max=${priceMax}`;
         if(categoryFilter) p+=`&category=${categoryFilter}`;
         try {
-            const d=await(await fetch(`${API}/admin/vendor-offers${p}`)).json();
+            const d=await(await adminRawFetch(`${API}/admin/vendor-offers${p}`)).json();
             if(d.success){offers=d.data||[];total=d.meta?.total||0;shopCount=d.meta?.shop_count||0;} else error=d.error;
         } catch(e){error=e.message;}
         await loadStats(); loading=false; selectedOffers=new Set(); selectAll=false;
     }
-    async function loadStats() { try { let p=selectedShop?`?shop_id=${selectedShop}`:''; const d=await(await fetch(`${API}/admin/vendor-offers/stats${p}`)).json(); if(d.success) stats=d.data||stats; } catch(e){} }
+    async function loadStats() { try { let p=selectedShop?`?shop_id=${selectedShop}`:''; const d=await(await adminRawFetch(`${API}/admin/vendor-offers/stats${p}`)).json(); if(d.success) stats=d.data||stats; } catch(e){} }
 
     function applyFilters(){page=1;loadOffers();}
     function resetFilters(){searchQuery='';selectedShop='';statusFilter='';matchFilter='';priceMin='';priceMax='';categoryFilter='';sortBy='created_at';sortOrder='desc';applyFilters();}
@@ -45,14 +45,14 @@
 
     async function bulkDelete(){
         if(!selectedCount||!confirm(`Zmazať ${selectedCount} ponúk?`))return;
-        await fetch(`${API}/admin/vendor-offers/bulk-delete`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offer_ids:[...selectedOffers]})});
+        await adminRawFetch(`${API}/admin/vendor-offers/bulk-delete`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offer_ids:[...selectedOffers]})});
         loadOffers();
     }
     async function bulkDeleteAll(){
         if(!selectedShop){alert('Najprv vyberte obchod');return;}
         const name=shops.find(s=>s.id===selectedShop)?.shop_name||'?';
         if(!confirm(`Zmazať VŠETKY ponuky "${name}" (${fmt(total)})?`))return;
-        const d=await(await fetch(`${API}/admin/vendor-offers/bulk-delete-all`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,match_filter:matchFilter,status_filter:statusFilter})})).json();
+        const d=await(await adminRawFetch(`${API}/admin/vendor-offers/bulk-delete-all`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,match_filter:matchFilter,status_filter:statusFilter})})).json();
         if(d.success) alert(`Zmazaných: ${d.deleted}`); loadOffers();
     }
     async function bulkDeleteWithMasters(){
@@ -61,7 +61,7 @@
         if(!confirm(`⚠️ POZOR! Zmazať VŠETKY ponuky "${name}" (${fmt(total)}) + MASTER PRODUKTY + MÉDIÁ?\n\nToto vymaže aj produkty vytvorené z týchto ponúk!`))return;
         processing=true; processMsg='⏳ Mažem ponuky + master produkty...';
         try{
-            const d=await(await fetch(`${API}/admin/vendor-offers/bulk-delete-cleanup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,match_filter:matchFilter,status_filter:statusFilter,delete_masters:true,delete_media:true})})).json();
+            const d=await(await adminRawFetch(`${API}/admin/vendor-offers/bulk-delete-cleanup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,match_filter:matchFilter,status_filter:statusFilter,delete_masters:true,delete_media:true})})).json();
             if(d.success){processMsg=`✅ Ponuky: ${d.deleted_offers}, Master: ${d.deleted_masters}, Médiá: ${d.deleted_media}`;loadOffers();}
             else processMsg='❌ '+d.error;
         }catch(e){processMsg='❌ '+e.message;}
@@ -73,7 +73,7 @@
         if(!confirm(`Zmazať VŠETKY ponuky "${name}" (${fmt(total)}) + ich médiá?`))return;
         processing=true; processMsg='⏳ Mažem ponuky + médiá...';
         try{
-            const d=await(await fetch(`${API}/admin/vendor-offers/bulk-delete-cleanup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,match_filter:matchFilter,status_filter:statusFilter,delete_masters:false,delete_media:true})})).json();
+            const d=await(await adminRawFetch(`${API}/admin/vendor-offers/bulk-delete-cleanup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,match_filter:matchFilter,status_filter:statusFilter,delete_masters:false,delete_media:true})})).json();
             if(d.success){processMsg=`✅ Ponuky: ${d.deleted_offers}, Médiá: ${d.deleted_media}`;loadOffers();}
             else processMsg='❌ '+d.error;
         }catch(e){processMsg='❌ '+e.message;}
@@ -85,7 +85,7 @@
         if(!confirm(`Spustiť ${lbl[mode]} pre ${selectedCount} ponúk?`))return;
         processing=true; processMsg=`⏳ ${lbl[mode]} pre ${selectedCount} ponúk...`;
         try{
-            const d=await(await fetch(`${API}/admin/vendor-offers/bulk-action`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offer_ids:[...selectedOffers],mode})})).json();
+            const d=await(await adminRawFetch(`${API}/admin/vendor-offers/bulk-action`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offer_ids:[...selectedOffers],mode})})).json();
             processMsg=d.success?`✅ Spárovaných: ${d.matched||0}, Nových: ${d.created||0}, Chýb: ${d.errors||0}`:'❌ '+d.error;
             if(d.success) loadOffers();
         }catch(e){processMsg='❌ '+e.message;}
@@ -97,7 +97,7 @@
         if(!confirm(`Spustiť ${lbl[mode]} pre VŠETKÝCH ${fmt(total)} ponúk?`))return;
         processing=true; processMsg=`⏳ ${lbl[mode]} pre ${fmt(total)} ponúk...`;
         try{
-            const d=await(await fetch(`${API}/admin/vendor-offers/bulk-action-all`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,mode,match_filter:matchFilter,status_filter:statusFilter})})).json();
+            const d=await(await adminRawFetch(`${API}/admin/vendor-offers/bulk-action-all`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:selectedShop,mode,match_filter:matchFilter,status_filter:statusFilter})})).json();
             processMsg=d.success?`✅ Spárovaných: ${d.matched||0}, Nových: ${d.created||0}, Chýb: ${d.errors||0}`:'❌ '+d.error;
             if(d.success) loadOffers();
         }catch(e){processMsg='❌ '+e.message;}
@@ -112,7 +112,7 @@
     async function saveProduct() {
         savingProduct=true;
         try{
-            const r=await(await fetch(`${API}/admin/products/${editingProduct.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(editingProduct)})).json();
+            const r=await(await adminRawFetch(`${API}/admin/products/${editingProduct.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(editingProduct)})).json();
             if(r.success){showEditProduct=false;loadOffers();}else alert(r.error||'Chyba');
         }catch(e){alert(e.message);}
         savingProduct=false;

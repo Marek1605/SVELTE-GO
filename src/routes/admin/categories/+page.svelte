@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
-    const API = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+    import { API_BASE as API, adminRawFetch } from '$lib/adminApi.js';
+    const af = (url, opts) => adminRawFetch(url, opts).then(r => r.json()).catch(() => ({}));
 
     let categories = [];
     let loading = true;
@@ -46,7 +47,7 @@
     async function loadCategories() {
         loading = true;
         try {
-            const res = await fetch(`${API}/admin/categories?show_all=true`);
+            const res = await adminRawFetch(`${API}/admin/categories?show_all=true`);
             const data = await res.json();
             if (data.success && data.data) categories = Array.isArray(data.data) ? data.data : (data.data?.data || []);
             else if (Array.isArray(data)) categories = data;
@@ -57,7 +58,7 @@
 
     async function loadHideEmptySetting() {
         try {
-            const res = await fetch(`${API}/admin/system-info`);
+            const res = await adminRawFetch(`${API}/admin/system-info`);
             const data = await res.json();
             if (data?.success) hideEmptyPublic = data.data?.hide_empty || false;
         } catch(e) {}
@@ -66,7 +67,7 @@
     async function toggleHideEmptyPublic() {
         hideEmptyPublic = !hideEmptyPublic;
         try {
-            await fetch(`${API}/admin/toggle-hide-empty`, {
+            await adminRawFetch(`${API}/admin/toggle-hide-empty`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ hide_empty: hideEmptyPublic })
             });
@@ -137,7 +138,7 @@
         if (!confirm(`Zmazať ${selectedIds.size} kategórií? Produkty zostanú bez kategórie.`)) return;
         deleting = true;
         for (const id of selectedIds) {
-            await fetch(`${API}/admin/categories/${id}`, { method: 'DELETE' });
+            await adminRawFetch(`${API}/admin/categories/${id}`, { method: 'DELETE' });
         }
         selectedIds = new Set(); selectAll = false; deleting = false;
         await loadCategories();
@@ -146,7 +147,7 @@
     async function deleteAll() {
         if (!confirm(`Zmazať VŠETKÝCH ${stats.total} kategórií?\n\nTáto akcia je nevratná!`)) return;
         deleting = true;
-        await fetch(`${API}/admin/categories/all`, { method: 'DELETE' });
+        await adminRawFetch(`${API}/admin/categories/all`, { method: 'DELETE' });
         deleting = false;
         await loadCategories();
     }
@@ -156,7 +157,7 @@
     async function saveEdit() {
         if (!editCat) return;
         savingId = editCat.id;
-        await fetch(`${API}/admin/categories/${editCat.id}`, {
+        await adminRawFetch(`${API}/admin/categories/${editCat.id}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: editCat.name, image_url: editImageUrl, slug: editCat.slug, is_active: editCat.is_active })
         });
@@ -166,7 +167,7 @@
 
     async function regenImage(id) {
         regeneratingId = id;
-        await fetch(`${API}/admin/categories/${id}/regenerate-image`, { method: 'POST' });
+        await adminRawFetch(`${API}/admin/categories/${id}/regenerate-image`, { method: 'POST' });
         regeneratingId = null;
         await loadCategories();
     }
@@ -174,19 +175,19 @@
     async function regenAll() {
         if (!confirm('Pregenerovať obrázky pre všetky kategórie?')) return;
         regeneratingAll = true;
-        await fetch(`${API}/admin/categories/regenerate-all-images`, { method: 'POST' });
+        await adminRawFetch(`${API}/admin/categories/regenerate-all-images`, { method: 'POST' });
         regeneratingAll = false;
         await loadCategories();
     }
 
     async function deleteCat(id, name) {
         if (!confirm(`Zmazať "${name}"?`)) return;
-        await fetch(`${API}/admin/categories/${id}`, { method: 'DELETE' });
+        await adminRawFetch(`${API}/admin/categories/${id}`, { method: 'DELETE' });
         await loadCategories();
     }
 
     async function toggleActive(cat) {
-        await fetch(`${API}/admin/categories/${cat.id}`, {
+        await adminRawFetch(`${API}/admin/categories/${cat.id}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ is_active: !cat.is_active })
         });
@@ -197,17 +198,17 @@
         const newState = !cat.is_active;
         const action = newState ? 'Zobraziť' : 'Skryť';
         if (!confirm(`${action} "${cat.name}" aj so všetkými podkategóriami?`)) return;
-        await fetch(`${API}/admin/categories/${cat.id}/toggle-tree`, {
+        await adminRawFetch(`${API}/admin/categories/${cat.id}/toggle-tree`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ is_active: newState })
         });
         await loadCategories();
     }
     function exportCSV() {
-        window.open(API + "/admin/categories/export", "_blank");
+        adminRawFetch(API + "/admin/categories/export").then(r => r.blob()).then(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'categories.csv'; a.click(); });
     }
     function exportExcel() {
-        window.open(API + "/admin/categories/export-excel", "_blank");
+        adminRawFetch(API + "/admin/categories/export-excel").then(r => r.blob()).then(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'categories.xlsx'; a.click(); });
     }
     async function importTranslations(event) {
         const file = event.target.files?.[0];
@@ -216,7 +217,7 @@
         const formData = new FormData();
         formData.append("file", file);
         try {
-            const res = await fetch(API + "/admin/categories/import-translations", { method: "POST", body: formData });
+            const res = await adminRawFetch(API + "/admin/categories/import-translations", { method: "POST", body: formData });
             const data = await res.json();
             alert(data.message || "Hotovo");
             await loadCategories();
