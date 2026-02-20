@@ -1,5 +1,5 @@
 <script>
-    import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
+    import { adminFetch, adminRawFetch, API_BASE as API } from '$lib/adminApi.js';
     import { onMount } from 'svelte';
 
     let offers=[], shops=[], categories=[], loading=true, error=null;
