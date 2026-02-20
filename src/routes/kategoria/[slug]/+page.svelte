@@ -24,6 +24,10 @@
     let sort = 'newest';
     let brandSearch = '';
     let mobileFilterOpen = false;
+    let viewMode = 'list'; // 'grid' or 'list'
+
+    // Leaf category = no subcategories → default to list view
+    $: isLeaf = children.length === 0;
 
     // Range slider state
     let sliderMin = 0, sliderMax = 1000;
@@ -187,15 +191,25 @@
                     <h1 class="cat-title">{category.name}</h1>
                     <span class="cat-count">{totalProducts} produktov</span>
                 </div>
-                <!-- Sort (desktop) -->
-                <div class="cat-sort">
-                    <select bind:value={sort} on:change={applyFilters}>
-                        <option value="newest">Najnovšie</option>
-                        <option value="price_asc">Najlacnejšie</option>
-                        <option value="price_desc">Najdrahšie</option>
-                        <option value="name_asc">A-Z</option>
-                        <option value="name_desc">Z-A</option>
-                    </select>
+                <!-- Sort + View toggle (desktop) -->
+                <div class="cat-controls">
+                    <div class="cat-sort">
+                        <select bind:value={sort} on:change={applyFilters}>
+                            <option value="newest">Najnovšie</option>
+                            <option value="price_asc">Najlacnejšie</option>
+                            <option value="price_desc">Najdrahšie</option>
+                            <option value="name_asc">A-Z</option>
+                            <option value="name_desc">Z-A</option>
+                        </select>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-toggle__btn" class:is-active={viewMode === 'grid'} on:click={() => viewMode = 'grid'} title="Mriežka">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                        </button>
+                        <button class="view-toggle__btn" class:is-active={viewMode === 'list'} on:click={() => viewMode = 'list'} title="Zoznam">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -388,35 +402,99 @@
                         </div>
 
                         {#if products.length > 0}
-                            <div class="prods__grid">
-                                {#each products as product}
-                                    <article class="pc">
-                                        <a href="/produkt/{product.slug}" class="pc__img">
-                                            {#if product.image_url}
-                                                <img src={product.image_url} alt={product.title} loading="lazy">
-                                            {:else}
-                                                <div class="pc__placeholder">
-                                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                            <!-- LIST VIEW -->
+                            {#if viewMode === 'list'}
+                                <div class="prods__list">
+                                    {#each products as product, i}
+                                        <article class="pl" class:pl--featured={i === 0}>
+                                            <a href="/produkt/{product.slug}" class="pl__img">
+                                                {#if product.image_url}
+                                                    <img src={product.image_url} alt={product.title} loading="lazy">
+                                                {:else}
+                                                    <div class="pl__placeholder">
+                                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                                    </div>
+                                                {/if}
+                                            </a>
+                                            <div class="pl__body">
+                                                <div class="pl__top">
+                                                    {#if product.brand}
+                                                        <span class="pl__brand">{product.brand}</span>
+                                                    {/if}
+                                                    {#if i === 0}
+                                                        <span class="pl__badge pl__badge--top">🔥 Populárny</span>
+                                                    {/if}
                                                 </div>
-                                            {/if}
-                                        </a>
-                                        <div class="pc__body">
-                                            {#if product.brand}
-                                                <span class="pc__brand">{product.brand}</span>
-                                            {/if}
-                                            <h3 class="pc__title"><a href="/produkt/{product.slug}">{product.title}</a></h3>
-                                            <div class="pc__price">
-                                                <span class="pc__price-from">od</span>
-                                                <span class="pc__price-val">{formatPrice(product.price_min || product.price)}</span>
+                                                <h3 class="pl__title"><a href="/produkt/{product.slug}">{product.title}</a></h3>
+                                                {#if product.description}
+                                                    <p class="pl__desc">{product.description.substring(0, 160)}{product.description.length > 160 ? '...' : ''}</p>
+                                                {/if}
+                                                {#if product.offer_count > 0}
+                                                    <div class="pl__meta">
+                                                        <span class="pl__offers-badge">
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                                            {product.offer_count} {product.offer_count === 1 ? 'obchod' : product.offer_count < 5 ? 'obchody' : 'obchodov'}
+                                                        </span>
+                                                    </div>
+                                                {/if}
                                             </div>
-                                            {#if product.offer_count > 1}
-                                                <div class="pc__offers">{product.offer_count} ponúk</div>
-                                            {/if}
-                                            <a href="/produkt/{product.slug}" class="pc__btn">Porovnať ceny</a>
-                                        </div>
-                                    </article>
-                                {/each}
-                            </div>
+                                            <div class="pl__action">
+                                                <div class="pl__price-block">
+                                                    {#if product.price_min && product.price_min > 0}
+                                                        {#if product.price_max && product.price_max > product.price_min}
+                                                            <span class="pl__price-range">{formatPrice(product.price_min)} – {formatPrice(product.price_max)}</span>
+                                                        {:else}
+                                                            <span class="pl__price-from">od</span>
+                                                            <span class="pl__price-val">{formatPrice(product.price_min)}</span>
+                                                        {/if}
+                                                    {:else}
+                                                        <span class="pl__price-val">{formatPrice(product.price || 0)}</span>
+                                                    {/if}
+                                                </div>
+                                                {#if product.offer_count > 1}
+                                                    <span class="pl__shop-count">v {product.offer_count} obchodoch</span>
+                                                {/if}
+                                                <a href="/produkt/{product.slug}" class="pl__cta">
+                                                    Porovnať ceny
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                                </a>
+                                            </div>
+                                        </article>
+                                    {/each}
+                                </div>
+
+                            <!-- GRID VIEW -->
+                            {:else}
+                                <div class="prods__grid">
+                                    {#each products as product}
+                                        <article class="pc">
+                                            <a href="/produkt/{product.slug}" class="pc__img">
+                                                {#if product.image_url}
+                                                    <img src={product.image_url} alt={product.title} loading="lazy">
+                                                {:else}
+                                                    <div class="pc__placeholder">
+                                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                                    </div>
+                                                {/if}
+                                            </a>
+                                            <div class="pc__body">
+                                                {#if product.brand}
+                                                    <span class="pc__brand">{product.brand}</span>
+                                                {/if}
+                                                <h3 class="pc__title"><a href="/produkt/{product.slug}">{product.title}</a></h3>
+                                                <div class="pc__price">
+                                                    <span class="pc__price-from">od</span>
+                                                    <span class="pc__price-val">{formatPrice(product.price_min || product.price)}</span>
+                                                </div>
+                                                {#if product.offer_count > 1}
+                                                    <div class="pc__offers">{product.offer_count} ponúk</div>
+                                                {/if}
+                                                <a href="/produkt/{product.slug}" class="pc__btn">Porovnať ceny</a>
+                                            </div>
+                                        </article>
+                                    {/each}
+                                </div>
+                            {/if}
 
                             {#if totalPages > 1}
                                 <nav class="pag">
@@ -562,8 +640,16 @@
 .cat-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; gap: 16px; }
 .cat-title { font-size: 28px; font-weight: 800; color: #111; margin: 0; line-height: 1.2; }
 .cat-count { font-size: 13px; color: #6b7280; }
+.cat-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .cat-sort { flex-shrink: 0; }
 .cat-sort select { padding: 8px 32px 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #fff; color: #374151; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+
+/* View toggle */
+.view-toggle { display: flex; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+.view-toggle__btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: #fff; border: none; color: #9ca3af; cursor: pointer; transition: all 0.15s; }
+.view-toggle__btn:first-child { border-right: 1px solid #e5e7eb; }
+.view-toggle__btn:hover { color: #374151; background: #f9fafb; }
+.view-toggle__btn.is-active { background: #1f2937; color: #fff; }
 
 /* Active filter chips */
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
@@ -688,6 +774,97 @@
 .pc__btn { display: block; text-align: center; padding: 9px; background: linear-gradient(135deg, #c4956a, #b8875c); color: #fff; border-radius: 8px; font-weight: 600; font-size: 12px; transition: all 0.15s; margin-top: auto; }
 .pc__btn:hover { background: linear-gradient(135deg, #b8875c, #a67a50); }
 
+/* ═══ LIST VIEW ═══ */
+.prods__list { display: flex; flex-direction: column; gap: 0; }
+
+.pl {
+    display: grid;
+    grid-template-columns: 180px 1fr 220px;
+    gap: 0;
+    padding: 20px;
+    background: #fff;
+    border-bottom: 1px solid #f0f1f3;
+    transition: all 0.2s;
+    position: relative;
+}
+.pl:first-child { border-top: 1px solid #f0f1f3; }
+.pl:hover { background: #fafbfc; }
+.pl--featured { background: linear-gradient(135deg, #fffbf7 0%, #fff 100%); }
+.pl--featured::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #c4956a, #e8c9a8);
+    border-radius: 0 2px 2px 0;
+}
+
+/* List image */
+.pl__img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    aspect-ratio: 1;
+    max-height: 180px;
+}
+.pl__img img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s; }
+.pl:hover .pl__img img { transform: scale(1.04); }
+.pl__placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f9fafb; border-radius: 8px; }
+
+/* List body */
+.pl__body { padding: 4px 24px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.pl__top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.pl__brand { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+.pl__badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; white-space: nowrap; }
+.pl__badge--top { background: linear-gradient(135deg, #ff6b35, #ff8f5e); color: #fff; }
+.pl__title { font-size: 16px; font-weight: 700; margin: 0 0 6px; line-height: 1.35; }
+.pl__title a { color: #1f2937; transition: color 0.15s; }
+.pl__title a:hover { color: #c4956a; }
+.pl__desc { font-size: 13px; color: #6b7280; line-height: 1.5; margin: 0 0 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pl__meta { display: flex; align-items: center; gap: 12px; margin-top: auto; }
+.pl__offers-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: #6b7280; }
+.pl__offers-badge svg { color: #c4956a; }
+
+/* List action area */
+.pl__action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 4px 0;
+    gap: 6px;
+    border-left: 1px solid #f3f4f6;
+    padding-left: 24px;
+}
+.pl__price-block { text-align: right; }
+.pl__price-from { font-size: 12px; color: #6b7280; }
+.pl__price-val { font-size: 26px; font-weight: 800; color: #111; display: block; line-height: 1.1; }
+.pl__price-range { font-size: 18px; font-weight: 700; color: #111; display: block; line-height: 1.2; }
+.pl__shop-count { font-size: 12px; color: #6b7280; }
+.pl__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 24px;
+    background: linear-gradient(135deg, #c4956a, #b8875c);
+    color: #fff;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    margin-top: 4px;
+    box-shadow: 0 2px 8px rgba(196,149,106,0.3);
+}
+.pl__cta:hover {
+    background: linear-gradient(135deg, #b8875c, #a67a50);
+    box-shadow: 0 4px 16px rgba(196,149,106,0.4);
+    transform: translateY(-1px);
+}
+
 /* Pagination */
 .pag { display: flex; justify-content: center; gap: 6px; margin-top: 32px; }
 .pag__btn { width: 40px; height: 40px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; transition: all 0.15s; color: #374151; }
@@ -719,11 +896,16 @@
 @media (max-width: 900px) {
     .cat-layout { grid-template-columns: 1fr; gap: 0; }
     .fl { display: none; }
-    .cat-sort { display: none; }
+    .cat-controls { display: none; }
     .mob-bar { display: flex; gap: 8px; margin-bottom: 12px; }
     .mob-bar__filter { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; font-weight: 600; color: #374151; cursor: pointer; }
     .mob-bar__badge { background: #c4956a; color: #fff; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .mob-bar__sort { flex: 1; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #fff; }
+    .pl { grid-template-columns: 120px 1fr; gap: 0; padding: 14px; }
+    .pl__action { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; border-left: none; padding-left: 0; padding-top: 12px; margin-top: 4px; border-top: 1px solid #f3f4f6; }
+    .pl__price-val { font-size: 20px; }
+    .pl__price-range { font-size: 15px; }
+    .pl__cta { padding: 10px 18px; font-size: 13px; }
 }
 @media (max-width: 600px) {
     .cat-title { font-size: 22px; }
@@ -732,5 +914,9 @@
     .pc__body { padding: 10px; }
     .pc__price-val { font-size: 17px; }
     .pc__btn { padding: 8px; font-size: 11px; }
+    .pl { grid-template-columns: 100px 1fr; padding: 12px; }
+    .pl__body { padding: 0 12px; }
+    .pl__title { font-size: 14px; }
+    .pl__desc { display: none; }
 }
 </style>
