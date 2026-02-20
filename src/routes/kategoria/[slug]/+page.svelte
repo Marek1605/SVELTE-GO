@@ -25,10 +25,13 @@
     let brandSearch = '';
     let mobileFilterOpen = false;
     let viewMode = 'grid';
-    let userPickedView = false; // 'grid' or 'list'
+    let userPickedView = false;
 
-    // Leaf category = no subcategories → default to list view
+    // Leaf category = no subcategories → default to list view (comparison)
     $: isLeaf = children.length === 0;
+    $: if (!userPickedView) viewMode = isLeaf ? 'list' : 'grid';
+
+    function setView(mode) { viewMode = mode; userPickedView = true; }
 
     // Range slider state
     let sliderMin = 0, sliderMax = 1000;
