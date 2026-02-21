@@ -85,6 +85,7 @@
         { key: 'tools', label: 'Import & AI', items: [
             { href: '/admin/feeds', label: 'Feed Import', icon: '📥' },
             { href: '/admin/ai-settings', label: 'AI Kategorizácia', icon: '🤖' },
+            { href: '/admin/taxonomy', label: 'Taxonomy', icon: '📂' },
         ]},
         { key: 'system', label: 'Systém', items: [
             { href: '/admin/settings', label: 'Nastavenia', icon: '⚙️' },
