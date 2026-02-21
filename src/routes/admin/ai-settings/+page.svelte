@@ -83,7 +83,16 @@
     function shortDate(s) { if (!s) return '—'; return s.length > 19 ? s.slice(0, 19).replace('T', ' ') : s; }
 
     // AUDIT functions
-    async function runAudit() { auditLoading = true; auditIssues = []; const r = await apiFetch('/admin/ai/tree-audit'); if (r?.success) { auditIssues = r.issues || []; auditStats = r.stats || {}; } else { alert(r?.error || 'Chyba'); } auditLoading = false; }
+    let auditProvider = 'anthropic'; // default to Claude for better quality
+    let fixAllLoading = false, fixAllMsg = '', fixAllLogs = [];
+    async function runAudit(prov = '') {
+        auditLoading = true; auditIssues = [];
+        const p = prov || auditProvider;
+        const r = await apiFetch(`/admin/ai/tree-audit?provider=${p}`);
+        if (r?.success) { auditIssues = r.issues || []; auditStats = r.stats || {}; }
+        else { alert(r?.error || 'Chyba'); }
+        auditLoading = false;
+    }
     function switchToAudit() { activeTab = 'audit'; if (auditIssues.length === 0 && !auditLoading) runAudit(); }
     $: filteredAuditIssues = auditFilter === 'all' ? auditIssues : auditIssues.filter(i => i.type === auditFilter);
     async function applyFix(issue, action, newName = '') {
@@ -94,6 +103,17 @@
         const r = await apiFetch('/admin/ai/apply-fix', { method: 'POST', body: JSON.stringify(body) });
         if (r?.success) { fixMsg = '✅ ' + r.message; auditIssues = auditIssues.filter(i => i.id !== issue.id); } else { fixMsg = '❌ ' + (r?.error || 'Chyba'); }
         fixingId = ''; setTimeout(() => fixMsg = '', 5000);
+    }
+    async function fixAll() {
+        if (!confirm(`🔧 Opraviť všetko pomocou ${auditProvider === 'anthropic' ? 'Claude' : 'OpenAI'}?\n\nToto:\n- Zmaže prázdne kategórie\n- Preloží cudzie názvy do slovenčiny\n- Zlúči duplicity\n\nPokračovať?`)) return;
+        fixAllLoading = true; fixAllMsg = ''; fixAllLogs = [];
+        const r = await apiFetch(`/admin/ai/fix-all?provider=${auditProvider}`, { method: 'POST' });
+        if (r?.success) {
+            fixAllMsg = '✅ ' + r.message;
+            fixAllLogs = r.logs || [];
+            await runAudit(); // Refresh audit
+        } else { fixAllMsg = '❌ ' + (r?.error || 'Chyba'); }
+        fixAllLoading = false;
     }
     function typeLabel(t) { switch(t) { case 'foreign': return '🌍 Cudzí jazyk'; case 'duplicate': return '🔁 Duplicita'; case 'empty_branch': return '📭 Prázdna'; case 'too_deep': return '📏 Príliš hlboká'; case 'illogical': return '⚠️ Nelogická'; default: return t; } }
     function sevColor(s) { switch(s) { case 'high': return '#ef4444'; case 'medium': return '#f59e0b'; default: return '#6b7280'; } }
@@ -206,7 +226,13 @@
                 <h2>🔍 Audit stromu kategórií</h2>
                 <p class="desc">AI kontrola cudzích názvov, duplicít, prázdnych vetiev a nelogických štruktúr</p>
             </div>
-            <button class="btn blue" on:click={runAudit} disabled={auditLoading}>{auditLoading ? '⏳ Analyzujem...' : '🔄 Spustiť audit'}</button>
+            <div class="audit-controls">
+                <div class="provider-tabs">
+                    <button class="prov-tab" class:active={auditProvider==='anthropic'} on:click={() => { auditProvider='anthropic'; runAudit('anthropic'); }}>🧠 Claude</button>
+                    <button class="prov-tab" class:active={auditProvider==='openai'} on:click={() => { auditProvider='openai'; runAudit('openai'); }}>🤖 OpenAI</button>
+                </div>
+                <button class="btn blue" on:click={() => runAudit()} disabled={auditLoading}>{auditLoading ? '⏳ Analyzujem...' : '🔄 Spustiť audit'}</button>
+            </div>
         </div>
 
         {#if auditStats.total}
@@ -217,8 +243,19 @@
             <div class="stat"><span class="n">{fmt(auditStats.duplicate || 0)}</span><span class="l">Duplicity</span></div>
             <div class="stat"><span class="n">{fmt(auditStats.empty_branch || 0)}</span><span class="l">Prázdne</span></div>
         </div>
+
+        {#if auditStats.issues > 0}
+        <div class="fix-all-section">
+            <button class="btn green fix-all-btn" on:click={fixAll} disabled={fixAllLoading}>
+                {fixAllLoading ? '⏳ Opravujem...' : `🔧 Opraviť všetko (${auditProvider === 'anthropic' ? 'Claude' : 'OpenAI'})`}
+            </button>
+            <span class="fix-all-desc">Automaticky: preloží cudzie názvy do SK, zmaže prázdne kategórie, zlúči duplicity</span>
+        </div>
+        {/if}
         {/if}
 
+        {#if fixAllMsg}<div class="cleanup-result">{fixAllMsg}</div>{/if}
+        {#if fixAllLogs.length > 0}<div class="fix-all-logs">{#each fixAllLogs as log}<div class="log-line">{log}</div>{/each}</div>{/if}
         {#if fixMsg}<div class="cleanup-result">{fixMsg}</div>{/if}
 
         {#if auditIssues.length > 0}
@@ -360,4 +397,14 @@ tr.row-created{background:#fffbeb} tr.row-matched{background:#f0fdf4} tr.row-ful
 .btn-sm.green{background:#10b981;color:#fff} .btn-sm.blue{background:#3b82f6;color:#fff}
 .btn-sm.red{background:#ef4444;color:#fff} .btn-sm.outline{background:#fff;color:#64748b;border:1px solid #d1d5db}
 @media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr)} .report-head,.filter-row,.cleanup-actions{flex-direction:column}}
+.audit-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.provider-tabs{display:flex;gap:0;border:1px solid #d1d5db;border-radius:8px;overflow:hidden}
+.prov-tab{padding:8px 16px;border:none;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.prov-tab.active{background:#3b82f6;color:#fff}
+.prov-tab:hover:not(.active){background:#e2e8f0}
+.fix-all-section{display:flex;align-items:center;gap:14px;margin:16px 0;padding:16px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #86efac;border-radius:10px}
+.fix-all-btn{font-size:15px;padding:12px 24px;white-space:nowrap}
+.fix-all-desc{font-size:13px;color:#166534;line-height:1.4}
+.fix-all-logs{margin-top:12px;padding:14px;background:#1e293b;border-radius:8px;max-height:300px;overflow-y:auto}
+.fix-all-logs .log-line{font-family:monospace;font-size:12px;color:#94a3b8;padding:2px 0;border-bottom:1px solid #334155}
 </style>
