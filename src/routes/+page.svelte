@@ -172,54 +172,75 @@
 </svelte:head>
 
 <div class="hp">
-    <section class="hero">
-        <div class="hero__mesh"></div>
-        <div class="hero__inner cnt">
-            <div class="hero__search-wrap">
-                <form class="hero__search" on:submit={handleSearch}>
-                    <svg class="hero__si" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" placeholder="Hľadať produkt, značku..." bind:value={searchQuery}>
-                    <button type="submit" class="hero__sbtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        <span class="hero__sbtn-txt">Hľadať</span>
-                    </button>
-                </form>
-                <div class="hero__tags">
-                    <span class="hero__tags-l">Populárne:</span>
-                    {#each popularSearches as term}<a href="/hladat?q={encodeURIComponent(term)}" class="hero__tag">{term}</a>{/each}
+    <!-- ===== MOBILE HERO (search + banners + quick actions) ===== -->
+    <section class="mhero">
+        <div class="mhero__mesh"></div>
+        <div class="mhero__inner">
+            <form class="mhero__sf" on:submit={handleSearch}>
+                <svg class="mhero__si" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Hľadať produkt, značku..." bind:value={searchQuery}>
+                <button type="submit" class="mhero__sb"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+            </form>
+            <div class="mhero__banners" on:touchstart={handleTouchStart} on:touchend={handleTouchEnd}>
+                <div class="mhero__bt" style="transform:translateX(-{currentBanner * 103.08}%)">
+                    <div class="mhero__b mhero__b--gold"><div class="mhero__bd">🔍</div><span class="mhero__bb">NOVÉ</span><div class="mhero__bh">Porovnaj ceny z overených e-shopov</div><div class="mhero__bs">{fmtNum(animProducts)}+ produktov</div></div>
+                    <div class="mhero__b mhero__b--dark"><div class="mhero__bd">🏪</div><span class="mhero__bb">PRE E-SHOPY</span><div class="mhero__bh">Pridajte váš obchod</div><div class="mhero__bs">CPC od 0,05 € • Zadarmo</div></div>
+                    <div class="mhero__b mhero__b--purple"><div class="mhero__bd">💰</div><span class="mhero__bb">TIP</span><div class="mhero__bh">Ušetrite aj 40%</div><div class="mhero__bs">Porovnajte ceny na jednom mieste</div></div>
                 </div>
+                <div class="mhero__dots">{#each [0,1,2] as i}<button class="mhero__dot" class:active={currentBanner===i} on:click={() => goToBanner(i)}></button>{/each}</div>
             </div>
-            <div class="hero__banners" on:touchstart={handleTouchStart} on:touchend={handleTouchEnd}>
-                <div class="hero__b-track" style="transform:translateX(-{currentBanner * 103.08}%)">
-                    <div class="hero__b hero__b--gold">
-                        <div class="hero__b-deco">🔍</div>
-                        <span class="hero__b-badge">NOVÉ</span>
-                        <div class="hero__b-title">Porovnaj ceny z overených e-shopov</div>
-                        <div class="hero__b-sub">{fmtNum(animProducts)}+ produktov</div>
+            <div class="mhero__qa">{#each quickActions as qa}<a href={qa.href} class="qa"><span class="qa__i">{qa.icon}</span><span class="qa__l">{qa.label}</span></a>{/each}</div>
+        </div>
+    </section>
+
+    <!-- ===== DESKTOP HERO (banner carousel full-width + sidebar) ===== -->
+    <section class="dhero">
+        <div class="dhero__inner cnt">
+            <div class="dhero__main" on:touchstart={handleTouchStart} on:touchend={handleTouchEnd}>
+                <div class="dhero__track" style="transform:translateX(-{currentBanner * 100}%)">
+                    <div class="dhero__slide dhero__slide--gold">
+                        <div class="dhero__content">
+                            <span class="dhero__badge">NOVÉ</span>
+                            <h2 class="dhero__title">{@html heroTitle.replace(/\*([^*]+)\*/g, '<span class="dhero__em">$1</span>')}</h2>
+                            <p class="dhero__sub">{heroSubtitle}</p>
+                            <div class="dhero__stats"><span>{fmtNum(animProducts)}+ produktov</span><span class="dhero__sep">·</span><span>{fmtNum(animCategories)} kategórií</span><span class="dhero__sep">·</span><span>Overené e-shopy</span></div>
+                        </div>
+                        <div class="dhero__deco">🔍</div>
                     </div>
-                    <div class="hero__b hero__b--dark">
-                        <div class="hero__b-deco">🏪</div>
-                        <span class="hero__b-badge">PRE E-SHOPY</span>
-                        <div class="hero__b-title">Pridajte váš obchod</div>
-                        <div class="hero__b-sub">CPC od 0,05 € • Zadarmo</div>
+                    <div class="dhero__slide dhero__slide--dark">
+                        <div class="dhero__content">
+                            <span class="dhero__badge">PRE E-SHOPY</span>
+                            <h2 class="dhero__title">Pridajte váš e-shop na <span class="dhero__em">MegaPrice</span></h2>
+                            <p class="dhero__sub">Platíte len za kliknutia. CPC od 0,05 €. Registrácia zadarmo.</p>
+                            <a href="/prihlasenie-predajcu" class="dhero__cta">Začať predávať →</a>
+                        </div>
+                        <div class="dhero__deco">🏪</div>
                     </div>
-                    <div class="hero__b hero__b--purple">
-                        <div class="hero__b-deco">💰</div>
-                        <span class="hero__b-badge">TIP</span>
-                        <div class="hero__b-title">Ušetrite aj 40%</div>
-                        <div class="hero__b-sub">Porovnajte ceny na jednom mieste</div>
+                    <div class="dhero__slide dhero__slide--purple">
+                        <div class="dhero__content">
+                            <span class="dhero__badge">TIP</span>
+                            <h2 class="dhero__title">Ušetrite aj <span class="dhero__em">40%</span> porovnaním cien</h2>
+                            <p class="dhero__sub">Porovnajte ceny z overených obchodov na jednom mieste.</p>
+                        </div>
+                        <div class="dhero__deco">💰</div>
                     </div>
                 </div>
-                <div class="hero__dots">
-                    {#each [0,1,2] as i}<button class="hero__dot" class:active={currentBanner===i} on:click={() => goToBanner(i)}></button>{/each}
-                </div>
+                <div class="dhero__dots">{#each [0,1,2] as i}<button class="dhero__dot" class:active={currentBanner===i} on:click={() => goToBanner(i)}></button>{/each}</div>
             </div>
-            <div class="hero__qa">
-                {#each quickActions as qa}<a href={qa.href} class="qa"><span class="qa__i">{qa.icon}</span><span class="qa__l">{qa.label}</span></a>{/each}
+            <div class="dhero__side">
+                <div class="dhero__qa-title">Rýchle akcie</div>
+                {#each quickActions as qa}
+                    <a href={qa.href} class="dhero__qa-item"><span class="dhero__qa-icon">{qa.icon}</span><span class="dhero__qa-label">{qa.label}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>
+                {/each}
+                <div class="dhero__qa-tags">
+                    <span>Populárne:</span>
+                    {#each popularSearches.slice(0,4) as term}<a href="/hladat?q={encodeURIComponent(term)}">{term}</a>{/each}
+                </div>
             </div>
         </div>
     </section>
 
+    <!-- ===== TRUST BAR ===== -->
     <section class="trust">
         <div class="trust__inner">
             <div class="trust__item"><div class="trust__ic trust__ic--p"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="trust__t"><span class="trust__n">{fmtNum(animProducts)}+</span><span class="trust__l">produktov</span></div></div>
@@ -232,6 +253,7 @@
         </div>
     </section>
 
+    <!-- ===== CATEGORIES ===== -->
     {#if categories.length > 0}
     <section class="cats">
         <div class="cnt">
@@ -258,6 +280,7 @@
     </section>
     {/if}
 
+    <!-- ===== CENOVÉ POKLESY ===== -->
     {#if priceDropProducts.length > 0}
     <section class="drops">
         <div class="cnt">
@@ -265,16 +288,11 @@
             <div class="drops__scroll">
                 {#each priceDropProducts as dp}
                     <a href="/produkt/{dp.slug}" class="dp">
-                        <div class="dp__top">
-                            {#if calcDrop(dp) > 0}<span class="dp__pct">-{calcDrop(dp)}%</span>{/if}
-                        </div>
+                        <div class="dp__top">{#if calcDrop(dp) > 0}<span class="dp__pct">-{calcDrop(dp)}%</span>{/if}</div>
                         <div class="dp__img">{#if dp.image_url}<img src={dp.image_url} alt={dp.title}>{:else}<div class="dp__ph">📷</div>{/if}</div>
                         <div class="dp__body">
                             <h3 class="dp__name">{dp.title}</h3>
-                            <div class="dp__prices">
-                                <span class="dp__now">{fmtPrice(dp.price_min || dp.price)} €</span>
-                                {#if getOldPrice(dp) > 0}<span class="dp__old">{fmtPrice(getOldPrice(dp))} €</span>{/if}
-                            </div>
+                            <div class="dp__prices"><span class="dp__now">{fmtPrice(dp.price_min || dp.price)} €</span>{#if getOldPrice(dp) > 0}<span class="dp__old">{fmtPrice(getOldPrice(dp))} €</span>{/if}</div>
                         </div>
                     </a>
                 {/each}
@@ -283,6 +301,7 @@
     </section>
     {/if}
 
+    <!-- ===== MINI VENDOR CTA ===== -->
     {#if showVendor}
     <section class="minicta">
         <div class="cnt">
@@ -295,6 +314,7 @@
     </section>
     {/if}
 
+    <!-- ===== TOP PRODUCTS ===== -->
     {#if topProducts.length > 0}
     <section class="prods">
         <div class="cnt"><div class="sec-h"><div><h2 class="sec-t">TOP porovnania</h2><p class="sec-s">Produkty s najviac ponukami</p></div><a href="/produkty" class="sec-lnk">Všetky →</a></div></div>
@@ -316,6 +336,7 @@
     </section>
     {/if}
 
+    <!-- ===== CATEGORY PRODUCTS ===== -->
     {#each categoryProducts as catSec, secIdx}
     <section class="cprods" class:cprods--alt={secIdx%2===1}>
         <div class="cnt"><div class="sec-h"><div><h2 class="sec-t">{catSec.name}</h2><p class="sec-s">Najobľúbenejšie v kategórii</p></div><a href="/kategoria/{catSec.slug}" class="sec-lnk">Všetky →</a></div></div>
@@ -336,6 +357,7 @@
     </section>
     {/each}
 
+    <!-- ===== HOW IT WORKS ===== -->
     {#if showHow}
     <section class="how">
         <div class="cnt">
@@ -351,6 +373,7 @@
     </section>
     {/if}
 
+    <!-- ===== VENDOR CTA ===== -->
     {#if showVendor}
     <section class="vcta">
         <div class="vcta__mesh"></div>
@@ -392,41 +415,39 @@
 .sec-lnk:hover{color:#a67b52}
 .hp__bottom-pad{height:72px}
 
-.hero{position:relative;overflow:hidden;background:linear-gradient(140deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);color:#fff}
-.hero__mesh{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(196,149,106,.12) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 90%,rgba(99,102,241,.06) 0%,transparent 50%)}
-.hero__inner{position:relative;z-index:1;padding:12px 0 0}
-
-.hero__search-wrap{padding:0 16px}
-.hero__search{display:flex;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:3px;position:relative}
-.hero__si{position:absolute;left:12px;color:rgba(255,255,255,.35)}
-.hero__search input{flex:1;border:none;background:none;padding:10px 8px 10px 36px;font-size:14px;color:#fff;outline:none;font-family:inherit;min-width:0}
-.hero__search input::placeholder{color:rgba(255,255,255,.35)}
-.hero__sbtn{padding:10px 14px;background:#c4956a;border-radius:8px;color:#fff;border:none;display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap;transition:background .2s}
-.hero__sbtn:hover{background:#a67b52}
-.hero__sbtn-txt{display:none}
-.hero__tags{display:none}
-
-.hero__banners{overflow:hidden;padding:10px 16px 0}
-.hero__b-track{display:flex;transition:transform .4s cubic-bezier(.25,.46,.45,.94);gap:10px}
-.hero__b{min-width:100%;border-radius:14px;padding:18px 16px;position:relative;overflow:hidden}
-.hero__b--gold{background:linear-gradient(135deg,#c4956a,#a67b52)}
-.hero__b--dark{background:linear-gradient(135deg,#1e293b,#334155);border:1px solid rgba(255,255,255,.06)}
-.hero__b--purple{background:linear-gradient(135deg,#4f46e5,#7c3aed)}
-.hero__b-deco{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.1}
-.hero__b-badge{display:inline-block;padding:2px 8px;background:rgba(255,255,255,.2);border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.5px;margin-bottom:6px}
-.hero__b-title{font-size:17px;font-weight:800;margin-bottom:2px;letter-spacing:-.2px;line-height:1.2}
-.hero__b-sub{font-size:11px;opacity:.7}
-.hero__dots{display:flex;gap:5px;justify-content:center;padding:10px 0 2px}
-.hero__dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);border:none;padding:0;cursor:pointer;transition:all .3s}
-.hero__dot.active{background:#c4956a;width:18px;border-radius:3px}
-
-.hero__qa{display:flex;gap:6px;padding:10px 16px 14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;justify-content:flex-start}
-.hero__qa::-webkit-scrollbar{display:none}
+/* ====== MOBILE HERO ====== */
+.mhero{position:relative;overflow:hidden;background:linear-gradient(140deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);color:#fff}
+.mhero__mesh{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(196,149,106,.12) 0%,transparent 60%)}
+.mhero__inner{position:relative;z-index:1;padding:12px 16px 0}
+.mhero__sf{display:flex;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:3px;position:relative}
+.mhero__si{position:absolute;left:12px;color:rgba(255,255,255,.35)}
+.mhero__sf input{flex:1;border:none;background:none;padding:10px 8px 10px 36px;font-size:14px;color:#fff;outline:none;font-family:inherit;min-width:0}
+.mhero__sf input::placeholder{color:rgba(255,255,255,.35)}
+.mhero__sb{padding:10px 14px;background:#c4956a;border-radius:8px;color:#fff;border:none;display:flex;align-items:center;cursor:pointer}
+.mhero__banners{overflow:hidden;padding:10px 0 0}
+.mhero__bt{display:flex;transition:transform .4s cubic-bezier(.25,.46,.45,.94);gap:10px}
+.mhero__b{min-width:100%;border-radius:14px;padding:18px 16px;position:relative;overflow:hidden}
+.mhero__b--gold{background:linear-gradient(135deg,#c4956a,#a67b52)}
+.mhero__b--dark{background:linear-gradient(135deg,#1e293b,#334155);border:1px solid rgba(255,255,255,.06)}
+.mhero__b--purple{background:linear-gradient(135deg,#4f46e5,#7c3aed)}
+.mhero__bd{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.1}
+.mhero__bb{display:inline-block;padding:2px 8px;background:rgba(255,255,255,.2);border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.5px;margin-bottom:6px}
+.mhero__bh{font-size:17px;font-weight:800;margin-bottom:2px;letter-spacing:-.2px;line-height:1.2}
+.mhero__bs{font-size:11px;opacity:.7}
+.mhero__dots{display:flex;gap:5px;justify-content:center;padding:10px 0 2px}
+.mhero__dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);border:none;padding:0;cursor:pointer;transition:all .3s}
+.mhero__dot.active{background:#c4956a;width:18px;border-radius:3px}
+.mhero__qa{display:flex;gap:6px;padding:10px 0 14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.mhero__qa::-webkit-scrollbar{display:none}
 .qa{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 12px;min-width:56px;flex-shrink:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#fff;transition:all .2s}
 .qa:hover{background:rgba(255,255,255,.12)}
 .qa__i{font-size:16px}
 .qa__l{font-size:9px;font-weight:600;color:rgba(255,255,255,.65);white-space:nowrap}
 
+/* ====== DESKTOP HERO — hidden on mobile ====== */
+.dhero{display:none}
+
+/* ====== TRUST BAR ====== */
 .trust{padding:0 16px;margin-top:-2px;position:relative;z-index:2}
 .trust__inner{max-width:960px;margin:0 auto;padding:14px 16px;background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .trust__item{display:flex;align-items:center;gap:8px}
@@ -440,6 +461,7 @@
 .trust__l{font-size:9px;color:#64748b}
 .trust__sep{display:none}
 
+/* ====== CATEGORIES ====== */
 .cats{padding:24px 0 16px}
 .cats__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .cats__grid--x{margin-top:8px}
@@ -455,6 +477,7 @@
 .cats__mbtn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:none;border:1px solid #e2e8f0;border-radius:8px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;transition:all .2s}
 .cats__mbtn:hover{border-color:#c4956a;color:#c4956a}
 
+/* ====== CENOVÉ POKLESY ====== */
 .drops{padding:20px 0 8px}
 .drops__hd{display:flex;align-items:center;gap:8px}
 .drops__hd .sec-t{display:flex;align-items:center;gap:6px}
@@ -464,7 +487,7 @@
 .drops__scroll::-webkit-scrollbar{display:none}
 .dp{min-width:152px;max-width:152px;scroll-snap-align:start;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;transition:all .2s;display:flex;flex-direction:column;position:relative;color:#0f172a;flex-shrink:0}
 .dp:hover{box-shadow:0 6px 20px rgba(0,0,0,.07);transform:translateY(-2px);border-color:#059669}
-.dp__top{display:flex;align-items:center;justify-content:space-between;padding:8px 10px 0}
+.dp__top{display:flex;align-items:center;padding:8px 10px 0}
 .dp__pct{display:inline-flex;align-items:center;padding:2px 7px;background:#ecfdf5;color:#059669;border-radius:6px;font-size:11px;font-weight:800}
 .dp__img{height:100px;display:flex;align-items:center;justify-content:center;padding:6px 10px}
 .dp__img img{max-width:100%;max-height:100%;object-fit:contain}
@@ -475,6 +498,7 @@
 .dp__now{font-size:16px;font-weight:900;color:#0f172a;letter-spacing:-.3px}
 .dp__old{font-size:11px;color:#94a3b8;text-decoration:line-through}
 
+/* ====== MINI VENDOR CTA ====== */
 .minicta{padding:4px 0 12px}
 .minicta__inner{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;transition:all .2s}
 .minicta__inner:hover{border-color:#c4956a;box-shadow:0 4px 12px rgba(0,0,0,.04)}
@@ -485,6 +509,7 @@
 .minicta__btn{padding:8px 16px;background:linear-gradient(135deg,#c4956a,#a67b52);color:#fff;border-radius:8px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0;transition:all .2s}
 .minicta__inner:hover .minicta__btn{transform:translateX(2px)}
 
+/* ====== PRODUCTS ====== */
 .prods,.cprods{padding:20px 0}
 .prods{background:#fff}
 .cprods{background:#f8fafc}
@@ -510,6 +535,7 @@
 .p__cta{margin-top:auto;padding:8px;text-align:center;border-radius:7px;font-size:10px;font-weight:700;background:#0f172a;color:#fff;transition:background .2s}
 .p:hover .p__cta{background:#c4956a}
 
+/* ====== HOW ====== */
 .how{padding:32px 0;background:#fff}
 .how__hd{text-align:center;margin-bottom:24px}
 .how__grid{display:flex;flex-direction:column;gap:0;max-width:340px;margin:0 auto}
@@ -527,6 +553,7 @@
 .how__sx{font-size:12px;color:#64748b;line-height:1.4}
 .how__arr{display:none}
 
+/* ====== VENDOR CTA ====== */
 .vcta{padding:40px 0;background:#0f172a;color:#fff;position:relative;overflow:hidden}
 .vcta__mesh{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(196,149,106,.08) 0%,transparent 50%)}
 .vcta__inner{position:relative;z-index:1;display:flex;flex-direction:column;gap:24px;align-items:center;text-align:center}
@@ -545,54 +572,80 @@
 .vcta__row span{color:#94a3b8}
 .vcta__row strong{color:#c4956a;font-weight:700}
 
+/* ====== TABLET 768px+ ====== */
 @media(min-width:768px){
     .cnt{padding:0 32px}
     .sec-t{font-size:22px}
     .sec-s{font-size:13px}
     .sec-lnk{font-size:13px}
     .hp__bottom-pad{display:none}
-    .hero__inner{padding:20px 0 0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:0 20px;align-items:start}
-    .hero__search-wrap{grid-column:1/-1;padding:0 32px;margin-bottom:10px}
-    .hero__search{max-width:640px;margin:0 auto;background:rgba(255,255,255,.1);border-radius:12px;padding:4px}
-    .hero__si{left:16px}
-    .hero__search input{padding:12px 8px 12px 42px;font-size:15px}
-    .hero__sbtn{padding:12px 20px}
-    .hero__sbtn-txt{display:inline}
-    .hero__tags{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;align-items:center;margin-top:8px;max-width:640px;margin-left:auto;margin-right:auto}
-    .hero__tags-l{font-size:12px;color:#64748b}
-    .hero__tag{padding:4px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:7px;font-size:11px;color:#94a3b8;transition:all .2s}
-    .hero__tag:hover{background:rgba(196,149,106,.15);color:#c4956a;border-color:rgba(196,149,106,.2)}
-    .hero__banners{padding:10px 32px 0;grid-column:1;max-width:100%}
-    .hero__qa{padding:10px 32px 16px;grid-column:2;justify-content:center;flex-wrap:wrap}
-    .qa{padding:10px 16px;min-width:64px}
-    .qa__i{font-size:18px}
-    .qa__l{font-size:10px}
-    .trust{padding:0 24px;margin-top:-28px}
+    /* Hide mobile hero, show desktop hero */
+    .mhero{display:none}
+    .dhero{display:block;background:#f8fafc;padding:24px 0 0}
+    .dhero__inner{display:flex;gap:20px;align-items:stretch}
+    .dhero__main{flex:1;min-width:0;border-radius:16px;overflow:hidden;position:relative;background:#0f172a}
+    .dhero__track{display:flex;transition:transform .5s cubic-bezier(.25,.46,.45,.94)}
+    .dhero__slide{min-width:100%;padding:40px 44px;display:flex;align-items:center;justify-content:space-between;position:relative;min-height:240px}
+    .dhero__slide--gold{background:linear-gradient(135deg,#c4956a 0%,#a67b52 100%);color:#fff}
+    .dhero__slide--dark{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff}
+    .dhero__slide--purple{background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);color:#fff}
+    .dhero__content{max-width:420px;position:relative;z-index:1}
+    .dhero__badge{display:inline-block;padding:3px 10px;background:rgba(255,255,255,.2);border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:10px}
+    .dhero__title{font-size:28px;font-weight:900;line-height:1.15;letter-spacing:-.5px;margin:0 0 8px}
+    .dhero__em{color:#fef3c7}
+    .dhero__slide--gold .dhero__em{color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.15)}
+    .dhero__sub{font-size:14px;opacity:.8;line-height:1.5;margin:0}
+    .dhero__stats{display:flex;gap:0;font-size:12px;margin-top:14px;opacity:.7}
+    .dhero__sep{margin:0 8px}
+    .dhero__cta{display:inline-block;margin-top:16px;padding:10px 24px;background:#c4956a;color:#fff;border-radius:8px;font-size:13px;font-weight:700;transition:all .2s}
+    .dhero__cta:hover{transform:translateY(-1px);background:#b8855c}
+    .dhero__deco{position:absolute;right:30px;top:50%;transform:translateY(-50%);font-size:96px;opacity:.06}
+    .dhero__dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+    .dhero__dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);border:none;padding:0;cursor:pointer;transition:all .3s}
+    .dhero__dot.active{background:#fff;width:24px;border-radius:4px}
+    /* Desktop sidebar */
+    .dhero__side{width:240px;flex-shrink:0;background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:16px;display:flex;flex-direction:column;gap:2px}
+    .dhero__qa-title{font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .dhero__qa-item{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:8px;transition:all .15s;color:#0f172a;font-size:13px;font-weight:600}
+    .dhero__qa-item:hover{background:#f8fafc;color:#c4956a}
+    .dhero__qa-icon{font-size:18px;width:28px;text-align:center}
+    .dhero__qa-label{flex:1}
+    .dhero__qa-tags{margin-top:auto;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;flex-wrap:wrap;gap:4px}
+    .dhero__qa-tags span{font-size:10px;color:#94a3b8;width:100%;margin-bottom:2px}
+    .dhero__qa-tags a{padding:3px 8px;background:#f1f5f9;border-radius:5px;font-size:10px;color:#475569;transition:all .2s}
+    .dhero__qa-tags a:hover{background:#c4956a;color:#fff}
+    /* Trust */
+    .trust{padding:0 24px;margin-top:20px}
     .trust__inner{grid-template-columns:repeat(4,1fr);padding:18px 28px;gap:0;border-radius:18px}
     .trust__sep{display:block;width:1px;height:32px;background:#e2e8f0;flex-shrink:0}
     .trust__item{justify-content:center;gap:10px}
     .trust__ic{width:38px;height:38px}
     .trust__n{font-size:15px}
     .trust__l{font-size:10px}
-    .cats{padding:40px 0 24px}
+    /* Cats */
+    .cats{padding:32px 0 24px}
     .cats__grid{grid-template-columns:repeat(3,1fr);gap:10px}
     .cc{padding:14px;gap:12px}
     .cc__ic{width:44px;height:44px}
     .cc__name{font-size:13px}
+    /* Drops */
     .drops{padding:24px 0 12px}
     .drops__scroll{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;overflow:visible;scroll-snap-type:none}
     .dp{min-width:unset;max-width:unset}
     .dp__img{height:120px}
     .dp__name{font-size:12px}
     .dp__now{font-size:18px}
+    /* Mini CTA */
     .minicta{padding:8px 0 16px}
     .minicta__inner{max-width:560px;margin:0 auto}
+    /* Products */
     .pscroll{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;overflow:visible;scroll-snap-type:none}
     .p{min-width:unset;max-width:unset}
     .p__img{height:150px}
     .p__title{font-size:12px;min-height:32px}
     .p__pv{font-size:18px}
     .p__cta{padding:9px;font-size:11px}
+    /* How */
     .how__grid{flex-direction:row;gap:20px;max-width:860px;margin:0 auto}
     .how__step{flex-direction:column;text-align:center;flex:1;gap:10px;padding:0}
     .how__step::before{display:none}
@@ -600,15 +653,17 @@
     .how__c{padding:0}
     .how__sn,.how__st,.how__sx{text-align:center}
     .how__arr{display:flex;align-items:center;padding-top:14px;color:#cbd5e1;font-size:18px;flex-shrink:0}
+    /* Vendor CTA */
     .vcta__inner{flex-direction:row;text-align:left;gap:40px}
     .vcta__feats{align-items:flex-start}
     .vcta__title{font-size:26px}
 }
 
+/* ====== DESKTOP 1024px+ ====== */
 @media(min-width:1024px){
-    .hero__inner{grid-template-columns:1.2fr .8fr}
-    .hero__banners{padding:10px 0 0 32px}
-    .hero__qa{padding:10px 32px 16px 0}
+    .dhero__side{width:280px}
+    .dhero__slide{padding:48px 56px;min-height:280px}
+    .dhero__title{font-size:32px}
     .cats__grid{grid-template-columns:repeat(4,1fr)}
     .cc__name{font-size:14px}
     .drops__scroll{grid-template-columns:repeat(6,1fr)}
@@ -617,10 +672,19 @@
     .p__pv{font-size:20px}
 }
 
+/* ====== WIDE 1280px+ ====== */
+@media(min-width:1280px){
+    .dhero__slide{min-height:300px;padding:52px 64px}
+    .dhero__title{font-size:36px}
+    .dhero__sub{font-size:15px}
+    .dhero__deco{font-size:120px}
+}
+
+/* ====== Small phones ====== */
 @media(max-width:360px){
     .p{min-width:140px;max-width:140px}
     .dp{min-width:140px;max-width:140px}
-    .hero__b-title{font-size:15px}
+    .mhero__bh{font-size:15px}
     .trust__inner{gap:6px;padding:10px 12px}
     .trust__ic{width:30px;height:30px;border-radius:8px}
     .trust__n{font-size:13px}
