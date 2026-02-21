@@ -30,6 +30,66 @@
     let auditLoading = false, auditIssues = [], auditStats = {}, auditFilter = 'all';
     let fixingId = '', fixMsg = '';
 
+    // SMART RECATEGORIZE
+    let smartFeeds = [], smartRoots = [], smartMappings = [], smartProvider = 'anthropic';
+    let smartAnalyzing = false, smartPreviewing = false, smartApplying = false;
+    let smartMsg = '', smartLogs = [], smartPhase = 'analyze'; // analyze, preview, apply
+    let smartTestResult = null, smartTesting = false;
+
+    async function smartAnalyze() {
+        smartAnalyzing = true; smartFeeds = []; smartMsg = '';
+        const r = await apiFetch('/admin/ai/smart-recategorize?action=analyze');
+        if (r?.success) {
+            smartFeeds = r.feeds || [];
+            smartRoots = r.existing_roots || [];
+            smartPhase = 'preview';
+            smartMsg = `Nájdených ${smartFeeds.length} unikátnych feed kategórií`;
+        } else { smartMsg = '❌ ' + (r?.error || 'Chyba'); }
+        smartAnalyzing = false;
+    }
+
+    async function smartTestAI() {
+        smartTesting = true; smartTestResult = null;
+        const r = await apiFetch(`/admin/ai/test?provider=${smartProvider}`);
+        smartTestResult = r;
+        smartTesting = false;
+    }
+
+    async function smartPreview() {
+        smartPreviewing = true; smartMappings = []; smartMsg = '';
+        const feeds = smartFeeds.map(f => f.feed);
+        const r = await apiFetch('/admin/ai/smart-recategorize?action=preview', {
+            method: 'POST',
+            body: JSON.stringify({ provider: smartProvider, feeds })
+        });
+        if (r?.success) {
+            smartMappings = (r.mappings || []).map(m => ({...m, approved: true}));
+            smartPhase = 'apply';
+            smartMsg = `✅ AI navrhla ${smartMappings.length} mapovaní (${r.provider} / ${r.model})`;
+        } else {
+            smartMsg = '❌ ' + (r?.error || 'Chyba');
+            if (r?.partial_results?.length) smartMappings = r.partial_results.map(m => ({...m, approved: true}));
+        }
+        smartPreviewing = false;
+    }
+
+    async function smartApply() {
+        const approved = smartMappings.filter(m => m.approved);
+        if (!confirm(`Aplikovať ${approved.length} mapovaní? Toto premaže existujúce kategórie produktov.`)) return;
+        smartApplying = true; smartMsg = ''; smartLogs = [];
+        const r = await apiFetch('/admin/ai/smart-recategorize?action=apply', {
+            method: 'POST',
+            body: JSON.stringify({ mappings: approved.map(m => ({ feed: m.feed, path: m.suggested })) })
+        });
+        if (r?.success) {
+            smartMsg = '✅ ' + r.message;
+            smartLogs = r.logs || [];
+        } else { smartMsg = '❌ ' + (r?.error || 'Chyba'); }
+        smartApplying = false;
+    }
+
+    function switchToSmart() { activeTab = 'smart'; if (smartFeeds.length === 0 && !smartAnalyzing) smartAnalyze(); }
+
     onMount(async () => { await Promise.all([loadSettings(), loadShops(), loadProgress(), loadDisplayStats()]); loading = false; });
     onDestroy(() => { if (polling) clearInterval(polling); });
 
@@ -126,6 +186,7 @@
         <h1>🤖 AI Kategorizácia</h1>
         <div class="tab-bar">
             <button class="tab" class:active={activeTab === 'settings'} on:click={() => activeTab = 'settings'}>⚙️ Nastavenia</button>
+            <button class="tab" class:active={activeTab === 'smart'} on:click={switchToSmart}>🧠 Smart Re-kategorize</button>
             <button class="tab" class:active={activeTab === 'report'} on:click={switchToReport}>📊 Report</button>
             <button class="tab" class:active={activeTab === 'audit'} on:click={switchToAudit}>🔍 Audit stromu</button>
             <button class="tab" class:active={activeTab === 'cleanup'} on:click={() => activeTab = 'cleanup'}>🗑️ Vyčistenie</button>
@@ -173,6 +234,95 @@
             {:else}<button class="btn green" on:click={startCategorization} disabled={starting || !selectedShopId}>{starting ? '⏳...' : '🚀 Spustiť'}</button>{/if}
             <button class="btn outline" on:click={loadProgress}>🔄 Obnoviť</button>
         </div>
+    </div>
+
+    <!-- ============ SMART RE-KATEGORIZE TAB ============ -->
+    {:else if activeTab === 'smart'}
+    <div class="section">
+        <h2>🧠 Smart AI Re-kategorizácia</h2>
+        <p class="desc">AI analyzuje feed kategórie a navrhne správnu štruktúru pre slovenský CPC porovnávač. Iba {smartFeeds.length || '?'} AI volaní namiesto tisícov!</p>
+
+        <!-- AI Test -->
+        <div class="smart-test">
+            <div class="provider-tabs">
+                <button class="prov-tab" class:active={smartProvider==='anthropic'} on:click={() => smartProvider='anthropic'}>🧠 Claude</button>
+                <button class="prov-tab" class:active={smartProvider==='openai'} on:click={() => smartProvider='openai'}>🤖 OpenAI</button>
+            </div>
+            <button class="btn blue" on:click={smartTestAI} disabled={smartTesting}>{smartTesting ? '⏳...' : '🔌 Test AI pripojenia'}</button>
+            {#if smartTestResult}
+                <span class="test-result" class:ok={smartTestResult.success} class:fail={!smartTestResult.success}>
+                    {smartTestResult.success ? '✅' : '❌'} {smartTestResult.message || smartTestResult.error}
+                    {#if smartTestResult.key_preview} (kľúč: {smartTestResult.key_preview}){/if}
+                </span>
+            {/if}
+        </div>
+
+        {#if smartMsg}<div class="cleanup-result">{smartMsg}</div>{/if}
+
+        <!-- Phase 1: Analyze -->
+        {#if smartPhase === 'analyze'}
+        <div class="smart-action">
+            <button class="btn green" on:click={smartAnalyze} disabled={smartAnalyzing}>
+                {smartAnalyzing ? '⏳ Analyzujem...' : '📊 Analyzovať feed kategórie'}
+            </button>
+        </div>
+        {/if}
+
+        <!-- Phase 2: Preview / Generate AI mapping -->
+        {#if smartPhase === 'preview' && smartFeeds.length > 0}
+        <div class="smart-summary">
+            <h3>📋 Feed kategórie ({smartFeeds.length})</h3>
+            <div class="smart-roots">Existujúce root: <strong>{smartRoots.join(', ')}</strong></div>
+            <div class="smart-feed-preview">
+                {#each smartFeeds.slice(0, 20) as f}
+                <div class="feed-item"><span class="feed-count">{f.count}x</span> {f.feed} {#if f.current_path}<span class="feed-current">→ {f.current_path}</span>{/if}</div>
+                {/each}
+                {#if smartFeeds.length > 20}<div class="feed-more">... a ďalších {smartFeeds.length - 20}</div>{/if}
+            </div>
+            <button class="btn green" on:click={smartPreview} disabled={smartPreviewing}>
+                {smartPreviewing ? '⏳ AI generuje mapovanie...' : `🤖 Generovať AI mapovanie (${smartProvider === 'anthropic' ? 'Claude' : 'OpenAI'})`}
+            </button>
+            {#if smartPreviewing}<div class="progress-text" style="margin-top:8px">Prebieha... toto môže trvať 30-60 sekúnd pre {smartFeeds.length} kategórií</div>{/if}
+        </div>
+        {/if}
+
+        <!-- Phase 3: Apply mappings -->
+        {#if smartPhase === 'apply' && smartMappings.length > 0}
+        <div class="smart-mappings">
+            <div class="smart-mappings-head">
+                <h3>🗺️ AI navrhnuté mapovanie ({smartMappings.filter(m=>m.approved).length}/{smartMappings.length} schválených)</h3>
+                <div class="smart-actions-top">
+                    <button class="btn-sm green" on:click={() => smartMappings = smartMappings.map(m => ({...m, approved: true}))}>✅ Schváliť všetky</button>
+                    <button class="btn-sm outline" on:click={() => smartMappings = smartMappings.map(m => ({...m, approved: false}))}>✖ Odmietnuť všetky</button>
+                    <button class="btn green" on:click={smartApply} disabled={smartApplying || smartMappings.filter(m=>m.approved).length === 0}>
+                        {smartApplying ? '⏳ Aplikujem...' : `🚀 Aplikovať (${smartMappings.filter(m=>m.approved).length})`}
+                    </button>
+                </div>
+            </div>
+
+            <div class="mapping-list">
+                {#each smartMappings as m, i}
+                <div class="mapping-item" class:rejected={!m.approved}>
+                    <label class="mapping-check">
+                        <input type="checkbox" bind:checked={m.approved}>
+                    </label>
+                    <div class="mapping-content">
+                        <div class="mapping-feed">📥 {m.feed}</div>
+                        <div class="mapping-arrow">→</div>
+                        <div class="mapping-suggested">📁 {m.suggested_str}</div>
+                        {#if m.reasoning}<div class="mapping-reason">💡 {m.reasoning}</div>{/if}
+                    </div>
+                </div>
+                {/each}
+            </div>
+        </div>
+        {/if}
+
+        {#if smartLogs.length > 0}
+        <div class="fix-all-logs">
+            {#each smartLogs as log}<div class="log-line">{log}</div>{/each}
+        </div>
+        {/if}
     </div>
 
     <!-- ============ REPORT TAB ============ -->
@@ -407,4 +557,34 @@ tr.row-created{background:#fffbeb} tr.row-matched{background:#f0fdf4} tr.row-ful
 .fix-all-desc{font-size:13px;color:#166534;line-height:1.4}
 .fix-all-logs{margin-top:12px;padding:14px;background:#1e293b;border-radius:8px;max-height:300px;overflow-y:auto}
 .fix-all-logs .log-line{font-family:monospace;font-size:12px;color:#94a3b8;padding:2px 0;border-bottom:1px solid #334155}
+/* SMART RECATEGORIZE */
+.smart-test{display:flex;align-items:center;gap:12px;margin:16px 0;padding:12px;background:#f8fafc;border-radius:8px;flex-wrap:wrap}
+.test-result{font-size:13px;padding:4px 10px;border-radius:6px}
+.test-result.ok{background:#dcfce7;color:#166534}
+.test-result.fail{background:#fee2e2;color:#991b1b}
+.smart-action{margin:16px 0}
+.smart-summary{margin:16px 0}
+.smart-roots{margin:8px 0;padding:10px;background:#eff6ff;border-radius:8px;font-size:13px;color:#1e40af}
+.smart-feed-preview{max-height:300px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;margin:12px 0;padding:0}
+.feed-item{padding:6px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;display:flex;gap:8px;align-items:center}
+.feed-item:hover{background:#f8fafc}
+.feed-count{background:#3b82f6;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;min-width:32px;text-align:center;flex-shrink:0}
+.feed-current{color:#94a3b8;font-size:12px;margin-left:auto;flex-shrink:0}
+.feed-more{padding:8px 12px;text-align:center;color:#94a3b8;font-size:12px}
+.smart-mappings{margin:16px 0}
+.smart-mappings-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.smart-actions-top{display:flex;gap:8px;align-items:center}
+.mapping-list{max-height:500px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px}
+.mapping-item{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid #f1f5f9;transition:background .15s}
+.mapping-item:hover{background:#f0f9ff}
+.mapping-item.rejected{opacity:0.4;background:#fef2f2}
+.mapping-check{flex-shrink:0}
+.mapping-check input{width:18px;height:18px;cursor:pointer}
+.mapping-content{flex:1;min-width:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mapping-feed{font-size:13px;color:#64748b;flex:1;min-width:120px}
+.mapping-arrow{color:#94a3b8;font-weight:700;flex-shrink:0}
+.mapping-suggested{font-size:13px;font-weight:600;color:#059669;flex:1;min-width:120px}
+.mapping-reason{font-size:11px;color:#94a3b8;width:100%;padding-left:28px}
+.progress-text{font-size:13px;color:#3b82f6;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 </style>
