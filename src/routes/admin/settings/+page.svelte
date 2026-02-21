@@ -33,8 +33,20 @@
     let savingHome = false;
     let homeMsg = '';
 
+    // Price drops settings
+    let priceDropMode = 'auto';
+    let priceDropLimit = 6;
+    let priceDropProductIds = '';
+    let priceDropSelected = [];
+    let priceDropSearchQuery = '';
+    let priceDropSearchResults = [];
+    let priceDropSearching = false;
+    let savingDrops = false;
+    let dropsMsg = '';
+    let dropsSearchTimer;
+
     onMount(async () => {
-        await Promise.all([loadSystemInfo(), loadSiteSettings()]);
+        await Promise.all([loadSystemInfo(), loadSiteSettings(), loadPriceDropSettings()]);
         loading = false;
     });
 
@@ -200,6 +212,82 @@
         savingHome = false;
         homeMsg = '✅ Uložené';
         setTimeout(() => homeMsg = '', 3000);
+    }
+
+    // Price drops functions
+    async function loadPriceDropSettings() {
+        const res = await apiFetch('/admin/price-drops');
+        if (res?.success && res.data) {
+            priceDropMode = res.data.price_drops_mode || 'auto';
+            priceDropLimit = parseInt(res.data.price_drops_limit) || 6;
+            priceDropProductIds = res.data.price_drops_product_ids || '';
+            if (priceDropProductIds && priceDropMode === 'manual') {
+                await loadSelectedProducts();
+            }
+        }
+    }
+
+    async function loadSelectedProducts() {
+        if (!priceDropProductIds) { priceDropSelected = []; return; }
+        const ids = priceDropProductIds.split(',').map(s => s.trim()).filter(Boolean);
+        const products = [];
+        for (const id of ids) {
+            try {
+                const res = await apiFetch('/admin/products/' + id);
+                if (res?.success && res.data) {
+                    products.push({
+                        id: res.data.id,
+                        title: res.data.title,
+                        image_url: res.data.image_url,
+                        price_min: res.data.price_min,
+                        price_old: res.data.regular_price || 0,
+                        brand: res.data.brand
+                    });
+                }
+            } catch(e) {}
+        }
+        priceDropSelected = products;
+    }
+
+    async function savePriceDropSettings() {
+        savingDrops = true; dropsMsg = '';
+        const ids = priceDropSelected.map(p => p.id).join(',');
+        const res = await apiFetch('/admin/price-drops', {
+            method: 'POST',
+            body: JSON.stringify({
+                mode: priceDropMode,
+                limit: priceDropLimit,
+                product_ids: ids
+            })
+        });
+        dropsMsg = res?.success ? '✅ Uložené' : '❌ ' + (res?.error || 'Chyba');
+        savingDrops = false;
+        setTimeout(() => dropsMsg = '', 3000);
+    }
+
+    function searchDropProducts(query) {
+        clearTimeout(dropsSearchTimer);
+        priceDropSearchQuery = query;
+        if (!query || query.length < 2) { priceDropSearchResults = []; return; }
+        priceDropSearching = true;
+        dropsSearchTimer = setTimeout(async () => {
+            const res = await apiFetch('/admin/price-drops/search?q=' + encodeURIComponent(query));
+            if (res?.success && res.data) {
+                priceDropSearchResults = res.data.filter(p => !priceDropSelected.some(s => s.id === p.id));
+            }
+            priceDropSearching = false;
+        }, 300);
+    }
+
+    function addDropProduct(product) {
+        priceDropSelected = [...priceDropSelected, product];
+        priceDropSearchResults = priceDropSearchResults.filter(p => p.id !== product.id);
+        priceDropProductIds = priceDropSelected.map(p => p.id).join(',');
+    }
+
+    function removeDropProduct(id) {
+        priceDropSelected = priceDropSelected.filter(p => p.id !== id);
+        priceDropProductIds = priceDropSelected.map(p => p.id).join(',');
     }
 </script>
 
@@ -407,6 +495,99 @@
     <!-- SYSTEM INFO -->
     {#if systemInfo}
     <div class="section">
+        <h2>📉 Cenové poklesy</h2>
+        <p class="desc">Nastavte produkty zobrazené v sekcii "Cenové poklesy" na úvodnej stránke.</p>
+
+        <div class="drops-mode">
+            <div class="mode-option" class:active={priceDropMode === 'auto'} on:click={() => priceDropMode = 'auto'}>
+                <div class="mode-radio">{priceDropMode === 'auto' ? '●' : '○'}</div>
+                <div>
+                    <strong>Automaticky</strong>
+                    <small>Zobrazí produkty s najväčším cenovým poklesom (regular_price vs price_min)</small>
+                </div>
+            </div>
+            <div class="mode-option" class:active={priceDropMode === 'manual'} on:click={() => priceDropMode = 'manual'}>
+                <div class="mode-radio">{priceDropMode === 'manual' ? '●' : '○'}</div>
+                <div>
+                    <strong>Manuálne</strong>
+                    <small>Vyberte konkrétne produkty ručne</small>
+                </div>
+            </div>
+        </div>
+
+        {#if priceDropMode === 'auto'}
+        <div class="form-group" style="margin-top:16px">
+            <label>Počet produktov</label>
+            <div style="display:flex;align-items:center;gap:12px">
+                <input type="range" min="2" max="12" bind:value={priceDropLimit} style="flex:1;accent-color:#059669">
+                <span style="font-weight:700;min-width:24px;text-align:center;color:#059669">{priceDropLimit}</span>
+            </div>
+        </div>
+        {/if}
+
+        {#if priceDropMode === 'manual'}
+        <div class="drops-manual" style="margin-top:16px">
+            <div class="form-group">
+                <label>Vyhľadať produkt</label>
+                <div class="drops-search-wrap">
+                    <input type="text" placeholder="Zadajte názov produktu..." value={priceDropSearchQuery}
+                        on:input={(e) => searchDropProducts(e.target.value)}>
+                    {#if priceDropSearching}<span class="drops-spinner">⏳</span>{/if}
+                </div>
+            </div>
+
+            {#if priceDropSearchResults.length > 0}
+            <div class="drops-results">
+                {#each priceDropSearchResults as p}
+                <button class="drops-result" on:click={() => addDropProduct(p)}>
+                    <div class="drops-result__img">
+                        {#if p.image_url}<img src={p.image_url} alt="">{:else}<span>📷</span>{/if}
+                    </div>
+                    <div class="drops-result__info">
+                        <span class="drops-result__title">{p.title}</span>
+                        <span class="drops-result__price">
+                            {#if p.price_min}{p.price_min.toFixed(2).replace('.',',')} €{/if}
+                            {#if p.price_old > 0}<s style="color:#94a3b8;margin-left:6px">{p.price_old.toFixed(2).replace('.',',')} €</s>{/if}
+                            {#if p.drop_pct > 0}<span style="color:#059669;font-weight:700;margin-left:6px">-{p.drop_pct}%</span>{/if}
+                        </span>
+                    </div>
+                    <span class="drops-result__add">+ Pridať</span>
+                </button>
+                {/each}
+            </div>
+            {/if}
+
+            {#if priceDropSelected.length > 0}
+            <div class="drops-selected">
+                <label style="margin-bottom:8px">Vybrané produkty ({priceDropSelected.length})</label>
+                {#each priceDropSelected as p, i}
+                <div class="drops-sel-item">
+                    <span class="drops-sel-num">{i + 1}</span>
+                    <div class="drops-sel-img">
+                        {#if p.image_url}<img src={p.image_url} alt="">{:else}<span>📷</span>{/if}
+                    </div>
+                    <div class="drops-sel-info">
+                        <span class="drops-sel-title">{p.title}</span>
+                        {#if p.brand}<span class="drops-sel-brand">{p.brand}</span>{/if}
+                    </div>
+                    <button class="drops-sel-remove" on:click={() => removeDropProduct(p.id)}>✕</button>
+                </div>
+                {/each}
+            </div>
+            {/if}
+        </div>
+        {/if}
+
+        <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
+            <button class="btn-save" style="background:#059669" on:click={savePriceDropSettings} disabled={savingDrops}>
+                {savingDrops ? 'Ukladám...' : '💾 Uložiť cenové poklesy'}
+            </button>
+            {#if dropsMsg}<span class="save-msg">{dropsMsg}</span>{/if}
+        </div>
+    </div>
+
+    <!-- SYSTEM INFO -->
+    <div class="section">
         <h2>🖥️ Stav systému</h2>
         <div class="stats-grid">
             <div class="stat"><span class="n">{fmt(systemInfo.products)}</span><span class="l">Produktov</span></div>
@@ -561,4 +742,39 @@
     .save-msg{font-size:14px;font-weight:500;color:#10b981}
     .ui-toggle-name{display:block;font-size:14px;font-weight:600;color:#1e293b}
     .ui-toggle-desc{display:block;font-size:12px;color:#64748b}
+
+    /* Price drops admin */
+    .drops-mode{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .mode-option{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;transition:all .15s}
+    .mode-option:hover{border-color:#059669;background:#f0fdf4}
+    .mode-option.active{border-color:#059669;background:#ecfdf5}
+    .mode-radio{font-size:16px;color:#059669;margin-top:2px;width:20px;flex-shrink:0}
+    .mode-option strong{display:block;font-size:14px;color:#1e293b;margin-bottom:2px}
+    .mode-option small{color:#64748b;font-size:12px}
+    .drops-search-wrap{position:relative}
+    .drops-search-wrap input{width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box}
+    .drops-search-wrap input:focus{outline:none;border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.1)}
+    .drops-spinner{position:absolute;right:12px;top:50%;transform:translateY(-50%)}
+    .drops-results{max-height:240px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;margin-top:8px}
+    .drops-result{display:flex;align-items:center;gap:10px;padding:10px 12px;width:100%;border:none;background:#fff;cursor:pointer;transition:background .1s;text-align:left;border-bottom:1px solid #f1f5f9;font-family:inherit;font-size:inherit}
+    .drops-result:hover{background:#f0fdf4}
+    .drops-result:last-child{border-bottom:none}
+    .drops-result__img{width:36px;height:36px;border-radius:6px;background:#f8fafc;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+    .drops-result__img img{width:100%;height:100%;object-fit:contain}
+    .drops-result__info{flex:1;min-width:0}
+    .drops-result__title{display:block;font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .drops-result__price{font-size:12px;color:#475569}
+    .drops-result__add{padding:4px 10px;background:#ecfdf5;color:#059669;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0}
+    .drops-selected{margin-top:16px;padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
+    .drops-selected label{font-size:13px;font-weight:600;color:#374151;display:block}
+    .drops-sel-item{display:flex;align-items:center;gap:10px;padding:8px;background:#fff;border-radius:8px;margin-bottom:6px;border:1px solid #e2e8f0}
+    .drops-sel-item:last-child{margin-bottom:0}
+    .drops-sel-num{width:22px;height:22px;border-radius:6px;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+    .drops-sel-img{width:32px;height:32px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+    .drops-sel-img img{width:100%;height:100%;object-fit:contain}
+    .drops-sel-info{flex:1;min-width:0}
+    .drops-sel-title{display:block;font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .drops-sel-brand{font-size:11px;color:#94a3b8}
+    .drops-sel-remove{width:28px;height:28px;border-radius:6px;border:1px solid #fecaca;background:#fff;color:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;font-size:12px}
+    .drops-sel-remove:hover{background:#fef2f2;border-color:#ef4444}
 </style>

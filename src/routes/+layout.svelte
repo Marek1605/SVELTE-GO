@@ -145,6 +145,9 @@
 <div class="mp-site">
     <header class="mp-header">
         <div class="mp-header__inner">
+            <button class="mp-header__burger" on:click={() => { mobileMenuOpen = true; document.body.style.overflow = 'hidden'; }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
             <a href="/" class="mp-header__logo">
                 {#if logoUrl}
                     <img src={logoUrl} alt="MegaPrice" class="mp-header__logo-img" style="height:{logoSize}px" />
@@ -353,9 +356,32 @@
             </div>
             <div class="mp-mobile-menu__content">
                 {#each visibleCategories as cat}
-                    <a href={"/kategoria/" + (cat.slug || cat.id)} class="mp-mobile-menu__link" on:click={closeMobileMenu}>
-                        <span class="mp-mobile-menu__icon">{getCategoryEmoji(cat.name)}</span>{cat.name}
-                    </a>
+                    <div class="mp-mobile-cat">
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="mp-mobile-cat__link" on:click={closeMobileMenu}>
+                            <div class="mp-mobile-cat__img">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                            </div>
+                            <span class="mp-mobile-cat__name">{cat.name}</span>
+                            {#if cat.children?.length > 0}<span class="mp-mobile-cat__count">{cat.children.length}</span>{/if}
+                        </a>
+                        {#if cat.children?.length > 0}
+                        <div class="mp-mobile-subs">
+                            {#each cat.children.slice(0, 8) as sub}
+                                <a href={"/kategoria/" + (sub.slug || sub.id)} class="mp-mobile-sub" on:click={closeMobileMenu}>
+                                    <div class="mp-mobile-sub__img">
+                                        {#if sub.image_url}<img src={sub.image_url} alt="">{:else}<span>{getCategoryEmoji(sub.name)}</span>{/if}
+                                    </div>
+                                    <span>{sub.name}</span>
+                                </a>
+                            {/each}
+                            {#if cat.children.length > 8}
+                                <a href={"/kategoria/" + (cat.slug || cat.id)} class="mp-mobile-sub mp-mobile-sub--more" on:click={closeMobileMenu}>
+                                    <span>+{cat.children.length - 8} ďalších</span>
+                                </a>
+                            {/if}
+                        </div>
+                        {/if}
+                    </div>
                 {/each}
             </div>
         </div>
@@ -374,6 +400,8 @@
 /* HEADER */
 .mp-header { background: #fff; border-bottom: 1px solid #f0f0f0; position: relative; z-index: 1000; }
 .mp-header__inner { display: flex; align-items: center; gap: 24px; padding: 12px 32px; max-width: 1500px; margin: 0 auto; width: 100%; }
+.mp-header__burger { display: none; width: 40px; height: 40px; align-items: center; justify-content: center; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; color: #374151; flex-shrink: 0; transition: all 0.2s; }
+.mp-header__burger:hover { background: #f3f4f6; color: #c4956a; border-color: #c4956a; }
 .mp-header__logo { flex-shrink: 0; }
 .mp-header__logo-text { font-size: 24px; font-weight: 700; color: #ff6b35; }
 .mp-header__logo-img { height: 40px; max-width: 300px; object-fit: contain; display: block; }
@@ -392,7 +420,8 @@
 .mp-header__action-badge { position: absolute; top: -6px; right: -6px; background: #ff6b35; color: #fff; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .mp-header__action-badge--blue { background: #3b82f6; }
 @media (max-width: 768px) {
-    .mp-header__inner { gap: 12px; padding: 10px 16px; }
+    .mp-header__inner { gap: 10px; padding: 10px 12px; }
+    .mp-header__burger { display: flex; }
     .mp-search { display: none; }
     .mp-header__actions { gap: 4px; }
     .mp-header__action { padding: 8px; }
@@ -575,13 +604,25 @@
 
 /* MOBILE MENU */
 .mp-mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1200; }
-.mp-mobile-menu { position: fixed; top: 0; left: 0; bottom: 0; width: 300px; max-width: 85vw; background: #fff; z-index: 1300; display: flex; flex-direction: column; animation: slideIn 0.3s ease; }
+.mp-mobile-menu { position: fixed; top: 0; left: 0; bottom: 0; width: 75vw; max-width: 360px; background: #fff; z-index: 1300; display: flex; flex-direction: column; animation: slideIn 0.3s ease; box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
 @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-.mp-mobile-menu__header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: linear-gradient(135deg, #ff6b35, #e55a2b); color: #fff; }
+.mp-mobile-menu__header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff; }
 .mp-mobile-menu__title { font-size: 18px; font-weight: 700; }
-.mp-mobile-menu__close { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; color: #fff; }
-.mp-mobile-menu__content { flex: 1; overflow-y: auto; padding: 8px; }
-.mp-mobile-menu__link { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; color: #374151; font-weight: 500; font-size: 15px; }
-.mp-mobile-menu__link:hover { background: #f3f4f6; }
-.mp-mobile-menu__icon { font-size: 18px; }
+.mp-mobile-menu__close { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; color: #fff; }
+.mp-mobile-menu__content { flex: 1; overflow-y: auto; padding: 8px; -webkit-overflow-scrolling: touch; }
+.mp-mobile-cat { border-bottom: 1px solid #f3f4f6; }
+.mp-mobile-cat:last-child { border-bottom: none; }
+.mp-mobile-cat__link { display: flex; align-items: center; gap: 12px; padding: 14px 12px 10px; color: #1f2937; font-weight: 600; font-size: 14px; }
+.mp-mobile-cat__img { width: 40px; height: 40px; border-radius: 10px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.mp-mobile-cat__img img { width: 100%; height: 100%; object-fit: cover; }
+.mp-mobile-cat__img span { font-size: 18px; }
+.mp-mobile-cat__name { flex: 1; }
+.mp-mobile-cat__count { width: 22px; height: 22px; border-radius: 6px; background: #f1f5f9; color: #64748b; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.mp-mobile-subs { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 12px 12px; }
+.mp-mobile-sub { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: #f8fafc; border-radius: 8px; font-size: 12px; color: #475569; transition: all 0.15s; white-space: nowrap; }
+.mp-mobile-sub:hover { background: #fef7f0; color: #c4956a; }
+.mp-mobile-sub__img { width: 22px; height: 22px; border-radius: 5px; background: #e5e7eb; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.mp-mobile-sub__img img { width: 100%; height: 100%; object-fit: cover; }
+.mp-mobile-sub__img span { font-size: 10px; }
+.mp-mobile-sub--more { color: #c4956a; font-weight: 600; }
 </style>
