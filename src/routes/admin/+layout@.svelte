@@ -15,8 +15,8 @@
     const API = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
 
     function getAuthHeader() {
-        const u = sessionStorage.getItem('adm_u') || '';
-        const p = sessionStorage.getItem('adm_p') || '';
+        const u = localStorage.getItem('adm_u') || '';
+        const p = localStorage.getItem('adm_p') || '';
         if (!u || !p) return null;
         return 'Basic ' + btoa(u + ':' + p);
     }
@@ -36,7 +36,7 @@
         try {
             const r = await fetch(`${API}/admin/dashboard`, { headers: { 'Authorization': h } });
             if (r.ok) { authed = true; setGlobalAuth(); }
-            else { sessionStorage.removeItem('adm_u'); sessionStorage.removeItem('adm_p'); }
+            else { localStorage.removeItem('adm_u'); localStorage.removeItem('adm_p'); }
         } catch(e) {}
         checking = false;
     }
@@ -47,8 +47,8 @@
         try {
             const r = await fetch(`${API}/admin/dashboard`, { headers: { 'Authorization': h } });
             if (r.ok) {
-                sessionStorage.setItem('adm_u', loginUser);
-                sessionStorage.setItem('adm_p', loginPass);
+                localStorage.setItem('adm_u', loginUser);
+                localStorage.setItem('adm_p', loginPass);
                 authed = true;
                 setGlobalAuth();
             } else {
@@ -58,8 +58,8 @@
     }
 
     function doLogout() {
-        sessionStorage.removeItem('adm_u');
-        sessionStorage.removeItem('adm_p');
+        localStorage.removeItem('adm_u');
+        localStorage.removeItem('adm_p');
         window.__adminAuth = null;
         authed = false;
         loginUser = ''; loginPass = '';

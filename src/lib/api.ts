@@ -11,8 +11,8 @@ async function fetchApi(endpoint, options = {}) {
         // Add admin auth for /admin endpoints
         const headers = { 'Content-Type': 'application/json', ...options.headers };
         if (browser && endpoint.startsWith('/admin')) {
-            const u = sessionStorage.getItem('adm_u');
-            const p = sessionStorage.getItem('adm_p');
+            const u = localStorage.getItem('adm_u');
+            const p = localStorage.getItem('adm_p');
             if (u && p) headers['Authorization'] = 'Basic ' + btoa(u + ':' + p);
         }
 
