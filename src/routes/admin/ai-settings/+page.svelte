@@ -50,7 +50,10 @@
         if (reportShopId) u += `?shop_id=${reportShopId}`;
         try {
             const r = await adminRawFetch(u);
-            if (!r.ok) { alert('Chyba pri sťahovaní'); return; }
+            if (!r.ok) {
+                try { const j = await r.json(); alert(j.error || 'Chyba pri sťahovaní'); } catch { alert('Chyba pri sťahovaní (HTTP ' + r.status + ')'); }
+                return;
+            }
             const blob = await r.blob();
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -63,7 +66,10 @@
         if (reportShopId) u += `&shop_id=${reportShopId}`;
         try {
             const r = await adminRawFetch(u);
-            if (!r.ok) { alert('Chyba pri sťahovaní'); return; }
+            if (!r.ok) {
+                try { const j = await r.json(); alert(j.error || 'Chyba pri sťahovaní'); } catch { alert('Chyba pri sťahovaní (HTTP ' + r.status + ')'); }
+                return;
+            }
             const blob = await r.blob();
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
