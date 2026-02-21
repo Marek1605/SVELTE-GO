@@ -21,17 +21,13 @@
     let maxPrice = '';
     let selectedBrand = '';
     let selectedAttributes = {};
-    let sort = 'popular';
+    let sort = 'newest';
     let brandSearch = '';
     let mobileFilterOpen = false;
-    let viewMode = 'grid';
-    let userPickedView = false;
+    let viewMode = 'list'; // 'grid' or 'list'
 
-    // Leaf category = no subcategories → default to list view (comparison)
+    // Leaf category = no subcategories → default to list view
     $: isLeaf = children.length === 0;
-    $: if (!userPickedView) viewMode = isLeaf ? 'list' : 'grid';
-
-    function setView(mode) { viewMode = mode; userPickedView = true; }
 
     // Range slider state
     let sliderMin = 0, sliderMax = 1000;
@@ -45,7 +41,7 @@
         minPrice = params.get('min_price') || '';
         maxPrice = params.get('max_price') || '';
         selectedBrand = params.get('brand') || '';
-        sort = params.get('sort') || 'popular';
+        sort = params.get('sort') || 'newest';
         selectedAttributes = {};
         for (const [key, value] of params.entries()) {
             if (key.startsWith('attr_')) {
@@ -118,7 +114,7 @@
         if (minPrice) params.set('min_price', minPrice);
         if (maxPrice) params.set('max_price', maxPrice);
         if (selectedBrand) params.set('brand', selectedBrand);
-        if (sort !== 'popular') params.set('sort', sort);
+        if (sort !== 'newest') params.set('sort', sort);
         for (const [name, value] of Object.entries(selectedAttributes)) {
             if (value) params.set('attr_' + name, value);
         }
@@ -131,7 +127,7 @@
         maxPrice = '';
         selectedBrand = '';
         selectedAttributes = {};
-        sort = 'popular';
+        sort = 'newest';
         brandSearch = '';
         if (category?.slug) goto(`/kategoria/${category.slug}`, { replaceState: true });
     }
@@ -199,19 +195,18 @@
                 <div class="cat-controls">
                     <div class="cat-sort">
                         <select bind:value={sort} on:change={applyFilters}>
-                            <option value="popular">Najpopulárnejšie</option>
+                            <option value="newest">Najnovšie</option>
                             <option value="price_asc">Najlacnejšie</option>
                             <option value="price_desc">Najdrahšie</option>
-                            <option value="newest">Najnovšie</option>
                             <option value="name_asc">A-Z</option>
                             <option value="name_desc">Z-A</option>
                         </select>
                     </div>
                     <div class="view-toggle">
-                        <button class="view-toggle__btn" class:is-active={viewMode === 'grid'} on:click={() => setView('grid')} title="Mriežka">
+                        <button class="view-toggle__btn" class:is-active={viewMode === 'grid'} on:click={() => viewMode = 'grid'} title="Mriežka">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
                         </button>
-                        <button class="view-toggle__btn" class:is-active={viewMode === 'list'} on:click={() => setView('list')} title="Zoznam">
+                        <button class="view-toggle__btn" class:is-active={viewMode === 'list'} on:click={() => viewMode = 'list'} title="Zoznam">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                         </button>
                     </div>
@@ -374,10 +369,9 @@
                             {#if activeFilterCount > 0}<span class="mob-bar__badge">{activeFilterCount}</span>{/if}
                         </button>
                         <select class="mob-bar__sort" bind:value={sort} on:change={applyFilters}>
-                            <option value="popular">Najpopulárnejšie</option>
+                            <option value="newest">Najnovšie</option>
                             <option value="price_asc">Najlacnejšie</option>
                             <option value="price_desc">Najdrahšie</option>
-                            <option value="newest">Najnovšie</option>
                             <option value="name_asc">A-Z</option>
                             <option value="name_desc">Z-A</option>
                         </select>
@@ -412,20 +406,7 @@
                             {#if viewMode === 'list'}
                                 <div class="prods__list">
                                     {#each products as product, i}
-                                        <article class="pl" class:pl--featured={i < 3}>
-                                            <div class="pl__rank">
-                                                {#if i === 0}
-                                                    <span class="pl__rank-badge pl__rank-badge--1">TOP 1</span>
-                                                {:else if i === 1}
-                                                    <span class="pl__rank-badge pl__rank-badge--2">TOP 2</span>
-                                                {:else if i === 2}
-                                                    <span class="pl__rank-badge pl__rank-badge--3">TOP 3</span>
-                                                {:else if i < 10}
-                                                    <span class="pl__rank-badge">TOP {i + 1}</span>
-                                                {:else}
-                                                    <span class="pl__rank-num">{i + 1}.</span>
-                                                {/if}
-                                            </div>
+                                        <article class="pl" class:pl--featured={i === 0}>
                                             <a href="/produkt/{product.slug}" class="pl__img">
                                                 {#if product.image_url}
                                                     <img src={product.image_url} alt={product.title} loading="lazy">
@@ -439,6 +420,9 @@
                                                 <div class="pl__top">
                                                     {#if product.brand}
                                                         <span class="pl__brand">{product.brand}</span>
+                                                    {/if}
+                                                    {#if i === 0}
+                                                        <span class="pl__badge pl__badge--top">🔥 Populárny</span>
                                                     {/if}
                                                 </div>
                                                 <h3 class="pl__title"><a href="/produkt/{product.slug}">{product.title}</a></h3>
@@ -795,14 +779,13 @@
 
 .pl {
     display: grid;
-    grid-template-columns: 48px 160px 1fr 220px;
+    grid-template-columns: 180px 1fr 220px;
     gap: 0;
-    padding: 20px 16px;
+    padding: 20px;
     background: #fff;
     border-bottom: 1px solid #f0f1f3;
     transition: all 0.2s;
     position: relative;
-    align-items: center;
 }
 .pl:first-child { border-top: 1px solid #f0f1f3; }
 .pl:hover { background: #fafbfc; }
@@ -817,14 +800,6 @@
     background: linear-gradient(180deg, #c4956a, #e8c9a8);
     border-radius: 0 2px 2px 0;
 }
-
-/* Rank column */
-.pl__rank { display: flex; align-items: center; justify-content: center; }
-.pl__rank-badge { display: inline-flex; align-items: center; justify-content: center; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; background: #f3f4f6; color: #6b7280; white-space: nowrap; letter-spacing: 0.3px; }
-.pl__rank-badge--1 { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; font-size: 12px; box-shadow: 0 2px 8px rgba(251,191,36,0.4); }
-.pl__rank-badge--2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; }
-.pl__rank-badge--3 { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; }
-.pl__rank-num { font-size: 14px; font-weight: 700; color: #d1d5db; }
 
 /* List image */
 .pl__img {
@@ -926,12 +901,11 @@
     .mob-bar__filter { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; font-weight: 600; color: #374151; cursor: pointer; }
     .mob-bar__badge { background: #c4956a; color: #fff; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .mob-bar__sort { flex: 1; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #fff; }
-    .pl { grid-template-columns: 36px 100px 1fr; gap: 0; padding: 14px; }
+    .pl { grid-template-columns: 120px 1fr; gap: 0; padding: 14px; }
     .pl__action { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; border-left: none; padding-left: 0; padding-top: 12px; margin-top: 4px; border-top: 1px solid #f3f4f6; }
     .pl__price-val { font-size: 20px; }
     .pl__price-range { font-size: 15px; }
     .pl__cta { padding: 10px 18px; font-size: 13px; }
-    .pl__rank-badge { font-size: 9px; padding: 2px 5px; }
 }
 @media (max-width: 600px) {
     .cat-title { font-size: 22px; }
@@ -940,10 +914,9 @@
     .pc__body { padding: 10px; }
     .pc__price-val { font-size: 17px; }
     .pc__btn { padding: 8px; font-size: 11px; }
-    .pl { grid-template-columns: 30px 80px 1fr; padding: 12px; }
-    .pl__body { padding: 0 10px; }
+    .pl { grid-template-columns: 100px 1fr; padding: 12px; }
+    .pl__body { padding: 0 12px; }
     .pl__title { font-size: 14px; }
     .pl__desc { display: none; }
-    .pl__rank-badge { font-size: 8px; padding: 2px 4px; }
 }
 </style>

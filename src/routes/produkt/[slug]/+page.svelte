@@ -36,17 +36,6 @@
     function prevImage() { currentImageIndex = (currentImageIndex - 1 + images.length) % images.length; }
     function nextImage() { currentImageIndex = (currentImageIndex + 1) % images.length; }
     
-    // Track offer click (for ranking)
-    function trackClick(offerId, shopId) {
-        if (product?.id) {
-            fetch('/api/v1/track/click/' + product.id, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ offer_id: offerId || '', shop_id: shopId || '' })
-            }).catch(() => {});
-        }
-    }
-
     function toggleWishlist() {
         const list = JSON.parse(localStorage.getItem('mp_wishlist') || '[]');
         const idx = list.indexOf(product.id);
@@ -68,11 +57,6 @@
         const compare = JSON.parse(localStorage.getItem('mp_compare') || '[]');
         isWishlisted = wishlist.includes(product?.id);
         isCompared = compare.includes(product?.id);
-        
-        // Track product view
-        if (product?.id) {
-            fetch('/api/v1/track/view/' + product.id, { method: 'POST' }).catch(() => {});
-        }
         
         const handleKey = (e) => {
             if (!lightboxOpen) return;
@@ -216,7 +200,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                 </a>
                 {:else}
-                <a href="http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/go/{bestOffer.id}" target="_blank" rel="noopener noreferrer" class="mp-buybox__cta" on:click={() => trackClick(bestOffer.id, bestOffer.shop_id)}>
+                <a href="http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/go/{bestOffer.id}" target="_blank" rel="noopener noreferrer" class="mp-buybox__cta">
                     Do obchodu
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 </a>
@@ -324,7 +308,7 @@
                                         Do košíka
                                     </a>
                                 {:else}
-                                    <a href="http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/go/{offer.id}" class="mp-offers__cta affiliate" target="_blank" rel="noopener" on:click={() => trackClick(offer.id, offer.shop_id)}>
+                                    <a href="http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/go/{offer.id}" class="mp-offers__cta affiliate" target="_blank" rel="noopener">
                                         Do obchodu
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                                     </a>

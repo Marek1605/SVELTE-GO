@@ -3,8 +3,8 @@ export const API_BASE = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/ap
 
 function getAuth() {
     if (typeof window === 'undefined') return {};
-    const u = localStorage.getItem('adm_u');
-    const p = localStorage.getItem('adm_p');
+    const u = sessionStorage.getItem('adm_u');
+    const p = sessionStorage.getItem('adm_p');
     if (!u || !p) return {};
     return { 'Authorization': 'Basic ' + btoa(u + ':' + p) };
 }
@@ -21,8 +21,8 @@ export async function adminFetch(endpoint, opts = {}) {
             },
         });
         if (r.status === 401) {
-            localStorage.removeItem('adm_u');
-            localStorage.removeItem('adm_p');
+            sessionStorage.removeItem('adm_u');
+            sessionStorage.removeItem('adm_p');
             window.location.reload();
             return { success: false, error: 'Unauthorized' };
         }
