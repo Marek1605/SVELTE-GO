@@ -111,7 +111,13 @@
             const setData = await setRes.json();
             if (setData?.success && setData?.data) {
                 const d = setData.data;
-                if (d.hero_title) heroTitle = d.hero_title;
+                if (d.hero_title) {
+                    heroTitle = d.hero_title;
+                    // Ensure gold highlight works even without asterisks
+                    if (!heroTitle.includes('*') && heroTitle.includes('najnižšiu cenu')) {
+                        heroTitle = heroTitle.replace('najnižšiu cenu', '*najnižšiu cenu*');
+                    }
+                }
                 if (d.hero_subtitle) heroSubtitle = d.hero_subtitle;
                 homeCatSections = parseInt(d.home_category_sections) || 3;
                 showHow = d.show_how_section !== 'false' && d.show_how_it_works !== 'false';
@@ -241,11 +247,12 @@
             <p class="dhero__sub">{heroSubtitle}</p>
             <form class="dhero__search" on:submit={handleSearch}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" placeholder="iPhone, notebook, vysávač..." bind:value={searchQuery}>
+                <input type="text" placeholder="Čo hľadáte? napr. iPhone, notebook..." bind:value={searchQuery}>
                 <button type="submit">Hľadať</button>
             </form>
             <div class="dhero__tags">
-                {#each popularSearches.slice(0,4) as term}
+                <span class="dhero__tags-label">Populárne:</span>
+                {#each popularSearches.slice(0,6) as term}
                     <a href="/hladat?q={encodeURIComponent(term)}" class="dhero__tag">{term}</a>
                 {/each}
             </div>
@@ -611,11 +618,11 @@
     .dhero__glow{position:absolute;border-radius:50%}
     .dhero__glow--1{top:-60px;left:18%;width:260px;height:260px;background:radial-gradient(circle,rgba(196,149,106,.15),transparent 65%)}
     .dhero__glow--2{bottom:-60px;right:18%;width:240px;height:240px;background:radial-gradient(circle,rgba(99,102,241,.08),transparent 65%)}
-    .dhero__inner{position:relative;z-index:1;max-width:680px;margin:0 auto}
-    .dhero__title{font-size:32px;font-weight:900;color:#fff;line-height:1.15;letter-spacing:-.5px;margin:0 0 8px}
+    .dhero__inner{position:relative;z-index:1;max-width:720px;margin:0 auto}
+    .dhero__title{font-size:36px;font-weight:900;color:#fff;line-height:1.15;letter-spacing:-.5px;margin:0 0 8px}
     .dhero__em{color:#c4956a}
     .dhero__sub{font-size:14px;color:#94a3b8;margin:0 0 22px}
-    .dhero__search{display:flex;align-items:center;background:#fff;border-radius:12px;max-width:560px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.2);padding:4px;gap:4px}
+    .dhero__search{display:flex;align-items:center;background:#fff;border-radius:12px;max-width:620px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.2);padding:4px;gap:4px}
     .dhero__search svg{margin-left:12px;flex-shrink:0}
     .dhero__search input{flex:1;border:none;padding:12px 14px;font-size:14px;outline:none;font-family:inherit;color:#374151;border-radius:8px;min-width:0}
     .dhero__search input::placeholder{color:#94a3b8}
@@ -624,6 +631,7 @@
     .dhero__tags{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:12px}
     .dhero__tag{font-size:11px;padding:4px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:100px;color:#94a3b8;transition:all .2s}
     .dhero__tag:hover{background:rgba(196,149,106,.15);border-color:rgba(196,149,106,.3);color:#c4956a}
+    .dhero__tags-label{font-size:12px;color:#64748b}
     /* ── Floating Trust Bar (wide, monochrome pro icons) ── */
     .trust{padding:0 24px;margin-top:-28px;position:relative;z-index:2}
     .trust__inner{display:flex;grid-template-columns:none;align-items:center;justify-content:center;gap:0;padding:18px 0;border-radius:16px;max-width:1060px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.08)}
@@ -680,14 +688,14 @@
 }
 @media(min-width:1024px){
     .dhero{padding:52px 24px 60px}
-    .dhero__title{font-size:36px}
+    .dhero__title{font-size:40px}
     .cats__grid{grid-template-columns:repeat(5,1fr)}
     .drops__scroll{grid-template-columns:repeat(6,1fr)}
     .pscroll{grid-template-columns:repeat(5,1fr)}
 }
 @media(min-width:1280px){
     .dhero{padding:60px 24px 68px}
-    .dhero__title{font-size:40px}
+    .dhero__title{font-size:44px}
     .dhero__sub{font-size:15px}
     .dhero__search{max-width:600px}
 }
