@@ -213,7 +213,7 @@
     async function pushToStaging() {
         if (!confirm(`Poslať celý ${refSource} strom do staging?`)) return;
         pushing = true; pushMsg = "";
-        const r = await adminFetch("/admin/ai/taxonomy/push-to-staging", { method: "POST", body: JSON.stringify({ source: refSource }) });
+        const r = await adminFetch("/admin/ai/taxonomy/push-to-staging", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ source: refSource }) });
         pushMsg = r?.success ? "✅ " + r.message : "❌ " + (r?.error || "Chyba");
         pushing = false;
     }
