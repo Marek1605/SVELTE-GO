@@ -65,12 +65,16 @@
         try{const h=localStorage.getItem('mp_hidden_cats');if(h)hiddenCats=new Set(JSON.parse(h));}catch(e){}
 
         fetch('/api/v1/site/settings').then(r=>r.json()).then(d=>{
-            if(d?.data?.logo_url)logoUrl=d.data.logo_url;
-            if(d?.data?.logo_size)logoSize=parseInt(d.data.logo_size)||40;
-            showCart=d?.data?.show_cart!=='false';
-            showAccount=d?.data?.show_account!=='false';
-            showWishlist=d?.data?.show_wishlist!=='false';
-            showCompare=d?.data?.show_compare!=='false';
+            const s = d?.data || d || {};
+            if(s.logo_url) logoUrl = s.logo_url;
+            else if(s.logoUrl) logoUrl = s.logoUrl;
+            else if(s.logo) logoUrl = s.logo;
+            if(s.logo_size) logoSize = parseInt(s.logo_size)||40;
+            else if(s.logoSize) logoSize = parseInt(s.logoSize)||40;
+            showCart=s.show_cart!=='false';
+            showAccount=s.show_account!=='false';
+            showWishlist=s.show_wishlist!=='false';
+            showCompare=s.show_compare!=='false';
         }).catch(()=>{});
 
         return ()=>{window.removeEventListener('scroll',onScroll);if(closeTimeout)clearTimeout(closeTimeout);};
@@ -90,7 +94,7 @@
             </button>
 
             <a href="/" class="hd__logo">
-                {#if logoUrl}<img src={logoUrl} alt="MegaPrice" style="height:{logoSize}px" />{:else}<span class="hd__logotext">Mega<b>Price</b></span>{/if}
+                {#if logoUrl}<img src={logoUrl} alt="MegaPrice" style="height:{logoSize}px" on:error={() => logoUrl=''} />{:else}<span class="hd__logotext">Mega<b>Price</b></span>{/if}
             </a>
 
             <form class="hd__search" on:submit={handleSearch}>
@@ -106,16 +110,10 @@
             </nav>
 
             <div class="hd__macts">
-                <button class="hd__mbtn" on:click={() => mobileSearchOpen = !mobileSearchOpen}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
-                {#if showAccount}<a href="/ucet" class="hd__mbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>{/if}
+                {#if showWishlist}<a href="/oblubene" class="hd__mbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></a>{/if}
+                {#if showCompare}<a href="/porovnanie" class="hd__mbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg></a>{/if}
             </div>
         </div>
-        {#if mobileSearchOpen}
-        <form class="hd__msf" on:submit={handleSearch}>
-            <input type="text" placeholder="Hľadať produkt..." bind:value={searchQuery} autofocus>
-            <button type="submit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
-        </form>
-        {/if}
     </header>
 
     <!-- ===== CATEGORY NAV (desktop) ===== -->
@@ -239,10 +237,6 @@
 .hd__macts{display:flex;gap:2px;flex-shrink:0}
 .hd__mbtn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:#374151}
 .hd__mbtn:active{background:#f3f4f6}
-.hd__msf{display:flex;padding:0 14px 10px;gap:8px}
-.hd__msf input{flex:1;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none}
-.hd__msf input:focus{border-color:#c4956a}
-.hd__msf button{width:40px;height:40px;background:#c4956a;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 @media(min-width:769px){
     .hd__row{padding:12px 32px;gap:20px}
     .hd__burger{display:none}
@@ -251,7 +245,6 @@
     .hd__search{display:flex}
     .hd__acts{display:flex}
     .hd__macts{display:none}
-    .hd__msf{display:none!important}
 }
 
 /* === CATEGORY NAV === */

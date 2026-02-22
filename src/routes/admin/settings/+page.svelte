@@ -33,6 +33,19 @@
     let savingHome = false;
     let homeMsg = '';
 
+    // Banner settings
+    let banners = [
+        { badge: 'NOVÉ', title: 'Porovnajte si ceny z overených e-shopov', subtitle: '', color: '#c4956a', icon: '🔍' },
+        { badge: 'PRE E-SHOPY', title: 'Pridajte váš obchod na MegaPrice', subtitle: 'CPC od 0,05 € · Zadarmo', color: '#1e293b', icon: '🏪' },
+        { badge: 'TIP', title: 'Ušetrite aj 40% porovnaním cien', subtitle: 'Porovnajte ceny na jednom mieste', color: '#4f46e5', icon: '💰' },
+    ];
+    let editBannerIdx = -1;
+    const presetColors = ['#c4956a','#1e293b','#4f46e5','#059669','#dc2626','#7c3aed','#0284c7','#ca8a04','#be185d','#374151'];
+    const presetIcons = ['🔍','🏪','💰','🎁','📦','⭐','🔥','🛒','💎','🎯','📊','🏷️'];
+    function addBanner() { banners = [...banners, { badge: 'NOVÝ', title: 'Nový banner', subtitle: '', color: '#c4956a', icon: '🎁' }]; editBannerIdx = banners.length - 1; }
+    function removeBanner(i) { banners = banners.filter((_, idx) => idx !== i); if (editBannerIdx === i) editBannerIdx = -1; else if (editBannerIdx > i) editBannerIdx--; }
+    function moveBanner(i, dir) { const j = i + dir; if (j < 0 || j >= banners.length) return; const tmp = [...banners]; [tmp[i], tmp[j]] = [tmp[j], tmp[i]]; banners = tmp; if (editBannerIdx === i) editBannerIdx = j; else if (editBannerIdx === j) editBannerIdx = i; }
+
     // Price drops settings
     let priceDropMode = 'auto';
     let priceDropLimit = 6;
@@ -79,6 +92,9 @@
             homeCategorySections = parseInt(res.data.home_category_sections) || 3;
             showHowItWorks = res.data.show_how_it_works !== 'false';
             showVendorCta = res.data.show_vendor_cta !== 'false';
+            if (res.data.home_banners) {
+                try { const parsed = JSON.parse(res.data.home_banners); if (Array.isArray(parsed) && parsed.length > 0) banners = parsed; } catch(e) {}
+            }
         }
     }
 
@@ -199,7 +215,8 @@
             hero_subtitle: heroSubtitle,
             home_category_sections: homeCategorySections.toString(),
             show_how_it_works: showHowItWorks ? 'true' : 'false',
-            show_vendor_cta: showVendorCta ? 'true' : 'false'
+            show_vendor_cta: showVendorCta ? 'true' : 'false',
+            home_banners: JSON.stringify(banners)
         };
         for (const [k, v] of Object.entries(keys)) {
             await apiFetch('/admin/toggle-ui-setting', {
@@ -430,6 +447,76 @@
         <div class="form-group">
             <label>Podnadpis</label>
             <input type="text" bind:value={heroSubtitle} placeholder="Porovnávame ceny z overených obchodov...">
+        </div>
+
+        <!-- BANNER EDITOR -->
+        <div class="banner-section">
+            <div class="banner-header">
+                <h3>🖼️ Bannery na úvodnej stránke</h3>
+                <button class="btn-add-banner" on:click={addBanner}>+ Pridať banner</button>
+            </div>
+            <p class="desc" style="margin:-4px 0 12px">Bannery sa zobrazujú v carousel na úvodnej stránke. Ťahajte poradie šípkami.</p>
+
+            {#each banners as banner, i}
+            <div class="banner-card" class:banner-card--editing={editBannerIdx === i}>
+                <div class="banner-card__preview" style="background:{banner.color}">
+                    <div class="banner-card__content">
+                        <span class="banner-card__badge">{banner.badge}</span>
+                        <span class="banner-card__title">{banner.title}</span>
+                        {#if banner.subtitle}<span class="banner-card__sub">{banner.subtitle}</span>{/if}
+                    </div>
+                    <span class="banner-card__icon">{banner.icon || '🔍'}</span>
+                </div>
+                <div class="banner-card__actions">
+                    <button class="banner-card__btn" on:click={() => moveBanner(i, -1)} disabled={i===0} title="Hore">↑</button>
+                    <button class="banner-card__btn" on:click={() => moveBanner(i, 1)} disabled={i===banners.length-1} title="Dole">↓</button>
+                    <button class="banner-card__btn banner-card__btn--edit" on:click={() => editBannerIdx = editBannerIdx === i ? -1 : i}>{editBannerIdx === i ? '✕' : '✏️'}</button>
+                    <button class="banner-card__btn banner-card__btn--del" on:click={() => removeBanner(i)} title="Odstrániť">🗑️</button>
+                </div>
+
+                {#if editBannerIdx === i}
+                <div class="banner-edit">
+                    <div class="banner-edit__row">
+                        <div class="banner-edit__field">
+                            <label>Badge text</label>
+                            <input type="text" bind:value={banner.badge} placeholder="NOVÉ">
+                        </div>
+                        <div class="banner-edit__field">
+                            <label>Ikona</label>
+                            <div class="banner-edit__icons">
+                                {#each presetIcons as ic}
+                                    <button class="banner-edit__iconbtn" class:active={banner.icon===ic} on:click={() => { banners[i].icon = ic; banners = banners; }}>{ic}</button>
+                                {/each}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="banner-edit__field">
+                        <label>Nadpis</label>
+                        <input type="text" bind:value={banner.title} placeholder="Text banneru...">
+                    </div>
+                    <div class="banner-edit__field">
+                        <label>Podnadpis <small style="color:#94a3b8">(voliteľný)</small></label>
+                        <input type="text" bind:value={banner.subtitle} placeholder="Doplňujúci text...">
+                    </div>
+                    <div class="banner-edit__field">
+                        <label>Farba pozadia</label>
+                        <div class="banner-edit__colors">
+                            {#each presetColors as col}
+                                <button class="banner-edit__colorbtn" class:active={banner.color===col} style="background:{col}" on:click={() => { banners[i].color = col; banners = banners; }}></button>
+                            {/each}
+                            <div class="banner-edit__custom-color">
+                                <input type="color" bind:value={banner.color} style="width:28px;height:28px;border:none;padding:0;cursor:pointer;border-radius:6px">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/if}
+            </div>
+            {/each}
+
+            {#if banners.length === 0}
+            <div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">Žiadne bannery. Kliknite "Pridať banner" pre vytvorenie.</div>
+            {/if}
         </div>
         <div class="form-group">
             <label>Počet sekcií kategórií s produktami</label>
@@ -698,6 +785,44 @@
     .save-msg{font-size:14px;font-weight:500;color:#10b981}
     .ui-toggle-name{display:block;font-size:14px;font-weight:600;color:#1e293b}
     .ui-toggle-desc{display:block;font-size:12px;color:#64748b}
+
+    /* Banner editor */
+    .banner-section{margin-top:20px;padding-top:20px;border-top:1px solid #e5e7eb}
+    .banner-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .banner-header h3{font-size:15px;font-weight:700;color:#1e293b;margin:0}
+    .btn-add-banner{padding:6px 14px;background:#c4956a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+    .btn-add-banner:hover{background:#b8855c}
+    .banner-card{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;margin-bottom:8px;transition:all .15s}
+    .banner-card--editing{border-color:#c4956a;box-shadow:0 0 0 2px rgba(196,149,106,.15)}
+    .banner-card__preview{display:flex;align-items:center;padding:12px 14px;color:#fff;min-height:52px;gap:10px}
+    .banner-card__content{flex:1;min-width:0}
+    .banner-card__badge{display:inline-block;padding:1px 6px;background:rgba(255,255,255,.2);border-radius:4px;font-size:8px;font-weight:700;letter-spacing:.5px;margin-bottom:2px}
+    .banner-card__title{display:block;font-size:13px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .banner-card__sub{display:block;font-size:10px;opacity:.7}
+    .banner-card__icon{font-size:24px;opacity:.3;flex-shrink:0}
+    .banner-card__actions{display:flex;gap:4px;padding:6px 10px;background:#f8fafc;border-top:1px solid #e5e7eb}
+    .banner-card__btn{width:32px;height:32px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s}
+    .banner-card__btn:hover{background:#f1f5f9;border-color:#94a3b8}
+    .banner-card__btn:disabled{opacity:.3;cursor:not-allowed}
+    .banner-card__btn--edit{margin-left:auto}
+    .banner-card__btn--del{border-color:#fecaca;color:#dc2626}
+    .banner-card__btn--del:hover{background:#fef2f2}
+    .banner-edit{padding:14px;background:#fafbfc;border-top:1px solid #e5e7eb;display:flex;flex-direction:column;gap:10px}
+    .banner-edit__row{display:flex;gap:10px}
+    .banner-edit__row > *{flex:1}
+    .banner-edit__field{display:flex;flex-direction:column;gap:4px}
+    .banner-edit__field label{font-size:12px;font-weight:600;color:#374151}
+    .banner-edit__field input[type="text"]{padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;width:100%;box-sizing:border-box}
+    .banner-edit__field input[type="text"]:focus{outline:none;border-color:#c4956a}
+    .banner-edit__icons{display:flex;flex-wrap:wrap;gap:4px}
+    .banner-edit__iconbtn{width:32px;height:32px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s}
+    .banner-edit__iconbtn.active{border-color:#c4956a;background:#fef7f0}
+    .banner-edit__iconbtn:hover{background:#f1f5f9}
+    .banner-edit__colors{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+    .banner-edit__colorbtn{width:28px;height:28px;border-radius:7px;border:2px solid transparent;cursor:pointer;transition:.15s}
+    .banner-edit__colorbtn.active{border-color:#fff;box-shadow:0 0 0 2px #c4956a}
+    .banner-edit__colorbtn:hover{transform:scale(1.1)}
+    .banner-edit__custom-color{display:flex;align-items:center}
 
     /* Price drops */
     .drops-mode{display:flex;gap:8px;margin-top:8px}
