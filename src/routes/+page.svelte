@@ -624,15 +624,15 @@
     .dhero__tags{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:12px}
     .dhero__tag{font-size:11px;padding:4px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:100px;color:#94a3b8;transition:all .2s}
     .dhero__tag:hover{background:rgba(196,149,106,.15);border-color:rgba(196,149,106,.3);color:#c4956a}
-    /* ── Floating Trust Bar (compact card WITH gradient icons) ── */
+    /* ── Floating Trust Bar (wide, monochrome pro icons) ── */
     .trust{padding:0 24px;margin-top:-28px;position:relative;z-index:2}
-    .trust__inner{display:flex;grid-template-columns:none;align-items:center;justify-content:center;gap:24px;padding:18px 32px;border-radius:16px;max-width:820px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+    .trust__inner{display:flex;grid-template-columns:none;align-items:center;justify-content:center;gap:0;padding:18px 0;border-radius:16px;max-width:1060px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.08)}
     .trust__sep{display:block;width:1px;height:32px;background:#e2e8f0;flex-shrink:0}
-    .trust__item{display:flex;align-items:center;gap:10px}
-    .trust__ic{display:flex;width:38px;height:38px;border-radius:10px}
+    .trust__item{display:flex;align-items:center;gap:10px;flex:1;justify-content:center}
+    .trust__ic{display:flex;width:36px;height:36px;border-radius:0;background:none !important;color:#94a3b8}
     .trust__txt{flex-direction:column}
-    .trust__num{font-size:15px;font-weight:800;color:#0f172a}
-    .trust__label{font-size:10px;color:#64748b}
+    .trust__num{font-size:16px;font-weight:800;color:#0f172a}
+    .trust__label{font-size:11px;color:#94a3b8}
     /* ── 5-col Categories ── */
     .cats{padding:28px 24px 12px;max-width:1200px;margin:0 auto}
     .cats__grid{grid-template-columns:repeat(5,1fr);gap:10px;padding:0}
