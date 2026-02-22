@@ -1,16 +1,18 @@
 <script>
     import { onMount } from 'svelte';
     import { api } from '$lib/api';
+
+    export let data;
     
     let searchQuery = '';
     let showMoreCats = false;
     let moreRef;
     
-    let categories = [];
-    let topProducts = [];
+    let categories = data?.categories || [];
+    let topProducts = data?.products || [];
     let priceDropProducts = [];
     let categoryProducts = [];
-    let stats = { products: 0, categories: 0 };
+    let stats = data?.stats || { products: 4998, categories: 531 };
     let loaded = false;
     
     // Settings from admin
@@ -225,22 +227,22 @@
         <div class="trust__inner">
             <div class="trust__item">
                 <div class="trust__ic trust__ic--o"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
-                <div><span class="trust__num">{fmtNum(animProducts)}+</span><br><span class="trust__label">produktov</span></div>
+                <div class="trust__txt"><span class="trust__num">{fmtNum(animProducts)}+</span><span class="trust__label">produktov</span></div>
             </div>
             <div class="trust__sep"></div>
             <div class="trust__item">
                 <div class="trust__ic trust__ic--b"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-                <div><span class="trust__num">{fmtNum(animCategories)}</span><br><span class="trust__label">kategórií</span></div>
+                <div class="trust__txt"><span class="trust__num">{fmtNum(animCategories)}</span><span class="trust__label">kategórií</span></div>
             </div>
             <div class="trust__sep"></div>
             <div class="trust__item">
                 <div class="trust__ic trust__ic--g"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-                <div><span class="trust__num">Overené</span><br><span class="trust__label">e-shopy</span></div>
+                <div class="trust__txt"><span class="trust__num">Overené</span><span class="trust__label">e-shopy</span></div>
             </div>
             <div class="trust__sep"></div>
             <div class="trust__item">
                 <div class="trust__ic trust__ic--p"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-                <div><span class="trust__num">Denne</span><br><span class="trust__label">aktualizované</span></div>
+                <div class="trust__txt"><span class="trust__num">Denne</span><span class="trust__label">aktualizované</span></div>
             </div>
         </div>
     </section>
@@ -543,13 +545,13 @@
     display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
 }
 .trust__item{display:flex;align-items:center;gap:8px}
-.trust__item svg{color:#c4956a;flex-shrink:0}
 .trust__ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .trust__ic--o{background:linear-gradient(135deg,#fff7ed,#fed7aa);color:#c2410c}
 .trust__ic--b{background:linear-gradient(135deg,#eff6ff,#bfdbfe);color:#1d4ed8}
 .trust__ic--g{background:linear-gradient(135deg,#ecfdf5,#a7f3d0);color:#15803d}
 .trust__ic--p{background:linear-gradient(135deg,#f5f3ff,#ddd6fe);color:#7c3aed}
-.trust__num{font-size:14px;font-weight:800;color:#0f172a;line-height:1.2}
+.trust__txt{display:flex;flex-direction:column;line-height:1.2}
+.trust__num{font-size:14px;font-weight:800;color:#0f172a}
 .trust__label{font-size:9px;color:#64748b}
 .trust__sep{display:none}
 
@@ -728,10 +730,11 @@
     .hero__search{max-width:580px}
     /* Desktop trust - floating centered flex */
     .trust{padding:0 24px;margin-top:-24px}
-    .trust__inner{display:flex;align-items:center;justify-content:center;gap:20px;grid-template-columns:unset;padding:16px 24px;border-radius:16px;max-width:900px}
+    .trust__inner{display:flex;align-items:center;justify-content:center;gap:0;grid-template-columns:unset;padding:16px 28px;border-radius:16px;max-width:900px}
     .trust__sep{display:block;width:1px;height:28px;background:#e2e8f0;flex-shrink:0}
-    .trust__item{gap:8px;justify-content:center}
+    .trust__item{flex:1;gap:8px;justify-content:center}
     .trust__ic{display:none}
+    .trust__txt{flex-direction:row;align-items:baseline;gap:6px}
     .trust__num{font-size:15px;font-weight:800;color:#c4956a}
     .trust__label{font-size:11px}
     /* Quick actions centered */
