@@ -99,6 +99,13 @@
         document.addEventListener('click', handleClickOutside, true);
         bannerInterval = setInterval(nextBanner, 5000);
         
+        // Start animating immediately with whatever data we have
+        if (stats.products > 0 || stats.categories > 0) {
+            animStarted = true;
+            animateCount(stats.products, v => animProducts = v);
+            animateCount(stats.categories || categories.length, v => animCategories = v);
+        }
+        
         try {
             const setRes = await fetch('/api/v1/site/settings');
             const setData = await setRes.json();
@@ -257,23 +264,26 @@
         </div>
     </section>
 
-    <!-- ===== TRUST BAR (2×2 mobile / 4-col desktop) ===== -->
+    <!-- ===== TRUST BAR (modern card with gradient icons) ===== -->
     <section class="trust">
-        <div class="trust__grid">
+        <div class="trust__inner">
             <div class="trust__item">
-                <div class="trust__ic trust__ic--orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                <div class="trust__ic trust__ic--o"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
                 <div class="trust__txt"><span class="trust__num">{fmtNum(animProducts)}+</span><span class="trust__label">produktov</span></div>
             </div>
+            <div class="trust__sep"></div>
             <div class="trust__item">
-                <div class="trust__ic trust__ic--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                <div class="trust__ic trust__ic--b"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
                 <div class="trust__txt"><span class="trust__num">{fmtNum(animCategories)}</span><span class="trust__label">kategórií</span></div>
             </div>
+            <div class="trust__sep"></div>
             <div class="trust__item">
-                <div class="trust__ic trust__ic--green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <div class="trust__ic trust__ic--g"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
                 <div class="trust__txt"><span class="trust__num">Overené</span><span class="trust__label">e-shopy</span></div>
             </div>
+            <div class="trust__sep"></div>
             <div class="trust__item">
-                <div class="trust__ic trust__ic--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                <div class="trust__ic trust__ic--p"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
                 <div class="trust__txt"><span class="trust__num">Denne</span><span class="trust__label">aktualizované</span></div>
             </div>
         </div>
@@ -437,12 +447,10 @@
     </section>
     {/if}
 
-    <div class="hp__pad"></div>
 </div>
 
 <style>
 .hp{background:#f8fafc;overflow-x:hidden}
-.hp__pad{height:72px}
 .sec-h{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px;gap:12px;padding:0 16px}
 .sec-t{font-size:18px;font-weight:800;color:#0f172a;margin:0;letter-spacing:-.3px}
 .sec-s{font-size:12px;color:#64748b;margin:2px 0 0}
@@ -458,29 +466,30 @@
 .srch__f button:hover{background:#b8855c}
 
 /* ====== BANNERS ====== */
-.banners{padding:12px 16px 0;position:relative}
-.banners__track{display:flex;transition:transform .4s cubic-bezier(.25,.46,.45,.94)}
-.banners__slide{min-width:100%;border-radius:14px;padding:20px 18px;position:relative;overflow:hidden;color:#fff}
-.banners__badge{display:inline-block;padding:2px 8px;background:rgba(255,255,255,.2);border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.5px;margin-bottom:6px}
-.banners__title{font-size:17px;font-weight:800;margin:0 0 2px;line-height:1.2;letter-spacing:-.2px;max-width:85%}
-.banners__sub{font-size:11px;opacity:.7;margin:0}
-.banners__deco{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.12}
-.banners__dots{display:flex;gap:5px;justify-content:center;padding:10px 0 0}
-.banners__dot{width:6px;height:6px;border-radius:50%;background:#cbd5e1;border:none;padding:0;cursor:pointer;transition:all .3s}
-.banners__dot.active{background:#c4956a;width:18px;border-radius:3px}
+.banners{padding:12px 16px 0;position:relative;overflow:hidden}
+.banners__track{display:flex;transition:transform .4s cubic-bezier(.25,.46,.45,.94);width:100%}
+.banners__slide{min-width:100%;border-radius:14px;padding:22px 20px;position:relative;overflow:hidden;color:#fff;box-sizing:border-box}
+.banners__badge{display:inline-block;padding:3px 10px;background:rgba(255,255,255,.2);border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.5px;margin-bottom:8px}
+.banners__title{font-size:17px;font-weight:800;margin:0 0 4px;line-height:1.25;letter-spacing:-.2px;max-width:80%}
+.banners__sub{font-size:11px;opacity:.75;margin:0;max-width:80%}
+.banners__deco{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:52px;opacity:.1}
+.banners__dots{display:flex;gap:6px;justify-content:center;padding:10px 0 2px}
+.banners__dot{width:7px;height:7px;border-radius:50%;background:#cbd5e1;border:none;padding:0;cursor:pointer;transition:all .3s}
+.banners__dot.active{background:#c4956a;width:20px;border-radius:4px}
 
-/* ====== TRUST BAR ====== */
-.trust{padding:14px 16px 0}
-.trust__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,.04)}
-.trust__item{display:flex;align-items:center;gap:10px}
-.trust__ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.trust__ic--orange{background:#fff7ed;color:#c2410c}
-.trust__ic--blue{background:#eff6ff;color:#1d4ed8}
-.trust__ic--green{background:#ecfdf5;color:#15803d}
-.trust__ic--purple{background:#f5f3ff;color:#7c3aed}
+/* ====== TRUST BAR (modern card) ====== */
+.trust{padding:0 16px;margin-top:12px;position:relative;z-index:2}
+.trust__inner{max-width:960px;margin:0 auto;padding:14px 16px;background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.trust__item{display:flex;align-items:center;gap:8px}
+.trust__ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.trust__ic--o{background:linear-gradient(135deg,#fff7ed,#fed7aa);color:#c2410c}
+.trust__ic--b{background:linear-gradient(135deg,#eff6ff,#bfdbfe);color:#1d4ed8}
+.trust__ic--g{background:linear-gradient(135deg,#ecfdf5,#a7f3d0);color:#15803d}
+.trust__ic--p{background:linear-gradient(135deg,#f5f3ff,#ddd6fe);color:#7c3aed}
 .trust__txt{display:flex;flex-direction:column}
 .trust__num{font-size:14px;font-weight:800;color:#0f172a;line-height:1.2}
 .trust__label{font-size:9px;color:#64748b}
+.trust__sep{display:none}
 
 /* ====== CATEGORIES ====== */
 .cats{padding:24px 0 8px}
@@ -602,7 +611,6 @@
 
 /* ====== DESKTOP (769px+) ====== */
 @media(min-width:769px){
-    .hp__pad{display:none}
     .sec-h{padding:0}
     .sec-t{font-size:22px}
     /* Hide mobile search + banners on desktop */
@@ -636,8 +644,13 @@
     .dhero__qa-tags a{padding:3px 8px;background:#f1f5f9;border-radius:5px;font-size:10px;color:#475569;transition:all .2s}
     .dhero__qa-tags a:hover{background:#c4956a;color:#fff}
     /* Trust */
-    .trust{max-width:1200px;margin:0 auto;padding:20px 24px 0}
-    .trust__grid{grid-template-columns:repeat(4,1fr);padding:18px 24px;border-radius:16px}
+    .trust{padding:0 24px;margin-top:20px}
+    .trust__inner{grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;padding:18px 28px;gap:0;border-radius:18px;max-width:1200px}
+    .trust__sep{display:block;width:1px;height:32px;background:#e2e8f0;flex-shrink:0;justify-self:center;align-self:center}
+    .trust__item{justify-content:center;gap:10px}
+    .trust__ic{width:38px;height:38px}
+    .trust__num{font-size:15px}
+    .trust__label{font-size:10px}
     /* Cats */
     .cats{padding:32px 24px 12px;max-width:1200px;margin:0 auto}
     .cats__grid{grid-template-columns:repeat(4,1fr);gap:10px;padding:0}
@@ -696,9 +709,8 @@
     .banners{padding:8px 12px 0}
     .banners__title{font-size:15px;max-width:85%}
     .banners__slide{padding:16px 14px}
-    .trust{padding:10px 12px 0}
-    .trust__grid{gap:6px;padding:10px}
-    .trust__ic{width:32px;height:32px;border-radius:8px}
+    .trust__inner{gap:6px;padding:10px 12px}
+    .trust__ic{width:30px;height:30px;border-radius:8px}
     .trust__num{font-size:13px}
     .cats__grid{gap:6px;padding:0 12px}
     .cc{padding:10px;gap:8px}
