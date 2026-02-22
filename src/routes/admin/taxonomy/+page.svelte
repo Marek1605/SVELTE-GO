@@ -209,6 +209,14 @@
         if (t === 'browser') loadTree(refSource);
         if (t === 'staging' && stagingItems.length === 0) loadStaging();
     }
+    let pushing = false, pushMsg = "";
+    async function pushToStaging() {
+        if (!confirm(`Poslať celý ${refSource} strom do staging?`)) return;
+        pushing = true; pushMsg = "";
+        const r = await adminFetch("/admin/ai/taxonomy/push-to-staging", { method: "POST", body: JSON.stringify({ source: refSource }) });
+        pushMsg = r?.success ? "✅ " + r.message : "❌ " + (r?.error || "Chyba");
+        pushing = false;
+    }
 </script>
 
 <svelte:head><title>Taxonomy Management | Admin</title></svelte:head>
@@ -261,7 +269,9 @@
                     <button class:active={refSource==='heureka'} on:click={() => switchSource('heureka')}>🟢 Heureka ({fmt(stats.reference_trees?.heureka)})</button>
                 </div>
                 <div class="tree-btns">
-                    <button class="btn-sm outline" on:click={expandAll} title="Rozbaliť">📂 Rozbaliť</button>
+                    {#if pushMsg}<span class="msg-box" style="font-size:12px;padding:4px 10px">{pushMsg}</span>{/if}
+					<button class="btn-sm green" on:click={pushToStaging} disabled={pushing}>{pushing ? "⏳..." : "📤 Do staging"}</button>
+					<button class="btn-sm outline" on:click={expandAll} title="Rozbaliť">📂 Rozbaliť</button>
                     <button class="btn-sm outline" on:click={collapseAll} title="Zbaliť">📁 Zbaliť</button>
                 </div>
                 <div class="search-box">
