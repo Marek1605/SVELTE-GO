@@ -277,10 +277,23 @@
         </div>
     </section>
 
+    <!-- ===== QUICK ACTIONS (between trust and categories) ===== -->
+    <section class="qa-section">
+        <div class="qa-section__inner">
+            {#each quickActions as qa}
+                <a href={qa.href} class="qab">
+                    <span class="qab__icon">{qa.icon}</span>
+                    <span class="qab__label">{qa.label}</span>
+                    <svg class="qab__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+            {/each}
+        </div>
+    </section>
+
     <!-- ===== CATEGORIES (colored cards) ===== -->
     {#if categories.length > 0}
     <section class="cats">
-        <div class="sec-h"><div><h2 class="sec-t">Kategórie</h2><p class="sec-s">Prechádzajte produkty podľa kategórií</p></div><a href="/kategorie" class="sec-lnk">Všetky →</a></div>
+        <div class="sec-h"><div><h2 class="sec-t">Populárne kategórie</h2><p class="sec-s">Prechádzajte produkty podľa kategórií</p></div><a href="/kategorie" class="sec-lnk">Všetky kategórie →</a></div>
         <div class="cats__grid">
             {#each visibleCats as cat, i}
                 <a href="/kategoria/{cat.slug}" class="cc" style="background:{catColors[i%catColors.length]}">
@@ -348,7 +361,7 @@
     <!-- ===== TOP PRODUCTS ===== -->
     {#if topProducts.length > 0}
     <section class="prods">
-        <div class="sec-h"><div><h2 class="sec-t">TOP porovnania</h2><p class="sec-s">Produkty s najviac ponukami</p></div><a href="/produkty" class="sec-lnk">Všetky →</a></div>
+        <div class="sec-h"><div><h2 class="sec-t">Najporovnávanejšie produkty</h2><p class="sec-s">Produkty s najviac ponukami</p></div><a href="/produkty" class="sec-lnk">Všetky produkty →</a></div>
         <div class="pscroll">
             {#each topProducts as product, i}
                 <a href="/produkt/{product.slug}" class="p">
@@ -366,19 +379,6 @@
         </div>
     </section>
     {/if}
-
-    <!-- ===== QUICK ACTIONS (modern, lower) ===== -->
-    <section class="qa-section">
-        <div class="qa-section__inner">
-            {#each quickActions as qa}
-                <a href={qa.href} class="qab">
-                    <span class="qab__icon">{qa.icon}</span>
-                    <span class="qab__label">{qa.label}</span>
-                    <svg class="qab__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                </a>
-            {/each}
-        </div>
-    </section>
 
     <!-- ===== CATEGORY PRODUCTS ===== -->
     {#each categoryProducts as catSec}
@@ -604,18 +604,7 @@
     /* Hide mobile search + banners on desktop */
     .srch{display:none}
     .banners{display:none}
-    /* Reorder: QA above categories on desktop */
-    .hp{display:flex;flex-direction:column}
-    .dhero{order:1}
-    .trust{order:2}
-    .qa-section{order:3}
-    .cats{order:4}
-    .prods{order:5}
-    .drops{order:6}
-    .minicta{order:7;display:none}
-    .cprods{order:8}
-    .how{order:9}
-    .vcta{order:10}
+    .minicta{display:none}
     /* ── Desktop Gradient Hero ── */
     .dhero{display:block;background:linear-gradient(135deg,#0f172a,#1e293b);padding:44px 24px 52px;text-align:center;position:relative;overflow:hidden}
     .dhero__bg{position:absolute;inset:0;pointer-events:none}
@@ -637,7 +626,7 @@
     .dhero__tag:hover{background:rgba(196,149,106,.15);border-color:rgba(196,149,106,.3);color:#c4956a}
     /* ── Floating Trust Bar (compact card WITH gradient icons) ── */
     .trust{padding:0 24px;margin-top:-28px;position:relative;z-index:2}
-    .trust__inner{display:flex;align-items:center;justify-content:center;gap:24px;padding:18px 32px;border-radius:16px;max-width:820px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+    .trust__inner{display:flex;grid-template-columns:none;align-items:center;justify-content:center;gap:24px;padding:18px 32px;border-radius:16px;max-width:820px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.08)}
     .trust__sep{display:block;width:1px;height:32px;background:#e2e8f0;flex-shrink:0}
     .trust__item{display:flex;align-items:center;gap:10px}
     .trust__ic{display:flex;width:38px;height:38px;border-radius:10px}
@@ -669,7 +658,7 @@
     .p__cta{background:#fdf8f4;color:#c4956a}
     .p:hover .p__cta{background:#c4956a;color:#fff}
     /* Quick actions — above categories on desktop, gradient pills */
-    .qa-section{max-width:1200px;margin:0 auto;padding:20px 24px 0;order:5}
+    .qa-section{max-width:1200px;margin:0 auto;padding:20px 24px 0}
     .qa-section__inner{gap:8px;padding:0;overflow:visible;flex-wrap:wrap;justify-content:center}
     .qab{padding:10px 20px;border-radius:100px;border:none;background:linear-gradient(135deg,#f8fafc,#f1f5f9);box-shadow:0 1px 3px rgba(0,0,0,.04)}
     .qab:hover{background:linear-gradient(135deg,#fdf8f4,#fcebd8);color:#c4956a;box-shadow:0 2px 8px rgba(196,149,106,.15);transform:translateY(-1px);border-color:transparent}
