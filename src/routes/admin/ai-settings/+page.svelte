@@ -41,7 +41,7 @@
     async function saveSettings() { saving = true; saveMsg = ''; const r = await apiFetch('/admin/ai/settings', { method: 'POST', body: JSON.stringify(settings) }); saveMsg = r?.success ? '✅ Uložené' : '❌ ' + (r?.error || 'Chyba'); saving = false; setTimeout(() => saveMsg = '', 3000); }
     async function loadProgress() { const r = await apiFetch('/admin/ai/bulk-categorize/progress'); if (r?.success && r.data) { job = r.data; if (job.status === 'running' && !polling) polling = setInterval(loadProgress, 2000); if (job.status !== 'running' && polling) { clearInterval(polling); polling = null; } } }
     async function loadDisplayStats() { const r = await apiFetch('/admin/ai/display-mode-stats'); if (r?.success) displayStats = r.data; }
-    async function startCategorization() { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; if (!confirm(`Spustiť ${catMode === 'precise' ? '🎯 PRESNÚ' : '⚡ RÝCHLU'} AI kategorizáciu pre "${sn}"?`)) return; starting = true; const r = await apiFetch('/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId, mode: catMode }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
+    async function startCategorization() { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; const modeNames = {fast: '⚡ RÝCHLU', precise: '🎯 PRESNÚ', ultra: '🔬 VEĽMI PRESNÚ'}; if (!confirm(`Spustiť ${modeNames[catMode] || '⚡ RÝCHLU'} AI kategorizáciu pre "${sn}"?`)) return; starting = true; const r = await apiFetch('/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId, mode: catMode }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
     async function cancelCategorization() { if (!confirm('Zastaviť?')) return; await apiFetch('/admin/ai/bulk-categorize/cancel', { method: 'POST' }); if (polling) { clearInterval(polling); polling = null; } await loadProgress(); }
     async function loadReport() { reportLoading = true; let u = `/admin/ai/categorization-report?page=${reportPage}&per_page=50&match_type=${reportFilter}`; if (reportShopId) u += `&shop_id=${reportShopId}`; const r = await apiFetch(u); if (r?.success) { reportData = r.data || []; reportStats = r.stats || {}; reportTotal = r.total || 0; reportTotalPages = r.total_pages || 1; } reportLoading = false; }
     function changeReportFilter(f) { reportFilter = f; reportPage = 1; loadReport(); }
@@ -120,6 +120,9 @@
                 </button>
                 <button class="mode-btn" class:active={catMode==='precise'} on:click={() => catMode='precise'}>
                     <span class="mode-icon">🎯</span><strong>Presná</strong><span class="mode-desc">AI overí KAŽDÝ match (pomalšie, presnejšie)</span>
+                </button>
+                <button class="mode-btn" class:active={catMode==='ultra'} on:click={() => catMode='ultra'}>
+                    <span class="mode-icon">🔬</span><strong>Veľmi presná</strong><span class="mode-desc">Názov + popis + atribúty + referencie (najpomalšie)</span>
                 </button>
             </div>
         </div>
