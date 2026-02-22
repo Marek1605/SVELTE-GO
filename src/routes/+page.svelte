@@ -728,15 +728,15 @@
     .hero{padding:48px 0 56px}
     .hero__title{font-size:36px}
     .hero__search{max-width:580px}
-    /* Desktop trust - floating centered flex */
+    /* Desktop trust - compact card with gradient icons */
     .trust{padding:0 24px;margin-top:-24px}
-    .trust__inner{display:flex;align-items:center;justify-content:center;gap:0;grid-template-columns:unset;padding:16px 28px;border-radius:16px;max-width:900px}
-    .trust__sep{display:block;width:1px;height:28px;background:#e2e8f0;flex-shrink:0}
-    .trust__item{flex:1;gap:8px;justify-content:center}
-    .trust__ic{display:none}
-    .trust__txt{flex-direction:row;align-items:baseline;gap:6px}
-    .trust__num{font-size:15px;font-weight:800;color:#c4956a}
-    .trust__label{font-size:11px}
+    .trust__inner{display:flex;align-items:center;justify-content:center;gap:24px;grid-template-columns:unset;padding:18px 32px;border-radius:16px;max-width:820px;box-shadow:0 4px 24px rgba(0,0,0,0.08)}
+    .trust__sep{display:block;width:1px;height:32px;background:#e2e8f0;flex-shrink:0}
+    .trust__item{gap:10px;justify-content:center}
+    .trust__ic{display:flex;width:38px;height:38px;border-radius:10px}
+    .trust__txt{flex-direction:column}
+    .trust__num{font-size:15px;font-weight:800;color:#0f172a}
+    .trust__label{font-size:10px}
     /* Quick actions centered */
     .qa{padding:20px 24px 0;max-width:1200px;margin:0 auto}
     .qa__inner{justify-content:center;overflow:visible;flex-wrap:wrap}
