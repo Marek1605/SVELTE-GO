@@ -2,14 +2,16 @@
     import { onMount } from 'svelte';
     import { api } from '$lib/api';
     
+    export let data;
+    
     let searchQuery = '';
     let showMoreCats = false;
     let moreRef;
-    let categories = [];
-    let topProducts = [];
+    let categories = data?.categories || [];
+    let topProducts = data?.products || [];
     let categoryProducts = [];
     let priceDropProducts = [];
-    let stats = { products: 0, categories: 0 };
+    let stats = data?.stats || { products: 0, categories: 0 };
     let loaded = false;
     let heroTitle = 'Nájdite *najnižšiu cenu* za pár sekúnd';
     let heroSubtitle = 'Porovnávame ceny z overených obchodov na jednom mieste.';
@@ -119,17 +121,23 @@
         
         try {
             const catRes = await api.getCategoriesTree ? await api.getCategoriesTree() : await api.getCategories();
-            if (catRes?.success && Array.isArray(catRes.data)) categories = catRes.data;
-            else if (catRes?.success && catRes?.categories) categories = catRes.categories;
-            else if (Array.isArray(catRes)) categories = catRes;
+            let cats = [];
+            if (catRes?.success && Array.isArray(catRes.data)) cats = catRes.data;
+            else if (catRes?.success && catRes?.categories) cats = catRes.categories;
+            else if (Array.isArray(catRes)) cats = catRes;
+            if (cats.length > 0) categories = cats;
         } catch(e) {}
+        // Fallback: use layout navCategories if page categories empty
+        if (categories.length === 0 && data?.navCategories?.length > 0) {
+            categories = data.navCategories;
+        }
         
         try {
             const prodRes = await api.getProducts('sort=popular&limit=6');
             let items = [];
             if (prodRes?.success && prodRes?.data?.items) { items = prodRes.data.items; stats.products = prodRes.data.total || items.length; }
             else if (prodRes?.items) items = prodRes.items;
-            topProducts = items;
+            if (items.length > 0) topProducts = items;
         } catch(e) {}
         
         // Price drops - try dedicated endpoint first, fallback to sort
@@ -157,6 +165,11 @@
         } catch(e) {}
         
         stats.categories = stats.categories || categories.length;
+        stats.products = stats.products || topProducts.length;
+        // Ensure we have at least some counts to show
+        if (stats.products === 0 && data?.stats?.products) stats.products = data.stats.products;
+        if (stats.categories === 0 && data?.stats?.categories) stats.categories = data.stats.categories;
+        if (stats.categories === 0) stats.categories = categories.length;
         loaded = true;
         if (!animStarted) { animStarted = true; animateCount(stats.products, v => animProducts = v); animateCount(stats.categories, v => animCategories = v); }
         
@@ -210,6 +223,41 @@
     </section>
 
     <!-- ===== TRUST BAR (2×2 colored icons) ===== -->
+    <!-- ===== DESKTOP HERO (banner + sidebar) — hidden on mobile ===== -->
+    <section class="dhero">
+        <div class="dhero__inner">
+            <div class="dhero__main" on:touchstart={handleTouchStart} on:touchend={handleTouchEnd}>
+                <div class="dhero__track" style="transform:translateX(-{currentBanner * 100}%)">
+                    {#each banners as b}
+                    <div class="dhero__slide" style="background:{b.color}">
+                        <div class="dhero__content">
+                            <span class="dhero__badge">{b.badge}</span>
+                            <h2 class="dhero__title">{@html heroTitle.replace(/\*([^*]+)\*/g, '<span class="dhero__em">$1</span>')}</h2>
+                            <p class="dhero__sub">{b.title}</p>
+                            <div class="dhero__stats"><span>{fmtNum(animProducts)}+ produktov</span><span class="dhero__sep">·</span><span>{fmtNum(animCategories)} kategórií</span><span class="dhero__sep">·</span><span>Overené e-shopy</span></div>
+                        </div>
+                        <div class="dhero__deco">{b.icon || '🔍'}</div>
+                    </div>
+                    {/each}
+                </div>
+                <div class="dhero__dots">
+                    {#each banners as _, i}<button class="dhero__dot" class:active={currentBanner===i} on:click={() => goToBanner(i)}></button>{/each}
+                </div>
+            </div>
+            <div class="dhero__side">
+                <div class="dhero__qa-title">Rýchle akcie</div>
+                {#each quickActions as qa}
+                    <a href={qa.href} class="dhero__qa-item"><span class="dhero__qa-icon">{qa.icon}</span><span class="dhero__qa-label">{qa.label}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>
+                {/each}
+                <div class="dhero__qa-tags">
+                    <span>Populárne:</span>
+                    {#each popularSearches.slice(0,4) as term}<a href="/hladat?q={encodeURIComponent(term)}">{term}</a>{/each}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TRUST BAR (2×2 mobile / 4-col desktop) ===== -->
     <section class="trust">
         <div class="trust__grid">
             <div class="trust__item">
@@ -393,9 +441,9 @@
 </div>
 
 <style>
-.hp{background:#f8fafc}
+.hp{background:#f8fafc;overflow-x:hidden}
 .hp__pad{height:72px}
-.sec-h{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;gap:12px;padding:0 16px}
+.sec-h{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px;gap:12px;padding:0 16px}
 .sec-t{font-size:18px;font-weight:800;color:#0f172a;margin:0;letter-spacing:-.3px}
 .sec-s{font-size:12px;color:#64748b;margin:2px 0 0}
 .sec-lnk{font-size:12px;font-weight:600;color:#c4956a;white-space:nowrap}
@@ -443,7 +491,7 @@
 .cc__ic{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;font-size:20px}
 .cc__ic img{width:100%;height:100%;object-fit:cover;border-radius:10px}
 .cc__info{min-width:0;flex:1}
-.cc__name{display:block;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0f172a}
+.cc__name{display:block;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0f172a;max-width:100px}
 .cc__cnt{font-size:10px;color:#64748b}
 .cats__more{text-align:center;margin-top:12px;padding:0 16px}
 .cats__mbtn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:none;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:600;color:#475569;cursor:pointer;transition:all .2s}
@@ -549,40 +597,72 @@
 .vcta__row span{color:#94a3b8}
 .vcta__row strong{color:#c4956a;font-weight:700}
 
+/* ====== DESKTOP HERO (hidden on mobile) ====== */
+.dhero{display:none}
+
 /* ====== DESKTOP (769px+) ====== */
 @media(min-width:769px){
     .hp__pad{display:none}
     .sec-h{padding:0}
     .sec-t{font-size:22px}
-    .srch{max-width:640px;margin:0 auto;padding:16px 24px 0}
-    .srch__f{border-radius:14px}
-    .srch__f input{padding:13px 8px 13px 44px;font-size:15px}
-    .srch__f button{padding:12px 24px}
-    .banners{max-width:900px;margin:0 auto;padding:16px 24px 0}
-    .banners__slide{padding:28px 32px;border-radius:16px}
-    .banners__title{font-size:22px;max-width:70%}
-    .banners__deco{font-size:72px}
-    .trust{max-width:900px;margin:0 auto;padding:20px 24px 0}
+    /* Hide mobile search + banners on desktop */
+    .srch{display:none}
+    .banners{display:none}
+    /* Show desktop hero */
+    .dhero{display:block;background:#f8fafc;padding:24px 24px 0}
+    .dhero__inner{display:flex;gap:20px;align-items:stretch;max-width:1200px;margin:0 auto}
+    .dhero__main{flex:1;min-width:0;border-radius:16px;overflow:hidden;position:relative;background:#0f172a}
+    .dhero__track{display:flex;transition:transform .5s cubic-bezier(.25,.46,.45,.94)}
+    .dhero__slide{min-width:100%;padding:40px 44px;display:flex;align-items:center;justify-content:space-between;position:relative;min-height:240px;color:#fff}
+    .dhero__content{max-width:420px;position:relative;z-index:1}
+    .dhero__badge{display:inline-block;padding:3px 10px;background:rgba(255,255,255,.2);border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:10px}
+    .dhero__title{font-size:28px;font-weight:900;line-height:1.15;letter-spacing:-.5px;margin:0 0 8px}
+    .dhero__em{color:#fef3c7}
+    .dhero__sub{font-size:14px;opacity:.85;line-height:1.5;margin:0}
+    .dhero__stats{display:flex;font-size:12px;margin-top:14px;opacity:.7}
+    .dhero__sep{margin:0 8px}
+    .dhero__deco{position:absolute;right:30px;top:50%;transform:translateY(-50%);font-size:96px;opacity:.06}
+    .dhero__dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+    .dhero__dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);border:none;padding:0;cursor:pointer;transition:all .3s}
+    .dhero__dot.active{background:#fff;width:24px;border-radius:4px}
+    .dhero__side{width:240px;flex-shrink:0;background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:16px;display:flex;flex-direction:column;gap:2px}
+    .dhero__qa-title{font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .dhero__qa-item{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:8px;transition:all .15s;color:#0f172a;font-size:13px;font-weight:600}
+    .dhero__qa-item:hover{background:#f8fafc;color:#c4956a}
+    .dhero__qa-icon{font-size:18px;width:28px;text-align:center}
+    .dhero__qa-label{flex:1}
+    .dhero__qa-tags{margin-top:auto;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;flex-wrap:wrap;gap:4px}
+    .dhero__qa-tags span{font-size:10px;color:#94a3b8;width:100%;margin-bottom:2px}
+    .dhero__qa-tags a{padding:3px 8px;background:#f1f5f9;border-radius:5px;font-size:10px;color:#475569;transition:all .2s}
+    .dhero__qa-tags a:hover{background:#c4956a;color:#fff}
+    /* Trust */
+    .trust{max-width:1200px;margin:0 auto;padding:20px 24px 0}
     .trust__grid{grid-template-columns:repeat(4,1fr);padding:18px 24px;border-radius:16px}
+    /* Cats */
     .cats{padding:32px 24px 12px;max-width:1200px;margin:0 auto}
     .cats__grid{grid-template-columns:repeat(4,1fr);gap:10px;padding:0}
     .cc{padding:14px;gap:12px}
     .cc__ic{width:44px;height:44px}
-    .cc__name{font-size:14px}
+    .cc__name{font-size:14px;max-width:unset}
+    /* Drops */
     .drops{padding:32px 24px 12px;max-width:1200px;margin:0 auto}
     .drops__scroll{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;overflow:visible;scroll-snap-type:none;padding:0}
     .dp{min-width:unset;max-width:unset}
     .dp__img{height:120px}
     .dp__now{font-size:18px}
+    /* Mini CTA */
     .minicta{max-width:560px;margin:8px auto 0;padding:8px 24px 0}
+    /* Products */
     .prods,.cprods{padding:32px 24px 12px;max-width:1200px;margin:0 auto}
     .pscroll{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;overflow:visible;scroll-snap-type:none;padding:0}
     .p{min-width:unset;max-width:unset}
     .p__img{height:150px}
     .p__pv{font-size:18px}
+    /* Quick actions */
     .qa-section{max-width:1200px;margin:0 auto;padding:24px}
     .qa-section__inner{gap:10px;padding:0;overflow:visible;flex-wrap:wrap;justify-content:center}
     .qab{padding:14px 20px;border-radius:14px}
+    /* How */
     .how{padding:48px 24px}
     .how__grid{flex-direction:row;gap:24px;max-width:860px}
     .how__step{flex-direction:column;text-align:center;flex:1;gap:10px;padding:0}
@@ -591,22 +671,45 @@
     .how__nw{margin:0 auto;width:56px;height:56px;border-radius:16px}
     .how__c{padding:0}
     .how__sn,.how__st,.how__sx{text-align:center}
+    /* Vendor CTA */
     .vcta{padding:56px 24px}
     .vcta__inner{max-width:600px}
     .vcta__title{font-size:28px}
     .vcta__feats{flex-direction:row;flex-wrap:wrap;gap:16px;justify-content:center}
 }
 @media(min-width:1024px){
+    .dhero__side{width:280px}
+    .dhero__slide{padding:48px 56px;min-height:280px}
+    .dhero__title{font-size:32px}
     .cats__grid{grid-template-columns:repeat(4,1fr)}
     .drops__scroll{grid-template-columns:repeat(6,1fr)}
     .pscroll{grid-template-columns:repeat(5,1fr)}
 }
+@media(min-width:1280px){
+    .dhero__slide{min-height:300px;padding:52px 64px}
+    .dhero__title{font-size:36px}
+    .dhero__sub{font-size:15px}
+    .dhero__deco{font-size:120px}
+}
 @media(max-width:360px){
-    .p{min-width:140px;max-width:140px}
-    .dp{min-width:140px;max-width:140px}
-    .banners__title{font-size:15px}
+    .srch{padding:10px 12px 0}
+    .banners{padding:8px 12px 0}
+    .banners__title{font-size:15px;max-width:85%}
+    .banners__slide{padding:16px 14px}
+    .trust{padding:10px 12px 0}
     .trust__grid{gap:6px;padding:10px}
     .trust__ic{width:32px;height:32px;border-radius:8px}
     .trust__num{font-size:13px}
+    .cats__grid{gap:6px;padding:0 12px}
+    .cc{padding:10px;gap:8px}
+    .cc__ic{width:34px;height:34px}
+    .cc__name{font-size:12px;max-width:80px}
+    .drops__scroll{padding:0 12px 4px;gap:8px}
+    .pscroll{padding:0 12px 6px;gap:8px}
+    .p{min-width:140px;max-width:140px}
+    .dp{min-width:140px;max-width:140px}
+    .sec-h{padding:0 12px}
+    .minicta{padding:8px 12px 0}
+    .qa-section__inner{padding:0 12px}
 }
 </style>
