@@ -314,6 +314,7 @@
                                                     <span class="tw">{#if hasKids(n2)}<span class="ta" class:open={expanded[p2]}>▶</span>{:else}<span class="td">─</span>{/if}</span>
                                                     <span class="tl">{n2.name}</span>
                                                     {#if hasKids(n2)}<span class="tc">{childCount(n2)}</span>{/if}
+											{#if n2.name_sk && refSource==="google"}<span class="ts">{n2.name_sk}</span>{/if}
                                                 </button>
                                                 {#if expanded[p2]}
                                                     {#each getSorted(n2) as n3}
@@ -323,6 +324,7 @@
                                                                 <span class="tw">{#if hasKids(n3)}<span class="ta" class:open={expanded[p3]}>▶</span>{:else}<span class="td">─</span>{/if}</span>
                                                                 <span class="tl">{n3.name}</span>
                                                                 {#if hasKids(n3)}<span class="tc">{childCount(n3)}</span>{/if}
+														{#if n3.name_sk && refSource==="google"}<span class="ts">{n3.name_sk}</span>{/if}
                                                             </button>
                                                             {#if expanded[p3]}
                                                                 {#each getSorted(n3) as n4}
@@ -332,10 +334,11 @@
                                                                             <span class="tw">{#if hasKids(n4)}<span class="ta" class:open={expanded[p4]}>▶</span>{:else}<span class="td">─</span>{/if}</span>
                                                                             <span class="tl">{n4.name}</span>
                                                                             {#if hasKids(n4)}<span class="tc">{childCount(n4)}</span>{/if}
+																{#if n4.name_sk && refSource==="google"}<span class="ts">{n4.name_sk}</span>{/if}
                                                                         </button>
                                                                         {#if expanded[p4]}
                                                                             {#each getSorted(n4) as n5}
-                                                                                <div class="tn"><div class="tr d5"><span class="tw"><span class="td">─</span></span><span class="tl">{n5.name}</span></div></div>
+                                                                                <div class="tn"><div class="tr d5"><span class="tw"><span class="td">─</span></span><span class="tl">{n5.name}</span>{#if n5.name_sk && refSource==="google"}<span class="ts">{n5.name_sk}</span>{/if}</div></div>
                                                                             {/each}
                                                                         {/if}
                                                                     </div>
