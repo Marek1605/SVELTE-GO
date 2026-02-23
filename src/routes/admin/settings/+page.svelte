@@ -24,6 +24,12 @@
     let showWishlist = true;
     let showCompare = true;
 
+    // Category nav settings
+    let catNavStyle = 'pills';
+    let showMobileCatnav = false;
+    let savingCatnav = false;
+    let catnavMsg = '';
+
     // Homepage settings
     let heroTitle = 'Nájdite *najnižšiu cenu* za pár sekúnd';
     let heroSubtitle = 'Porovnávame ceny z overených obchodov na jednom mieste.';
@@ -33,31 +39,8 @@
     let savingHome = false;
     let homeMsg = '';
 
-    // Banner settings
-    let banners = [
-        { badge: 'NOVÉ', title: 'Porovnajte si ceny z overených e-shopov', subtitle: '', color: '#c4956a', icon: '🔍' },
-        { badge: 'PRE E-SHOPY', title: 'Pridajte váš obchod na MegaPrice', subtitle: 'CPC od 0,05 € · Zadarmo', color: '#1e293b', icon: '🏪' },
-        { badge: 'TIP', title: 'Ušetrite aj 40% porovnaním cien', subtitle: 'Porovnajte ceny na jednom mieste', color: '#4f46e5', icon: '💰' },
-    ];
-    let editBannerIdx = -1;
-    const presetColors = ['#c4956a','#1e293b','#4f46e5','#059669','#dc2626','#7c3aed','#0284c7','#ca8a04','#be185d','#374151'];
-    const presetIcons = ['🔍','🏪','💰','🎁','📦','⭐','🔥','🛒','💎','🎯','📊','🏷️'];
-    function addBanner() { banners = [...banners, { badge: 'NOVÝ', title: 'Nový banner', subtitle: '', color: '#c4956a', icon: '🎁' }]; editBannerIdx = banners.length - 1; }
-    function removeBanner(i) { banners = banners.filter((_, idx) => idx !== i); if (editBannerIdx === i) editBannerIdx = -1; else if (editBannerIdx > i) editBannerIdx--; }
-    function moveBanner(i, dir) { const j = i + dir; if (j < 0 || j >= banners.length) return; const tmp = [...banners]; [tmp[i], tmp[j]] = [tmp[j], tmp[i]]; banners = tmp; if (editBannerIdx === i) editBannerIdx = j; else if (editBannerIdx === j) editBannerIdx = i; }
-
-    // Price drops settings
-    let priceDropMode = 'auto';
-    let priceDropLimit = 6;
-    let priceDropProductIds = '';
-    let priceDropSelected = [];
-    let priceDropSearchResults = [];
-    let dropsSearchTimer;
-    let savingDrops = false;
-    let dropsMsg = '';
-
     onMount(async () => {
-        await Promise.all([loadSystemInfo(), loadSiteSettings(), loadPriceDropSettings()]);
+        await Promise.all([loadSystemInfo(), loadSiteSettings()]);
         loading = false;
     });
 
@@ -87,14 +70,13 @@
             showAccount = res.data.show_account !== 'false';
             showWishlist = res.data.show_wishlist !== 'false';
             showCompare = res.data.show_compare !== 'false';
+            catNavStyle = res.data.catnav_style || 'pills';
+            showMobileCatnav = res.data.show_mobile_catnav === 'true';
             heroTitle = res.data.hero_title || heroTitle;
             heroSubtitle = res.data.hero_subtitle || heroSubtitle;
             homeCategorySections = parseInt(res.data.home_category_sections) || 3;
             showHowItWorks = res.data.show_how_it_works !== 'false';
             showVendorCta = res.data.show_vendor_cta !== 'false';
-            if (res.data.home_banners) {
-                try { const parsed = JSON.parse(res.data.home_banners); if (Array.isArray(parsed) && parsed.length > 0) banners = parsed; } catch(e) {}
-            }
         }
     }
 
@@ -215,8 +197,7 @@
             hero_subtitle: heroSubtitle,
             home_category_sections: homeCategorySections.toString(),
             show_how_it_works: showHowItWorks ? 'true' : 'false',
-            show_vendor_cta: showVendorCta ? 'true' : 'false',
-            home_banners: JSON.stringify(banners)
+            show_vendor_cta: showVendorCta ? 'true' : 'false'
         };
         for (const [k, v] of Object.entries(keys)) {
             await apiFetch('/admin/toggle-ui-setting', {
@@ -229,64 +210,23 @@
         setTimeout(() => homeMsg = '', 3000);
     }
 
-    async function loadPriceDropSettings() {
-        const res = await apiFetch('/admin/price-drops');
-        if (res?.success && res.data) {
-            priceDropMode = res.data.price_drops_mode || 'auto';
-            priceDropLimit = parseInt(res.data.price_drops_limit) || 6;
-            priceDropProductIds = res.data.price_drops_product_ids || '';
-            if (priceDropProductIds && priceDropMode === 'manual') {
-                await loadSelectedProducts();
-            }
+    async function saveCatnavSettings() {
+        savingCatnav = true; catnavMsg = '';
+        const keys = {
+            catnav_style: catNavStyle,
+            show_mobile_catnav: showMobileCatnav ? 'true' : 'false'
+        };
+        for (const [k, v] of Object.entries(keys)) {
+            await apiFetch('/admin/toggle-ui-setting', {
+                method: 'POST',
+                body: JSON.stringify({ key: k, value: v })
+            });
         }
-    }
-
-    async function loadSelectedProducts() {
-        const ids = priceDropProductIds.split(',').filter(s => s.trim());
-        if (ids.length === 0) return;
-        const res = await apiFetch('/admin/price-drops/search?q=');
-        // Instead, fetch each by searching
-        for (const id of ids) {
-            const r = await apiFetch('/admin/price-drops/search?q=' + id);
-            if (r?.success && r.data) {
-                const found = r.data.find(p => String(p.id) === id.trim());
-                if (found && !priceDropSelected.some(s => s.id === found.id)) {
-                    priceDropSelected = [...priceDropSelected, found];
-                }
-            }
-        }
-    }
-
-    function searchDropProducts(query) {
-        clearTimeout(dropsSearchTimer);
-        if (query.length < 2) { priceDropSearchResults = []; return; }
-        dropsSearchTimer = setTimeout(async () => {
-            const res = await apiFetch('/admin/price-drops/search?q=' + encodeURIComponent(query));
-            if (res?.success && res.data) {
-                priceDropSearchResults = res.data.filter(p => !priceDropSelected.some(s => s.id === p.id));
-            }
-        }, 300);
-    }
-
-    function addDropProduct(product) {
-        priceDropSelected = [...priceDropSelected, product];
-        priceDropSearchResults = priceDropSearchResults.filter(p => p.id !== product.id);
-    }
-
-    function removeDropProduct(id) {
-        priceDropSelected = priceDropSelected.filter(p => p.id !== id);
-    }
-
-    async function savePriceDropSettings() {
-        savingDrops = true; dropsMsg = '';
-        const ids = priceDropSelected.map(p => p.id).join(',');
-        const res = await apiFetch('/admin/price-drops', {
-            method: 'POST',
-            body: JSON.stringify({ mode: priceDropMode, limit: priceDropLimit, product_ids: ids })
-        });
-        dropsMsg = res?.success ? '✅ Uložené' : '❌ Chyba';
-        savingDrops = false;
-        setTimeout(() => dropsMsg = '', 3000);
+        // Also update localStorage for instant preview
+        try { localStorage.setItem('mp_catnav_style', catNavStyle); } catch(e) {}
+        savingCatnav = false;
+        catnavMsg = '✅ Uložené';
+        setTimeout(() => catnavMsg = '', 3000);
     }
 </script>
 
@@ -437,6 +377,82 @@
         </div>
     </div>
 
+    <!-- CATEGORY NAVIGATION -->
+    <div class="section">
+        <h2>🧭 Navigácia kategórií</h2>
+        <p class="desc">Štýl zobrazenia kategórií v navigačnom riadku a jeho viditeľnosť na mobile.</p>
+
+        <div class="catnav-styles">
+            <button class="catnav-card" class:is-active={catNavStyle === 'pills'} on:click={() => catNavStyle = 'pills'}>
+                <div class="catnav-preview pills-preview">
+                    <span class="cp-pill"><span class="cp-dot"></span> Elektronika</span>
+                    <span class="cp-pill"><span class="cp-dot"></span> Šport</span>
+                </div>
+                <div class="catnav-card__info">
+                    <strong>Pills</strong>
+                    <small>Zaoblené s ikonou</small>
+                </div>
+            </button>
+
+            <button class="catnav-card" class:is-active={catNavStyle === 'icons'} on:click={() => catNavStyle = 'icons'}>
+                <div class="catnav-preview icons-preview">
+                    <span class="cp-icon"><span class="cp-circle"></span><span class="cp-text">Elektro</span></span>
+                    <span class="cp-icon"><span class="cp-circle"></span><span class="cp-text">Šport</span></span>
+                    <span class="cp-icon"><span class="cp-circle"></span><span class="cp-text">Dom</span></span>
+                </div>
+                <div class="catnav-card__info">
+                    <strong>Ikony</strong>
+                    <small>Kruhové s popisom</small>
+                </div>
+            </button>
+
+            <button class="catnav-card" class:is-active={catNavStyle === 'minimal'} on:click={() => catNavStyle = 'minimal'}>
+                <div class="catnav-preview minimal-preview">
+                    <span class="cp-min">Elektronika</span>
+                    <span class="cp-min">Šport</span>
+                    <span class="cp-min">Dom</span>
+                </div>
+                <div class="catnav-card__info">
+                    <strong>Minimálne</strong>
+                    <small>Len text, podčiarknutie</small>
+                </div>
+            </button>
+
+            <button class="catnav-card" class:is-active={catNavStyle === 'cards'} on:click={() => catNavStyle = 'cards'}>
+                <div class="catnav-preview cards-preview">
+                    <span class="cp-card"><span class="cp-sq"></span> Elektronika</span>
+                    <span class="cp-card"><span class="cp-sq"></span> Šport</span>
+                </div>
+                <div class="catnav-card__info">
+                    <strong>Karty</strong>
+                    <small>Karty s obrázkom</small>
+                </div>
+            </button>
+        </div>
+
+        <div class="ui-toggle-row" style="margin-top:16px;background:#f8fafc;border-radius:10px;padding:14px 16px">
+            <div class="ui-toggle-info">
+                <span class="ui-toggle-icon">📱</span>
+                <div>
+                    <strong>Zobraziť na mobile</strong>
+                    <small>Riadok kategórií pod headerom na mobilnom zariadení</small>
+                </div>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" bind:checked={showMobileCatnav}>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">{showMobileCatnav ? 'Zobrazený' : 'Skrytý'}</span>
+            </label>
+        </div>
+
+        <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
+            <button class="btn-save" on:click={saveCatnavSettings} disabled={savingCatnav}>
+                {savingCatnav ? 'Ukladám...' : '💾 Uložiť navigáciu'}
+            </button>
+            {#if catnavMsg}<span class="save-msg">{catnavMsg}</span>{/if}
+        </div>
+    </div>
+
     <!-- HOMEPAGE SETTINGS -->
     <div class="section">
         <h2>🏠 Úvodná stránka</h2>
@@ -447,76 +463,6 @@
         <div class="form-group">
             <label>Podnadpis</label>
             <input type="text" bind:value={heroSubtitle} placeholder="Porovnávame ceny z overených obchodov...">
-        </div>
-
-        <!-- BANNER EDITOR -->
-        <div class="banner-section">
-            <div class="banner-header">
-                <h3>🖼️ Bannery na úvodnej stránke</h3>
-                <button class="btn-add-banner" on:click={addBanner}>+ Pridať banner</button>
-            </div>
-            <p class="desc" style="margin:-4px 0 12px">Bannery sa zobrazujú v carousel na úvodnej stránke. Ťahajte poradie šípkami.</p>
-
-            {#each banners as banner, i}
-            <div class="banner-card" class:banner-card--editing={editBannerIdx === i}>
-                <div class="banner-card__preview" style="background:{banner.color}">
-                    <div class="banner-card__content">
-                        <span class="banner-card__badge">{banner.badge}</span>
-                        <span class="banner-card__title">{banner.title}</span>
-                        {#if banner.subtitle}<span class="banner-card__sub">{banner.subtitle}</span>{/if}
-                    </div>
-                    <span class="banner-card__icon">{banner.icon || '🔍'}</span>
-                </div>
-                <div class="banner-card__actions">
-                    <button class="banner-card__btn" on:click={() => moveBanner(i, -1)} disabled={i===0} title="Hore">↑</button>
-                    <button class="banner-card__btn" on:click={() => moveBanner(i, 1)} disabled={i===banners.length-1} title="Dole">↓</button>
-                    <button class="banner-card__btn banner-card__btn--edit" on:click={() => editBannerIdx = editBannerIdx === i ? -1 : i}>{editBannerIdx === i ? '✕' : '✏️'}</button>
-                    <button class="banner-card__btn banner-card__btn--del" on:click={() => removeBanner(i)} title="Odstrániť">🗑️</button>
-                </div>
-
-                {#if editBannerIdx === i}
-                <div class="banner-edit">
-                    <div class="banner-edit__row">
-                        <div class="banner-edit__field">
-                            <label>Badge text</label>
-                            <input type="text" bind:value={banner.badge} placeholder="NOVÉ">
-                        </div>
-                        <div class="banner-edit__field">
-                            <label>Ikona</label>
-                            <div class="banner-edit__icons">
-                                {#each presetIcons as ic}
-                                    <button class="banner-edit__iconbtn" class:active={banner.icon===ic} on:click={() => { banners[i].icon = ic; banners = banners; }}>{ic}</button>
-                                {/each}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="banner-edit__field">
-                        <label>Nadpis</label>
-                        <input type="text" bind:value={banner.title} placeholder="Text banneru...">
-                    </div>
-                    <div class="banner-edit__field">
-                        <label>Podnadpis <small style="color:#94a3b8">(voliteľný)</small></label>
-                        <input type="text" bind:value={banner.subtitle} placeholder="Doplňujúci text...">
-                    </div>
-                    <div class="banner-edit__field">
-                        <label>Farba pozadia</label>
-                        <div class="banner-edit__colors">
-                            {#each presetColors as col}
-                                <button class="banner-edit__colorbtn" class:active={banner.color===col} style="background:{col}" on:click={() => { banners[i].color = col; banners = banners; }}></button>
-                            {/each}
-                            <div class="banner-edit__custom-color">
-                                <input type="color" bind:value={banner.color} style="width:28px;height:28px;border:none;padding:0;cursor:pointer;border-radius:6px">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/if}
-            </div>
-            {/each}
-
-            {#if banners.length === 0}
-            <div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">Žiadne bannery. Kliknite "Pridať banner" pre vytvorenie.</div>
-            {/if}
         </div>
         <div class="form-group">
             <label>Počet sekcií kategórií s produktami</label>
@@ -558,73 +504,6 @@
                 {savingHome ? 'Ukladám...' : '💾 Uložiť nastavenia úvodnej stránky'}
             </button>
             {#if homeMsg}<span class="save-msg">{homeMsg}</span>{/if}
-        </div>
-    </div>
-
-    <!-- PRICE DROPS SETTINGS -->
-    <div class="section">
-        <h2>📉 Cenové poklesy</h2>
-        <p class="desc">Nastavte, ktoré produkty sa zobrazia v sekcii cenových poklesov na hlavnej stránke.</p>
-
-        <div class="drops-mode">
-            <button class="mode-opt" class:active={priceDropMode === 'auto'} on:click={() => priceDropMode = 'auto'}>
-                <span class="mode-radio">{priceDropMode === 'auto' ? '●' : '○'}</span>
-                <div><strong>Automaticky</strong><small>Zobrazí produkty s najväčším cenovým poklesom</small></div>
-            </button>
-            <button class="mode-opt" class:active={priceDropMode === 'manual'} on:click={() => priceDropMode = 'manual'}>
-                <span class="mode-radio">{priceDropMode === 'manual' ? '●' : '○'}</span>
-                <div><strong>Manuálne</strong><small>Vyberte konkrétne produkty ručne</small></div>
-            </button>
-        </div>
-
-        {#if priceDropMode === 'auto'}
-        <div class="field" style="margin-top:16px">
-            <label>Počet produktov: <strong>{priceDropLimit}</strong></label>
-            <input type="range" min="2" max="12" bind:value={priceDropLimit} style="width:100%;max-width:300px">
-        </div>
-        {/if}
-
-        {#if priceDropMode === 'manual'}
-        <div style="margin-top:16px">
-            <label class="field-label">Vyhľadať produkt</label>
-            <input type="text" class="input" placeholder="Názov produktu..." on:input={(e) => searchDropProducts(e.target.value)} style="max-width:400px">
-            
-            {#if priceDropSearchResults.length > 0}
-            <div class="drops-results">
-                {#each priceDropSearchResults as p}
-                <button class="drops-result" on:click={() => addDropProduct(p)}>
-                    <div class="drops-result__img">{#if p.image_url}<img src={p.image_url} alt="">{:else}📦{/if}</div>
-                    <div class="drops-result__info">
-                        <span>{p.title}</span>
-                        <span class="drops-result__price">{p.price_min?.toFixed(2)} € {#if p.price_old > 0}<s>{p.price_old?.toFixed(2)} €</s>{/if} {#if p.drop_pct > 0}<em>-{Math.round(p.drop_pct)}%</em>{/if}</span>
-                    </div>
-                    <span class="drops-result__add">+ Pridať</span>
-                </button>
-                {/each}
-            </div>
-            {/if}
-
-            {#if priceDropSelected.length > 0}
-            <div class="drops-selected">
-                <label class="field-label">Vybrané produkty ({priceDropSelected.length})</label>
-                {#each priceDropSelected as p, i}
-                <div class="drops-sel">
-                    <span class="drops-sel__num">{i + 1}</span>
-                    <div class="drops-sel__img">{#if p.image_url}<img src={p.image_url} alt="">{:else}📦{/if}</div>
-                    <div class="drops-sel__info">{p.title}</div>
-                    <button class="drops-sel__rm" on:click={() => removeDropProduct(p.id)}>✕</button>
-                </div>
-                {/each}
-            </div>
-            {/if}
-        </div>
-        {/if}
-
-        <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
-            <button class="btn-save" on:click={savePriceDropSettings} disabled={savingDrops}>
-                {savingDrops ? 'Ukladám...' : '💾 Uložiť cenové poklesy'}
-            </button>
-            {#if dropsMsg}<span class="save-msg">{dropsMsg}</span>{/if}
         </div>
     </div>
 
@@ -786,73 +665,34 @@
     .ui-toggle-name{display:block;font-size:14px;font-weight:600;color:#1e293b}
     .ui-toggle-desc{display:block;font-size:12px;color:#64748b}
 
-    /* Banner editor */
-    .banner-section{margin-top:20px;padding-top:20px;border-top:1px solid #e5e7eb}
-    .banner-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-    .banner-header h3{font-size:15px;font-weight:700;color:#1e293b;margin:0}
-    .btn-add-banner{padding:6px 14px;background:#c4956a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
-    .btn-add-banner:hover{background:#b8855c}
-    .banner-card{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;margin-bottom:8px;transition:all .15s}
-    .banner-card--editing{border-color:#c4956a;box-shadow:0 0 0 2px rgba(196,149,106,.15)}
-    .banner-card__preview{display:flex;align-items:center;padding:12px 14px;color:#fff;min-height:52px;gap:10px}
-    .banner-card__content{flex:1;min-width:0}
-    .banner-card__badge{display:inline-block;padding:1px 6px;background:rgba(255,255,255,.2);border-radius:4px;font-size:8px;font-weight:700;letter-spacing:.5px;margin-bottom:2px}
-    .banner-card__title{display:block;font-size:13px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .banner-card__sub{display:block;font-size:10px;opacity:.7}
-    .banner-card__icon{font-size:24px;opacity:.3;flex-shrink:0}
-    .banner-card__actions{display:flex;gap:4px;padding:6px 10px;background:#f8fafc;border-top:1px solid #e5e7eb}
-    .banner-card__btn{width:32px;height:32px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s}
-    .banner-card__btn:hover{background:#f1f5f9;border-color:#94a3b8}
-    .banner-card__btn:disabled{opacity:.3;cursor:not-allowed}
-    .banner-card__btn--edit{margin-left:auto}
-    .banner-card__btn--del{border-color:#fecaca;color:#dc2626}
-    .banner-card__btn--del:hover{background:#fef2f2}
-    .banner-edit{padding:14px;background:#fafbfc;border-top:1px solid #e5e7eb;display:flex;flex-direction:column;gap:10px}
-    .banner-edit__row{display:flex;gap:10px}
-    .banner-edit__row > *{flex:1}
-    .banner-edit__field{display:flex;flex-direction:column;gap:4px}
-    .banner-edit__field label{font-size:12px;font-weight:600;color:#374151}
-    .banner-edit__field input[type="text"]{padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;width:100%;box-sizing:border-box}
-    .banner-edit__field input[type="text"]:focus{outline:none;border-color:#c4956a}
-    .banner-edit__icons{display:flex;flex-wrap:wrap;gap:4px}
-    .banner-edit__iconbtn{width:32px;height:32px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s}
-    .banner-edit__iconbtn.active{border-color:#c4956a;background:#fef7f0}
-    .banner-edit__iconbtn:hover{background:#f1f5f9}
-    .banner-edit__colors{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
-    .banner-edit__colorbtn{width:28px;height:28px;border-radius:7px;border:2px solid transparent;cursor:pointer;transition:.15s}
-    .banner-edit__colorbtn.active{border-color:#fff;box-shadow:0 0 0 2px #c4956a}
-    .banner-edit__colorbtn:hover{transform:scale(1.1)}
-    .banner-edit__custom-color{display:flex;align-items:center}
+    /* Catnav style selector */
+    .catnav-styles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+    .catnav-card{background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:0;cursor:pointer;transition:all .2s;overflow:hidden;text-align:left}
+    .catnav-card:hover{border-color:#c4956a;box-shadow:0 4px 12px rgba(196,149,106,.1)}
+    .catnav-card.is-active{border-color:#c4956a;box-shadow:0 0 0 3px rgba(196,149,106,.15)}
+    .catnav-preview{padding:16px 12px;background:#f8fafc;display:flex;align-items:center;gap:6px;min-height:56px;justify-content:center;flex-wrap:wrap}
+    .catnav-card__info{padding:10px 12px;border-top:1px solid #f1f5f9}
+    .catnav-card__info strong{display:block;font-size:13px;color:#1e293b}
+    .catnav-card__info small{color:#94a3b8;font-size:11px}
 
-    /* Price drops */
-    .drops-mode{display:flex;gap:8px;margin-top:8px}
-    .mode-opt{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;background:#fff;border:2px solid #e5e7eb;border-radius:10px;text-align:left;cursor:pointer;transition:.15s;flex:1}
-    .mode-opt:hover{border-color:#c4956a}
-    .mode-opt.active{border-color:#c4956a;background:#fef7f0}
-    .mode-radio{font-size:18px;color:#c4956a;flex-shrink:0;margin-top:2px}
-    .mode-opt strong{display:block;font-size:14px;color:#1e293b}
-    .mode-opt small{display:block;font-size:12px;color:#64748b;margin-top:2px}
-    .drops-results{margin-top:8px;border:1px solid #e5e7eb;border-radius:8px;max-height:300px;overflow-y:auto}
-    .drops-result{display:flex;align-items:center;gap:10px;padding:8px 12px;width:100%;text-align:left;border:none;background:none;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .1s}
-    .drops-result:hover{background:#f8fafc}
-    .drops-result:last-child{border-bottom:none}
-    .drops-result__img{width:36px;height:36px;border-radius:6px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:14px}
-    .drops-result__img img{width:100%;height:100%;object-fit:cover}
-    .drops-result__info{flex:1;min-width:0}
-    .drops-result__info span:first-child{display:block;font-size:13px;font-weight:500;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .drops-result__price{display:block;font-size:12px;color:#64748b}
-    .drops-result__price s{color:#94a3b8;margin-left:4px}
-    .drops-result__price em{color:#059669;font-style:normal;font-weight:600;margin-left:4px}
-    .drops-result__add{padding:4px 10px;background:#ecfdf5;color:#059669;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0}
-    .drops-selected{margin-top:16px}
-    .drops-sel{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:4px}
-    .drops-sel__num{width:22px;height:22px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#64748b;flex-shrink:0}
-    .drops-sel__img{width:32px;height:32px;border-radius:6px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:12px}
-    .drops-sel__img img{width:100%;height:100%;object-fit:cover}
-    .drops-sel__info{flex:1;font-size:13px;font-weight:500;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .drops-sel__rm{width:24px;height:24px;border-radius:6px;background:#fef2f2;border:none;color:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:13px}
-    .drops-sel__rm:hover{background:#ef4444;color:#fff}
-    .field-label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px}
-    .input{padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;width:100%;box-sizing:border-box}
-    .input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+    /* Preview elements */
+    .cp-pill{display:flex;align-items:center;gap:4px;padding:3px 8px 3px 3px;background:#fff;border:1px solid #e2e8f0;border-radius:100px;font-size:10px;color:#374151;font-weight:600;white-space:nowrap}
+    .cp-dot{width:16px;height:16px;background:#e2e8f0;border-radius:50%;flex-shrink:0}
+    .catnav-card.is-active .cp-pill{border-color:#c4956a;background:#fef7f0}
+
+    .icons-preview{gap:10px}
+    .cp-icon{display:flex;flex-direction:column;align-items:center;gap:2px}
+    .cp-circle{width:24px;height:24px;background:#fff;border:1.5px solid #e2e8f0;border-radius:50%}
+    .cp-text{font-size:9px;color:#6b7280;font-weight:500}
+    .catnav-card.is-active .cp-circle{border-color:#c4956a}
+
+    .cp-min{font-size:11px;color:#4b5563;font-weight:500;padding:2px 6px;position:relative}
+    .cp-min::after{content:'';position:absolute;bottom:0;left:6px;right:6px;height:1.5px;background:#e2e8f0}
+    .catnav-card.is-active .cp-min::after{background:#c4956a}
+
+    .cp-card{display:flex;align-items:center;gap:4px;padding:4px 8px 4px 4px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;font-size:10px;color:#374151;font-weight:600;white-space:nowrap}
+    .cp-sq{width:16px;height:16px;background:#e2e8f0;border-radius:4px;flex-shrink:0}
+    .catnav-card.is-active .cp-card{border-color:#c4956a;background:#fef7f0}
+
+    @media(max-width:640px){.catnav-styles{grid-template-columns:repeat(2,1fr)}}
 </style>

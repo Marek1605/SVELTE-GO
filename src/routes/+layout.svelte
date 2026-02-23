@@ -11,6 +11,7 @@
     let wishlistCount = 0;
     let compareCount = 0;
     let mobileMenuOpen = false;
+    let expandedMobileCat = null;
     let megaMenuOpen = false;
     let activeCategoryId = null;
     let activeCategoryData = null;
@@ -25,6 +26,7 @@
     let showAccount = true;
     let showWishlist = true;
     let showCompare = true;
+    let showMobileCatnav = false;
     function toggleAllCats() { showAllCats = !showAllCats; if (!showAllCats) editMode = false; }
     function closeAllCats() { showAllCats = false; editMode = false; }
     function toggleEditMode() { editMode = !editMode; }
@@ -60,7 +62,9 @@
     function handleSearch(e) { e.preventDefault(); if (searchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(searchQuery)}`; }
     function handleCatnavSearch(e) { e.preventDefault(); if (catnavSearchQuery.trim()) window.location.href = `/hladat?q=${encodeURIComponent(catnavSearchQuery)}`; }
     function scrollCategories(direction) { const list = document.querySelector('.mp-catnav__list'); if (list) list.scrollBy({ left: direction * 200, behavior: 'smooth' }); }
-    function closeMobileMenu() { mobileMenuOpen = false; document.body.style.overflow = ''; }
+    function closeMobileMenu() { mobileMenuOpen = false; expandedMobileCat = null; document.body.style.overflow = ''; }
+    function openMobileMenu() { mobileMenuOpen = true; document.body.style.overflow = 'hidden'; }
+    function toggleMobileCat(catId) { expandedMobileCat = expandedMobileCat === catId ? null : catId; }
     function openMegaMenu(cat) {
         if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; }
         if (cat.children && cat.children.length > 0) { activeCategoryId = cat.id; activeCategoryData = cat; megaMenuOpen = true; }
@@ -112,6 +116,8 @@
                 showAccount = d?.data?.show_account !== 'false';
                 showWishlist = d?.data?.show_wishlist !== 'false';
                 showCompare = d?.data?.show_compare !== 'false';
+                if (d?.data?.show_mobile_catnav !== undefined) showMobileCatnav = d.data.show_mobile_catnav === 'true';
+                if (d?.data?.catnav_style && ['pills','icons','minimal','cards'].includes(d.data.catnav_style)) catNavStyle = d.data.catnav_style;
             })
             .catch(() => {});
 
@@ -145,6 +151,9 @@
 <div class="mp-site">
     <header class="mp-header">
         <div class="mp-header__inner">
+            <button class="mp-header__burger" on:click={openMobileMenu} aria-label="Menu">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
             <a href="/" class="mp-header__logo">
                 {#if logoUrl}
                     <img src={logoUrl} alt="MegaPrice" class="mp-header__logo-img" style="height:{logoSize}px" />
@@ -160,7 +169,7 @@
                 </button>
             </form>
             <nav class="mp-header__actions">
-                {#if showAccount}<a href="/ucet" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Môj účet</span></a>{/if}
+                {#if showAccount}<a href="/ucet" class="mp-header__action mp-header__action--account"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Môj účet</span></a>{/if}
                 {#if showWishlist}<a href="/oblubene" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>{#if wishlistCount > 0}<span class="mp-header__action-badge">{wishlistCount}</span>{/if}</span><span>Obľúbené</span></a>{/if}
                 {#if showCompare}<a href="/porovnanie" class="mp-header__action"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg>{#if compareCount > 0}<span class="mp-header__action-badge mp-header__action-badge--blue">{compareCount}</span>{/if}</span><span>Porovnať</span></a>{/if}
                 {#if showCart}<a href="/kosik" class="mp-header__action mp-header__action--cart"><span class="mp-header__action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span>Košík</span></a>{/if}
@@ -168,7 +177,7 @@
         </div>
     </header>
 
-    <nav class="mp-catnav" class:is-collapsed={isCollapsed}>
+    <nav class="mp-catnav" class:is-collapsed={isCollapsed} class:hide-mobile={!showMobileCatnav}>
         <div class="mp-catnav__inner">
             <button class="mp-catnav__arrow mp-catnav__arrow--left" on:click={() => scrollCategories(-1)}>‹</button>
 
@@ -352,10 +361,37 @@
                 <button class="mp-mobile-menu__close" on:click={closeMobileMenu}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div class="mp-mobile-menu__content">
-                {#each visibleCategories as cat}
-                    <a href={"/kategoria/" + (cat.slug || cat.id)} class="mp-mobile-menu__link" on:click={closeMobileMenu}>
-                        <span class="mp-mobile-menu__icon">{getCategoryEmoji(cat.name)}</span>{cat.name}
-                    </a>
+                {#each navCategories as cat}
+                    <div class="mm-cat">
+                        <div class="mm-cat__row">
+                            <a href={"/kategoria/" + (cat.slug || cat.id)} class="mm-cat__link" on:click={closeMobileMenu}>
+                                <span class="mm-cat__img">
+                                    {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                                </span>
+                                <span class="mm-cat__name">{cat.name}</span>
+                            </a>
+                            {#if cat.children && cat.children.length > 0}
+                                <button class="mm-cat__toggle" class:is-open={expandedMobileCat === cat.id} on:click={() => toggleMobileCat(cat.id)}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                                </button>
+                            {/if}
+                        </div>
+                        {#if expandedMobileCat === cat.id && cat.children}
+                            <div class="mm-sub">
+                                {#each cat.children as sub}
+                                    <a href={"/kategoria/" + (sub.slug || sub.id)} class="mm-sub__link" on:click={closeMobileMenu}>
+                                        <span class="mm-sub__img">
+                                            {#if sub.image_url}<img src={sub.image_url} alt="">{:else}<span>{getInitial(sub.name)}</span>{/if}
+                                        </span>
+                                        <span class="mm-sub__name">{sub.name}</span>
+                                        {#if sub.grandchildren && sub.grandchildren.length > 0}
+                                            <span class="mm-sub__count">{sub.grandchildren.length}</span>
+                                        {/if}
+                                    </a>
+                                {/each}
+                            </div>
+                        {/if}
+                    </div>
                 {/each}
             </div>
         </div>
@@ -391,12 +427,20 @@
 .mp-header__action-icon { position: relative; display: flex; }
 .mp-header__action-badge { position: absolute; top: -6px; right: -6px; background: #c4956a; color: #fff; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .mp-header__action-badge--blue { background: #3b82f6; }
+/* BURGER - hidden on desktop */
+.mp-header__burger { display: none; background: none; border: none; color: #374151; padding: 8px; border-radius: 8px; flex-shrink: 0; }
+.mp-header__burger:hover { background: #f3f4f6; }
 @media (max-width: 768px) {
-    .mp-header__inner { gap: 12px; padding: 10px 16px; }
+    .mp-header__inner { gap: 8px; padding: 10px 16px; justify-content: center; position: relative; }
+    .mp-header__burger { display: flex; align-items: center; justify-content: center; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
     .mp-search { display: none; }
-    .mp-header__actions { gap: 4px; }
-    .mp-header__action { padding: 8px; }
+    .mp-header__actions { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); gap: 2px; }
+    .mp-header__action { padding: 6px; }
     .mp-header__action span:last-child { display: none; }
+    .mp-header__action--cart { display: none; }
+    .mp-header__action--account { display: none; }
+    .mp-header__logo { margin: 0 auto; }
+    .mp-catnav.hide-mobile { display: none; }
 }
 
 /* ═══ CATNAV ═══ */
@@ -574,14 +618,40 @@
 @media (max-width: 768px) { .mp-bottom-nav { display: flex; } }
 
 /* MOBILE MENU */
-.mp-mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1200; }
-.mp-mobile-menu { position: fixed; top: 0; left: 0; bottom: 0; width: 300px; max-width: 85vw; background: #fff; z-index: 1300; display: flex; flex-direction: column; animation: slideIn 0.3s ease; }
+.mp-mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1200; animation: fadeIn 0.2s; backdrop-filter: blur(2px); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.mp-mobile-menu { position: fixed; top: 0; left: 0; bottom: 0; width: 320px; max-width: 85vw; background: #fff; z-index: 1300; display: flex; flex-direction: column; animation: slideIn 0.3s cubic-bezier(.25,.46,.45,.94); box-shadow: 4px 0 24px rgba(0,0,0,.12); }
 @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-.mp-mobile-menu__header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: linear-gradient(135deg, #c4956a, #b8855c); color: #fff; }
-.mp-mobile-menu__title { font-size: 18px; font-weight: 700; }
-.mp-mobile-menu__close { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; color: #fff; }
-.mp-mobile-menu__content { flex: 1; overflow-y: auto; padding: 8px; }
-.mp-mobile-menu__link { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; color: #374151; font-weight: 500; font-size: 15px; }
-.mp-mobile-menu__link:hover { background: #f3f4f6; }
-.mp-mobile-menu__icon { font-size: 18px; }
+.mp-mobile-menu__header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff; }
+.mp-mobile-menu__title { font-size: 17px; font-weight: 700; letter-spacing: -.2px; }
+.mp-mobile-menu__close { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: #fff; transition: background .2s; }
+.mp-mobile-menu__close:hover { background: rgba(255,255,255,0.2); }
+.mp-mobile-menu__content { flex: 1; overflow-y: auto; padding: 8px 0; -webkit-overflow-scrolling: touch; }
+
+/* Category tree */
+.mm-cat { border-bottom: 1px solid #f1f5f9; }
+.mm-cat:last-child { border-bottom: none; }
+.mm-cat__row { display: flex; align-items: center; }
+.mm-cat__link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; flex: 1; min-width: 0; color: #1e293b; transition: background .15s; }
+.mm-cat__link:active { background: #f8fafc; }
+.mm-cat__img { width: 36px; height: 36px; border-radius: 10px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.mm-cat__img img { width: 100%; height: 100%; object-fit: cover; }
+.mm-cat__img span { font-size: 16px; }
+.mm-cat__name { font-size: 14px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mm-cat__toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-right: 8px; background: none; border: none; color: #94a3b8; border-radius: 8px; transition: all .2s; flex-shrink: 0; }
+.mm-cat__toggle:active { background: #f1f5f9; }
+.mm-cat__toggle svg { transition: transform .25s ease; }
+.mm-cat__toggle.is-open svg { transform: rotate(180deg); }
+.mm-cat__toggle.is-open { color: #c4956a; }
+
+/* Subcategories */
+.mm-sub { padding: 0 8px 8px 24px; animation: mmExpand .25s ease; }
+@keyframes mmExpand { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 600px; } }
+.mm-sub__link { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: #475569; transition: background .15s; }
+.mm-sub__link:active { background: #f8fafc; }
+.mm-sub__img { width: 30px; height: 30px; border-radius: 8px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; border: 1px solid #e5e7eb; }
+.mm-sub__img img { width: 100%; height: 100%; object-fit: cover; }
+.mm-sub__img span { font-size: 11px; font-weight: 600; color: #94a3b8; }
+.mm-sub__name { font-size: 13px; font-weight: 500; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mm-sub__count { font-size: 10px; color: #94a3b8; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; margin-left: auto; flex-shrink: 0; }
 </style>
