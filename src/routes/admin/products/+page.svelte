@@ -2,8 +2,10 @@
     import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     import { onMount } from 'svelte';
 
-    let products = [], categories = [], loading = true, totalCount = 0, currentPage = 1, perPage = 20;
+    let products = [], categories = [], shops = [], loading = true, totalCount = 0, currentPage = 1, perPage = 20;
     let searchQuery = '', selectedCategory = '', priceMin = '', priceMax = '', sortBy = 'created_at', sortOrder = 'desc';
+    let offerStatus = '', shopFilter = '';
+    let productStats = { total_all: 0, with_offers: 0, without_offers: 0 };
     let selectedIds = new Set(), selectAll = false;
     let showEditModal = false, editProduct = null, saving = false;
     let showFilters = true;
@@ -11,7 +13,7 @@
     $: totalPages = Math.ceil(totalCount / perPage);
     $: selectedCount = selectedIds.size;
 
-    onMount(() => { loadProducts(); loadCategories(); });
+    onMount(() => { loadProducts(); loadCategories(); loadShops(); });
 
     async function loadProducts() {
         loading = true;
@@ -20,12 +22,19 @@
         if (selectedCategory) params.set('category', selectedCategory);
         if (priceMin) params.set('price_min', priceMin);
         if (priceMax) params.set('price_max', priceMax);
+        if (offerStatus) params.set('offer_status', offerStatus);
+        if (shopFilter) params.set('shop_id', shopFilter);
         try {
             const res = await adminRawFetch(API_BASE + '/admin/products?' + params);
             const data = await res.json();
             products = data?.data?.items || []; totalCount = data?.data?.total || 0;
+            if (data?.data?.stats) productStats = data.data.stats;
         } catch (e) { console.error(e); products = []; totalCount = 0; }
         loading = false; selectedIds = new Set(); selectAll = false;
+    }
+
+    async function loadShops() {
+        try { const r = await adminFetch('/admin/shops'); if (r?.success) shops = r.data || []; } catch(e) {}
     }
 
     async function loadCategories() {
@@ -33,7 +42,7 @@
     }
 
     function applyFilters() { currentPage = 1; loadProducts(); }
-    function resetFilters() { searchQuery=''; selectedCategory=''; priceMin=''; priceMax=''; sortBy='created_at'; sortOrder='desc'; applyFilters(); }
+    function resetFilters() { searchQuery=''; selectedCategory=''; priceMin=''; priceMax=''; sortBy='created_at'; sortOrder='desc'; offerStatus=''; shopFilter=''; applyFilters(); }
     function goToPage(p) { if (p>=1 && p<=totalPages) { currentPage=p; loadProducts(); } }
     function getPages(c, t) {
         if (t<=9) return Array.from({length:t},(_,i)=>i+1);
@@ -86,6 +95,18 @@
         </div>
     </div>
 
+    <div class="status-tabs">
+        <button class="status-tab" class:active={offerStatus===''} on:click={() => { offerStatus=''; applyFilters(); }}>
+            Všetky <span class="tab-count">{productStats.total_all}</span>
+        </button>
+        <button class="status-tab green" class:active={offerStatus==='with_offers'} on:click={() => { offerStatus='with_offers'; applyFilters(); }}>
+            S ponukami <span class="tab-count">{productStats.with_offers}</span>
+        </button>
+        <button class="status-tab orange" class:active={offerStatus==='without_offers'} on:click={() => { offerStatus='without_offers'; applyFilters(); }}>
+            Bez ponúk (master) <span class="tab-count">{productStats.without_offers}</span>
+        </button>
+    </div>
+
     {#if showFilters}
     <div class="filter-panel">
         <div class="filter-row">
@@ -114,6 +135,14 @@
                     <option value="created_at">Dátum pridania</option>
                     <option value="title">Názov A-Z</option>
                     <option value="price">Cena</option>
+                    <option value="offers">Počet ponúk</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Predajca</label>
+                <select bind:value={shopFilter} on:change={applyFilters}>
+                    <option value="">Všetci</option>
+                    {#each shops as s}<option value={s.id}>{s.shop_name}</option>{/each}
                 </select>
             </div>
             <div class="filter-group narrow">
@@ -158,18 +187,18 @@
                 <th class="w100">AKCIE</th>
             </tr></thead>
             <tbody>{#each products as p (p.id)}
-                <tr class:selected={selectedIds.has(p.id)}>
+                <tr class:selected={selectedIds.has(p.id)} class:orphaned={!p.offer_count}>
                     <td><input type="checkbox" checked={selectedIds.has(p.id)} on:change={()=>toggleSel(p.id)}></td>
                     <td>{#if p.image_url}<img src={p.image_url} alt="" class="thumb">{:else}<div class="no-img">📷</div>{/if}</td>
                     <td class="name-cell">
                         <div class="name-title">{(p.title||'').substring(0,65)}{(p.title||'').length>65?'…':''}</div>
-                        <div class="name-id">{(p.id||'').substring(0,8)}</div>
+                        <div class="name-id">{(p.id||'').substring(0,8)}{#if !p.offer_count} <span class="orphan-badge">master</span>{/if}</div>
                     </td>
                     <td>{#if p.category_name}<span class="tag blue">{p.category_name}</span>{:else}<span class="tag gray">—</span>{/if}</td>
                     <td>{#if p.brand}<span class="tag yellow">{p.brand}</span>{:else}—{/if}</td>
                     <td class="price">{fmt(p.price_min)}</td>
                     <td class="mono">{p.ean||'—'}</td>
-                    <td class="center">{p.offer_count||0}</td>
+                    <td class="center">{#if p.offer_count}<span class="tag green">{p.offer_count}</span>{:else}<span class="tag orange">0</span>{/if}</td>
                     <td>{#if p.origin_shop}<span class="tag green">{p.origin_shop}</span>{:else}<span class="tag gray">manuálne</span>{/if}</td>
                     <td class="date">{fmtD(p.created_at)}</td>
                     <td class="actions">
@@ -242,6 +271,17 @@
     .toolbar-right { display: flex; gap: 8px; flex-wrap: wrap; }
     .total-badge { background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
 
+    .status-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .status-tab { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; color: #64748b; transition: .15s; display: flex; align-items: center; gap: 6px; }
+    .status-tab:hover { background: #f1f5f9; }
+    .status-tab.active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+    .status-tab.green.active { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+    .status-tab.orange.active { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
+    .tab-count { background: #e2e8f0; color: #475569; padding: 1px 8px; border-radius: 10px; font-size: 11px; }
+    .status-tab.active .tab-count { background: rgba(59,130,246,.15); color: #1d4ed8; }
+    .status-tab.green.active .tab-count { background: rgba(34,197,94,.15); color: #15803d; }
+    .status-tab.orange.active .tab-count { background: rgba(245,158,11,.15); color: #b45309; }
+
     .filter-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
     .filter-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
     .filter-group { display: flex; flex-direction: column; gap: 4px; min-width: 140px; flex: 1; }
@@ -284,7 +324,10 @@
     .tag.blue { background: #dbeafe; color: #1d4ed8; }
     .tag.yellow { background: #fef3c7; color: #92400e; }
     .tag.green { background: #d1fae5; color: #065f46; }
+    .tag.orange { background: #ffedd5; color: #c2410c; }
     .tag.gray { background: #f1f5f9; color: #94a3b8; }
+    tr.orphaned { opacity: 0.7; background: #fffbeb; }
+    .orphan-badge { background: #fbbf24; color: #78350f; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; }
 
     .icon-btn { background: none; border: 1px solid transparent; cursor: pointer; padding: 4px 6px; border-radius: 4px; font-size: 14px; transition: all .15s; }
     .icon-btn:hover { background: #f1f5f9; border-color: #e2e8f0; }
