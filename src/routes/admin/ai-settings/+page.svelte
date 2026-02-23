@@ -39,9 +39,9 @@
     async function loadSettings() { const r = await apiFetch('/admin/ai/settings'); if (r?.success && r.data) settings = { ...settings, ...r.data }; }
     async function loadShops() { const r = await apiFetch('/admin/shops'); if (r?.success) shops = r.data || []; }
     async function saveSettings() { saving = true; saveMsg = ''; const r = await apiFetch('/admin/ai/settings', { method: 'POST', body: JSON.stringify(settings) }); saveMsg = r?.success ? '✅ Uložené' : '❌ ' + (r?.error || 'Chyba'); saving = false; setTimeout(() => saveMsg = '', 3000); }
-    async function loadProgress() { const r = await apiFetch('/admin/ai/bulk-categorize/progress'); if (r?.success && r.data) { job = r.data; if (job.status === 'running' && !polling) polling = setInterval(loadProgress, 2000); if (job.status !== 'running' && polling) { clearInterval(polling); polling = null; } } }
+    async function loadProgress() { const r = await apiFetch('/admin/ai/bulk-categorize/progress'); if (r?.success && r.data) { job = r.data; if (job.status === 'running' && !polling) polling = setInterval(loadProgress, 2000); if (job.status !== 'running' && polling) { clearInterval(polling); polling = null; } setTimeout(() => { const el = document.querySelector('.log-content'); if (el) el.scrollTop = el.scrollHeight; }, 100); } }
     async function loadDisplayStats() { const r = await apiFetch('/admin/ai/display-mode-stats'); if (r?.success) displayStats = r.data; }
-    async function startCategorization() { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; const modeNames = {fast: '⚡ RÝCHLU', precise: '🎯 PRESNÚ', ultra: '🔬 VEĽMI PRESNÚ'}; if (!confirm(`Spustiť ${modeNames[catMode] || '⚡ RÝCHLU'} AI kategorizáciu pre "${sn}"?`)) return; starting = true; const r = await apiFetch('/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId, mode: catMode }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
+    async function startCategorization() { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; const modeNames = {fast:'⚡ RÝCHLU',precise:'🎯 PRESNÚ',ultra:'🔬 VEĽMI PRESNÚ',creative:'🆕 KREATÍVNU'}; if (!confirm(`Spustiť ${modeNames[catMode]||catMode} AI kategorizáciu pre "${sn}"?`)) return; starting = true; const r = await apiFetch('/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId, mode: catMode }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
     async function cancelCategorization() { if (!confirm('Zastaviť?')) return; await apiFetch('/admin/ai/bulk-categorize/cancel', { method: 'POST' }); if (polling) { clearInterval(polling); polling = null; } await loadProgress(); }
     async function loadReport() { reportLoading = true; let u = `/admin/ai/categorization-report?page=${reportPage}&per_page=50&match_type=${reportFilter}`; if (reportShopId) u += `&shop_id=${reportShopId}`; const r = await apiFetch(u); if (r?.success) { reportData = r.data || []; reportStats = r.stats || {}; reportTotal = r.total || 0; reportTotalPages = r.total_pages || 1; } reportLoading = false; }
     function changeReportFilter(f) { reportFilter = f; reportPage = 1; loadReport(); }
@@ -122,7 +122,10 @@
                     <span class="mode-icon">🎯</span><strong>Presná</strong><span class="mode-desc">AI overí KAŽDÝ match (pomalšie, presnejšie)</span>
                 </button>
                 <button class="mode-btn" class:active={catMode==='ultra'} on:click={() => catMode='ultra'}>
-                    <span class="mode-icon">🔬</span><strong>Veľmi presná</strong><span class="mode-desc">Názov + popis + atribúty + referencie (najpomalšie)</span>
+                    <span class="mode-icon">🔬</span><strong>Veľmi presná</strong><span class="mode-desc">AI vždy, plný kontext (najpomalšie)</span>
+                </button>
+                <button class="mode-btn" class:active={catMode==='creative'} on:click={() => catMode='creative'}>
+                    <span class="mode-icon">🆕</span><strong>Kreatívna</strong><span class="mode-desc">Vytvára nové kategórie ak neexistujú</span>
                 </button>
             </div>
         </div>
@@ -132,6 +135,12 @@
             {#if job.status === 'running'}<div class="progress-bar"><div class="progress-fill" style="width:{job.percent||0}%"></div></div><div class="progress-text">{fmt(job.processed)} / {fmt(job.total_offers)} ({job.percent||0}%)</div>{/if}
             <div class="job-stats"><span>📦 {fmt(job.processed)}</span><span>✅ {fmt(job.matched)}</span><span>🆕 {fmt(job.new_products)}</span><span>📁 {fmt(job.new_categories)}</span><span>❌ {fmt(job.errors)}</span></div>
         </div>
+        {#if job.error_log}
+        <details open class="log-panel">
+            <summary>📋 Live Log ({(job.error_log||'').split('\n').length} riadkov)</summary>
+            <pre class="log-content">{job.error_log}</pre>
+        </details>
+        {/if}
         {/if}
         <div class="actions">
             {#if job?.status === 'running'}<button class="btn red" on:click={cancelCategorization}>⛔ Zastaviť</button>
@@ -344,10 +353,13 @@ tr.row-created{background:#fffbeb} tr.row-matched{background:#f0fdf4} tr.row-ful
 .btn-sm{padding:5px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
 .btn-sm.green{background:#10b981;color:#fff} .btn-sm.blue{background:#3b82f6;color:#fff}
 .btn-sm.red{background:#ef4444;color:#fff} .btn-sm.outline{background:#fff;color:#64748b;border:1px solid #d1d5db}
-.mode-selector{display:flex;gap:10px;margin-top:4px}
-.mode-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 20px;border:2px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;transition:.15s;flex:1;text-align:center}
+.mode-selector{display:flex;gap:10px;margin-top:4px;flex-wrap:wrap}
+.mode-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 20px;border:2px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;transition:.15s;flex:1;text-align:center;min-width:140px}
 .mode-btn:hover{border-color:#94a3b8;background:#f1f5f9}
 .mode-btn.active{border-color:#3b82f6;background:#eff6ff;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
 .mode-icon{font-size:24px} .mode-btn strong{font-size:14px;color:#1e293b} .mode-desc{font-size:11px;color:#64748b}
-@media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr)} .report-head,.filter-row,.cleanup-actions{flex-direction:column}}
+.log-panel{margin-top:12px;border:1px solid #e2e8f0;border-radius:8px;background:#1e293b;overflow:hidden}
+.log-panel summary{padding:8px 14px;background:#334155;color:#e2e8f0;cursor:pointer;font-size:13px;font-weight:600}
+.log-content{padding:12px 14px;margin:0;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.6;color:#94a3b8;max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+@media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr)} .report-head,.filter-row,.cleanup-actions{flex-direction:column} .mode-selector{flex-direction:column}}
 </style>
