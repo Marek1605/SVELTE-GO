@@ -284,18 +284,6 @@
         </div>
     </section>
 
-    <!-- ===== QUICK ACTIONS — DESKTOP ONLY (above categories) ===== -->
-    <section class="qa-desktop">
-        <div class="qa-section__inner">
-            {#each quickActions as qa}
-                <a href={qa.href} class="qab">
-                    <span class="qab__icon">{qa.icon}</span>
-                    <span class="qab__label">{qa.label}</span>
-                </a>
-            {/each}
-        </div>
-    </section>
-
     <!-- ===== CATEGORIES (colored cards) ===== -->
     {#if categories.length > 0}
     <section class="cats">
@@ -328,6 +316,19 @@
         {/if}
     </section>
     {/if}
+
+    <!-- ===== QUICK ACTIONS (pod kategóriami) ===== -->
+    <section class="qa-section">
+        <div class="qa-section__inner">
+            {#each quickActions as qa}
+                <a href={qa.href} class="qab">
+                    <span class="qab__icon">{qa.icon}</span>
+                    <span class="qab__label">{qa.label}</span>
+                    <svg class="qab__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+            {/each}
+        </div>
+    </section>
 
     <!-- ===== CENOVÉ POKLESY ===== -->
     {#if priceDropProducts.length > 0}
@@ -385,19 +386,6 @@
         </div>
     </section>
     {/if}
-
-    <!-- ===== QUICK ACTIONS — MOBILE (original position) ===== -->
-    <section class="qa-section">
-        <div class="qa-section__inner">
-            {#each quickActions as qa}
-                <a href={qa.href} class="qab">
-                    <span class="qab__icon">{qa.icon}</span>
-                    <span class="qab__label">{qa.label}</span>
-                    <svg class="qab__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                </a>
-            {/each}
-        </div>
-    </section>
 
     <!-- ===== CATEGORY PRODUCTS ===== -->
     {#each categoryProducts as catSec}
@@ -571,7 +559,6 @@
 
 /* ====== QUICK ACTIONS (modern, lower) ====== */
 .qa-section{padding:16px 0}
-.qa-desktop{display:none}
 .qa-section__inner{display:flex;gap:8px;padding:0 16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .qa-section__inner::-webkit-scrollbar{display:none}
 .qab{display:flex;align-items:center;gap:8px;padding:12px 16px;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;white-space:nowrap;flex-shrink:0;transition:all .2s;color:#0f172a}
@@ -678,12 +665,12 @@
     .p__pv{font-size:18px}
     .p__cta{background:#fdf8f4;color:#c4956a}
     .p:hover .p__cta{background:#c4956a;color:#fff}
-    /* Quick actions — desktop: show qa-desktop, hide qa-section */
-    .qa-section{display:none}
-    .qa-desktop{display:block;max-width:1200px;margin:0 auto;padding:20px 24px 0}
-    .qa-desktop .qa-section__inner{display:flex;gap:8px;padding:0;overflow:visible;flex-wrap:wrap;justify-content:center}
-    .qa-desktop .qab{padding:10px 20px;border-radius:100px;border:none;background:linear-gradient(135deg,#f8fafc,#f1f5f9);box-shadow:0 1px 3px rgba(0,0,0,.04)}
-    .qa-desktop .qab:hover{background:linear-gradient(135deg,#fdf8f4,#fcebd8);color:#c4956a;box-shadow:0 2px 8px rgba(196,149,106,.15);transform:translateY(-1px)}
+    /* Quick actions — gradient pills on desktop */
+    .qa-section{max-width:1200px;margin:0 auto;padding:20px 24px 0}
+    .qa-section__inner{gap:8px;padding:0;overflow:visible;flex-wrap:wrap;justify-content:center}
+    .qab{padding:10px 20px;border-radius:100px;border:none;background:linear-gradient(135deg,#f8fafc,#f1f5f9);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+    .qab:hover{background:linear-gradient(135deg,#fdf8f4,#fcebd8);color:#c4956a;box-shadow:0 2px 8px rgba(196,149,106,.15);transform:translateY(-1px)}
+    .qab__arrow{display:none}
     /* How */
     .how{padding:48px 24px}
     .how__grid{flex-direction:row;gap:24px;max-width:860px}
