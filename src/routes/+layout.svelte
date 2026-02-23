@@ -108,18 +108,19 @@
 
         // Load site settings
         fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/site/settings')
-            .then(r => r.json())
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(d => {
-                if (d?.data?.logo_url) logoUrl = d.data.logo_url;
-                if (d?.data?.logo_size) logoSize = parseInt(d.data.logo_size) || 40;
-                showCart = d?.data?.show_cart !== 'false';
-                showAccount = d?.data?.show_account !== 'false';
-                showWishlist = d?.data?.show_wishlist !== 'false';
-                showCompare = d?.data?.show_compare !== 'false';
-                if (d?.data?.show_mobile_catnav !== undefined) showMobileCatnav = d.data.show_mobile_catnav === 'true';
-                if (d?.data?.catnav_style && ['pills','icons','minimal','cards'].includes(d.data.catnav_style)) catNavStyle = d.data.catnav_style;
+                const s = d?.data || d;
+                if (s?.logo_url) logoUrl = s.logo_url;
+                if (s?.logo_size) logoSize = parseInt(s.logo_size) || 40;
+                showCart = s?.show_cart !== 'false';
+                showAccount = s?.show_account !== 'false';
+                showWishlist = s?.show_wishlist !== 'false';
+                showCompare = s?.show_compare !== 'false';
+                if (s?.show_mobile_catnav !== undefined) showMobileCatnav = s.show_mobile_catnav === 'true';
+                if (s?.catnav_style && ['pills','icons','minimal','cards'].includes(s.catnav_style)) catNavStyle = s.catnav_style;
             })
-            .catch(() => {});
+            .catch(e => { console.warn('Settings load failed:', e); });
 
         return () => {
             window.removeEventListener('scroll', onScroll);
@@ -348,7 +349,7 @@
 
     <nav class="mp-bottom-nav">
         <a href="/" class="mp-bottom-nav__item" class:is-active={$page.url.pathname === '/'}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Domov</span></a>
-        <a href="/kategorie" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Kategórie</span></a>
+        <button class="mp-bottom-nav__item" on:click={openMobileMenu}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Kategórie</span></button>
         {#if showWishlist}<a href="/oblubene" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Obľúbené</span></a>{/if}
         {#if showAccount}<a href="/ucet" class="mp-bottom-nav__item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Účet</span></a>{/if}
     </nav>
@@ -401,16 +402,16 @@
 
 <style>
 :global(*) { box-sizing: border-box; margin: 0; padding: 0; }
-:global(html) { overflow-x: hidden; }
-:global(body) { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1f2937; line-height: 1.5; overflow-x: hidden; width: 100%; }
+:global(html) { overflow-x: hidden; -webkit-text-size-adjust: 100%; overscroll-behavior-x: none; }
+:global(body) { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1f2937; line-height: 1.5; overflow-x: hidden; width: 100%; max-width: 100vw; margin: 0; overscroll-behavior-x: none; }
 :global(a) { text-decoration: none; color: inherit; }
 :global(img) { max-width: 100%; height: auto; }
 :global(button) { cursor: pointer; font-family: inherit; }
-.mp-site { min-height: 100vh; display: flex; flex-direction: column; max-width: 100vw; overflow-x: hidden; }
+.mp-site { min-height: 100vh; display: flex; flex-direction: column; width: 100%; max-width: 100vw; overflow-x: hidden; position: relative; }
 
 /* HEADER */
 .mp-header { background: #fff; border-bottom: 1px solid #f0f0f0; position: relative; z-index: 1000; }
-.mp-header__inner { display: flex; align-items: center; gap: 24px; padding: 12px 32px; max-width: 1500px; margin: 0 auto; width: 100%; }
+.mp-header__inner { display: flex; align-items: center; gap: 24px; padding: 12px 32px; max-width: 1500px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 .mp-header__logo { flex-shrink: 0; }
 .mp-header__logo-text { font-size: 24px; font-weight: 700; color: #c4956a; }
 .mp-header__logo-img { height: 40px; max-width: 300px; object-fit: contain; display: block; }
@@ -604,8 +605,8 @@
 @media (max-width: 768px) { .mp-mega { display: none; } }
 
 /* FOOTER */
-.mp-main { flex: 1; }
-.mp-footer { background: #1f2937; color: #fff; margin-top: auto; }
+.mp-main { flex: 1; overflow-x: hidden; width: 100%; }
+.mp-footer { background: #1f2937; color: #fff; margin-top: auto; overflow-x: hidden; width: 100%; }
 .mp-footer__top { padding: 48px 20px; }
 .mp-footer__inner { padding: 0 32px; }
 .mp-footer__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
@@ -623,7 +624,7 @@
 
 /* BOTTOM NAV */
 .mp-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e5e7eb; display: none; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 1100; }
-.mp-bottom-nav__item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 12px; color: #6b7280; font-size: 10px; font-weight: 500; }
+.mp-bottom-nav__item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 12px; color: #6b7280; font-size: 10px; font-weight: 500; background: none; border: none; font-family: inherit; cursor: pointer; }
 .mp-bottom-nav__item.is-active, .mp-bottom-nav__item:hover { color: #c4956a; }
 @media (max-width: 768px) { .mp-bottom-nav { display: flex; } }
 

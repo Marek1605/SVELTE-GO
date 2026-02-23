@@ -445,7 +445,7 @@
 </div>
 
 <style>
-.hp{background:#f8fafc;overflow-x:hidden}
+.hp{background:#f8fafc;overflow-x:hidden;width:100%;max-width:100vw;touch-action:pan-y pinch-zoom}
 .sec-h{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px;gap:12px;padding:0 16px}
 .sec-t{font-size:18px;font-weight:800;color:#0f172a;margin:0;letter-spacing:-.3px}
 .sec-s{font-size:12px;color:#64748b;margin:2px 0 0}
