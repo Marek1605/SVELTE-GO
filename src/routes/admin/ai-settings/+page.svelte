@@ -224,7 +224,7 @@
         <div class="provider-info">
             <span class="prov-badge">🤖 {job.active_provider || '?'} / {job.active_model || '?'}</span>
             {#if job.remaining > 0}<span class="remaining-badge">📋 {fmt(job.remaining)} zostáva</span>{/if}
-            {#if job.failed > 0}<span class="failed-badge">❌ {fmt(job.failed)} zlyhalo</span>{/if}
+            {#if job.failed > 0}<span class="failed-badge">⏳ {fmt(job.failed)} čaká na Kreatívnu</span>{/if}
             {#if job.cache_count > 0}<span class="cache-badge">💾 {fmt(job.cache_count)} v cache</span>{/if}
         </div>
         {/if}
@@ -242,10 +242,10 @@
                     <span class="mode-icon">🔬</span><strong>Veľmi presná</strong><span class="mode-desc">Názov + popis + atribúty + referencie (najpomalšie)</span>
                 </button>
                 <button class="mode-btn" class:active={catMode==='creative'} on:click={() => catMode='creative'}>
-                    <span class="mode-icon">🆕</span><strong>Kreatívna</strong><span class="mode-desc">Vytvára nové kategórie ak neexistujú</span>
+                    <span class="mode-icon">🆕</span><strong>Kreatívna</strong><span class="mode-desc">Spracuje ⏳ nezaradené — vytvorí nové kategórie</span>
                 </button>
                 <button class="mode-btn recommended" class:active={catMode==='smart'} on:click={() => catMode='smart'}>
-                    <span class="mode-icon">💡</span><strong>Smart</strong><span class="mode-desc">Presná + lacná — AI vidí len relevantnú vetvu (10-15x lacnejšie!)</span>
+                    <span class="mode-icon">💡</span><strong>Smart</strong><span class="mode-desc">AI + názov produktu — presné zaradenie, vytvára chýbajúce podkategórie</span>
                     <span class="mode-badge">ODPORÚČANÉ</span>
                 </button>
             </div>
@@ -601,7 +601,7 @@ tr.row-created{background:#fffbeb} tr.row-matched{background:#f0fdf4} tr.row-ful
 .provider-info{display:flex;gap:8px;margin:8px 0 12px;flex-wrap:wrap}
 .prov-badge{background:#eff6ff;color:#1d4ed8;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
 .remaining-badge{background:#fefce8;color:#854d0e;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
-.failed-badge{background:#fef2f2;color:#991b1b;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
+.failed-badge{background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
 .cache-badge{background:#f0fdf4;color:#166534;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
 .audit-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .provider-tabs{display:flex;gap:0;border:1px solid #d1d5db;border-radius:8px;overflow:hidden}
