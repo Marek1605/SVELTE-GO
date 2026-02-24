@@ -21,7 +21,7 @@
     $: currentModels = settings.ai_provider === 'anthropic' ? anthropicModels : openaiModels;
     $: currentModelKey = settings.ai_provider === 'anthropic' ? 'ai_model_anthropic' : 'ai_model_openai';
     let shops = [], selectedShopId = '', reportShopId = '', cleanupShopId = '';
-    let job = null, polling = null, starting = false, displayStats = null, catMode = 'smart';
+    let job = null, polling = null, starting = false, displayStats = null, catMode = 'smart', useDescriptions = false;
     let reportData = [], reportStats = {}, reportTotal = 0, reportPage = 1, reportTotalPages = 1, reportLoading = false, reportFilter = 'all';
     let cleanupLoading = false, cleanupMsg = '';
     let activeTab = 'settings';
@@ -99,7 +99,7 @@
     async function saveSettings() { saving = true; saveMsg = ''; const r = await apiFetch('/admin/ai/settings', { method: 'POST', body: JSON.stringify(settings) }); saveMsg = r?.success ? '✅ Uložené' : '❌ ' + (r?.error || 'Chyba'); saving = false; setTimeout(() => saveMsg = '', 3000); }
     async function loadProgress() { const r = await apiFetch('/admin/ai/bulk-categorize/progress'); if (r?.success && r.data) { job = r.data; if (job.status === 'running' && !polling) polling = setInterval(loadProgress, 2000); if (job.status !== 'running' && polling) { clearInterval(polling); polling = null; } setTimeout(() => { const el = document.querySelector('.log-content'); if (el) el.scrollTop = el.scrollHeight; }, 100); } }
     async function loadDisplayStats() { const r = await apiFetch('/admin/ai/display-mode-stats'); if (r?.success) displayStats = r.data; }
-    async function startCategorization(continueFromLast = false) { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; const modeNames = {fast:'⚡ RÝCHLU',precise:'🎯 PRESNÚ',ultra:'🔬 VEĽMI PRESNÚ',creative:'🆕 KREATÍVNU',smart:'💡 SMART'}; const contMsg = continueFromLast ? ' (pokračovanie)' : ''; if (!confirm(`Spustiť ${modeNames[catMode]||catMode} AI kategorizáciu pre "${sn}"${contMsg}?`)) return; starting = true; const r = await apiFetch('/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId, mode: catMode, continue_from_last: continueFromLast }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
+    async function startCategorization(continueFromLast = false) { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; const modeNames = {fast:'⚡ RÝCHLU',precise:'🎯 PRESNÚ',ultra:'🔬 VEĽMI PRESNÚ',creative:'🆕 KREATÍVNU',smart:'💡 SMART',smart_create:'💡+ SMART+'}; const contMsg = continueFromLast ? ' (pokračovanie)' : ''; const descMsg = useDescriptions ? ' + popisy' : ''; if (!confirm(`Spustiť ${modeNames[catMode]||catMode} AI kategorizáciu${descMsg} pre "${sn}"${contMsg}?`)) return; starting = true; const r = await apiFetch('/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId, mode: catMode, continue_from_last: continueFromLast, use_descriptions: useDescriptions }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
     async function cancelCategorization() { if (!confirm('Zastaviť?')) return; await apiFetch('/admin/ai/bulk-categorize/cancel', { method: 'POST' }); if (polling) { clearInterval(polling); polling = null; } await loadProgress(); }
     async function loadReport() { reportLoading = true; let u = `/admin/ai/categorization-report?page=${reportPage}&per_page=50&match_type=${reportFilter}`; if (reportShopId) u += `&shop_id=${reportShopId}`; const r = await apiFetch(u); if (r?.success) { reportData = r.data || []; reportStats = r.stats || {}; reportTotal = r.total || 0; reportTotalPages = r.total_pages || 1; } reportLoading = false; }
     function changeReportFilter(f) { reportFilter = f; reportPage = 1; loadReport(); }
@@ -245,9 +245,21 @@
                     <span class="mode-icon">🆕</span><strong>Kreatívna</strong><span class="mode-desc">Spracuje ⏳ nezaradené — vytvorí nové kategórie</span>
                 </button>
                 <button class="mode-btn recommended" class:active={catMode==='smart'} on:click={() => catMode='smart'}>
-                    <span class="mode-icon">💡</span><strong>Smart</strong><span class="mode-desc">AI + názov produktu — presné zaradenie, vytvára chýbajúce podkategórie</span>
+                    <span class="mode-icon">💡</span><strong>Smart</strong><span class="mode-desc">AI + názov produktu — presné zaradenie do existujúcich kategórií</span>
                     <span class="mode-badge">ODPORÚČANÉ</span>
                 </button>
+                <button class="mode-btn" class:active={catMode==='smart_create'} on:click={() => catMode='smart_create'}>
+                    <span class="mode-icon">💡+</span><strong>Smart+</strong><span class="mode-desc">Ako Smart, ale vytvára chýbajúce podkategórie (root musí existovať)</span>
+                </button>
+            </div>
+            {#if catMode === 'smart' || catMode === 'smart_create' || catMode === 'precise' || catMode === 'ultra'}
+            <div class="ai-options">
+                <label class="option-check">
+                    <input type="checkbox" bind:checked={useDescriptions}>
+                    📝 Brať do úvahy popis produktu <span class="option-hint">(presnejšie, ale pomalšie a drahšie)</span>
+                </label>
+            </div>
+            {/if}
             </div>
         </div>
         {#if job}
@@ -595,6 +607,10 @@ tr.row-created{background:#fffbeb} tr.row-matched{background:#f0fdf4} tr.row-ful
 .mode-btn.recommended{border-color:#22c55e;background:#f0fdf4}
 .mode-btn.recommended.active{border-color:#16a34a;background:#dcfce7;box-shadow:0 0 0 3px rgba(34,197,94,.15)}
 .mode-badge{background:#16a34a;color:#fff;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.5px}
+.ai-options{margin-top:8px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px}
+.option-check{display:flex;align-items:center;gap:8px;font-size:13px;color:#334155;cursor:pointer}
+.option-check input{width:16px;height:16px;accent-color:#3b82f6}
+.option-hint{font-size:11px;color:#94a3b8}
 .log-panel{margin-top:12px;border:1px solid #e2e8f0;border-radius:8px;background:#1e293b;overflow:hidden}
 .log-panel summary{padding:8px 14px;background:#334155;color:#e2e8f0;cursor:pointer;font-size:13px;font-weight:600}
 .log-content{padding:12px 14px;margin:0;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.6;color:#94a3b8;max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
