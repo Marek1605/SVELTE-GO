@@ -261,7 +261,6 @@
             </div>
             {/if}
             </div>
-        </div>
         {#if job}
         <div class="job-status" class:running={job.status==='running'} class:done={job.status==='completed'}>
             <span class="job-badge {job.status}">{job.status === 'running' ? '⏳ Prebieha' : job.status === 'completed' ? '✅ Hotovo' : '⛔ '+job.status}</span>
