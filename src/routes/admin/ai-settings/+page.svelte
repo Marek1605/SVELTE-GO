@@ -24,6 +24,7 @@
     let job = null, polling = null, starting = false, displayStats = null, catMode = 'smart', useDescriptions = false, useProductNames = true;
     let reportData = [], reportStats = {}, reportTotal = 0, reportPage = 1, reportTotalPages = 1, reportLoading = false, reportFilter = 'all';
     let cleanupLoading = false, cleanupMsg = '';
+    let treeVerifyLoading = false, treeVerifySuggestions = [], treeVerifyModel = '', treeVerifySize = 0;
     let activeTab = 'settings';
 
     // AUDIT
@@ -102,6 +103,26 @@
     async function startCategorization(continueFromLast = false) { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; const modeNames = {fast:'⚡ RÝCHLU',precise:'🎯 PRESNÚ',ultra:'🔬 VEĽMI PRESNÚ',creative:'🆕 KREATÍVNU',smart:'💡 SMART',smart_create:'💡+ SMART+'}; const contMsg = continueFromLast ? ' (pokračovanie)' : ''; const descMsg = useDescriptions ? ' + popisy' : ''; if (!confirm(`Spustiť ${modeNames[catMode]||catMode} AI kategorizáciu${descMsg} pre "${sn}"${contMsg}?`)) return; starting = true; const r = await apiFetch('/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId, mode: catMode, continue_from_last: continueFromLast, use_descriptions: useDescriptions, use_product_names: useProductNames }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
     async function cancelCategorization() { if (!confirm('Zastaviť?')) return; await apiFetch('/admin/ai/bulk-categorize/cancel', { method: 'POST' }); if (polling) { clearInterval(polling); polling = null; } await loadProgress(); }
     async function clearCache() { if (!confirm('Vymazať celú feed→kategória cache? Ďalšia kategorizácia bude pomalšia ale presnejšia.')) return; const r = await apiFetch('/admin/ai/clear-cache', { method: 'POST' }); alert(r?.message || 'Cache vymazaná'); await loadProgress(); }
+
+    async function treeVerify(apply = false) {
+        if (apply && !confirm('Aplikovať VŠETKY navrhnuté zmeny? (premenovania + zlúčenia)')) return;
+        treeVerifyLoading = true;
+        try {
+            const r = await apiFetch('/admin/ai/tree-verify', { method: 'POST', body: JSON.stringify({ apply }) });
+            if (r?.success) {
+                treeVerifySuggestions = r.suggestions || [];
+                treeVerifyModel = r.model || '';
+                treeVerifySize = r.tree_size || 0;
+                if (apply && r.applied > 0) alert(`✅ Aplikovaných ${r.applied} zmien`);
+            } else { alert(r?.error || 'Chyba'); }
+        } catch(e) { alert('Chyba: ' + e.message); }
+        treeVerifyLoading = false;
+    }
+
+    async function applyTreeFix(suggestion) {
+        const r = await apiFetch('/admin/ai/tree-verify', { method: 'POST', body: JSON.stringify({ apply: true, single: suggestion }) });
+        if (r?.success) { treeVerifySuggestions = treeVerifySuggestions.filter(s => s.id !== suggestion.id); alert('✅ Opravené'); }
+    }
     async function loadReport() { reportLoading = true; let u = `/admin/ai/categorization-report?page=${reportPage}&per_page=50&match_type=${reportFilter}`; if (reportShopId) u += `&shop_id=${reportShopId}`; const r = await apiFetch(u); if (r?.success) { reportData = r.data || []; reportStats = r.stats || {}; reportTotal = r.total || 0; reportTotalPages = r.total_pages || 1; } reportLoading = false; }
     function changeReportFilter(f) { reportFilter = f; reportPage = 1; loadReport(); }
     function changeReportPage(p) { if (p >= 1 && p <= reportTotalPages) { reportPage = p; loadReport(); } }
@@ -139,7 +160,7 @@
         } catch(e) { alert('Chyba: ' + e.message); }
     }
     function switchToReport() { activeTab = 'report'; if (reportData.length === 0) loadReport(); }
-    async function runCleanup(delP, delC, delAllC = false, delMaster = false) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delMaster) m += '- Zmazať master produkty bez ponúk\n'; if (delAllC) m += '- Zmazať VŠETKY kategórie pre tohto vendora!\n'; else if (delC) m += '- Zmazať prázdne AI kategórie (len vytvorené týmto vendorom)\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_all_categories: delAllC, delete_master_products: delMaster }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; if (r.logs?.length) cleanupMsg += '\n' + r.logs.join('\n'); await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 15000); }
+    async function runCleanup(delP, delC, delAllC = false, delMaster = false) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delMaster) m += '- Zmazať master produkty bez ponúk\n'; if (delAllC) m += '- Zmazať VŠETKY kategórie pre tohto vendora!\n'; else if (delC) m += '- Zmazať prázdne kategórie\n'; if (!confirm(m + '\nPokračovať?')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_all_categories: delAllC, delete_master_products: delMaster }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; if (r.logs?.length) cleanupMsg += '\n' + r.logs.join('\n'); await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 15000); }
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
     function shortDate(s) { if (!s) return '—'; return s.length > 19 ? s.slice(0, 19).replace('T', ' ') : s; }
 
@@ -289,7 +310,34 @@
             {/if}
             <button class="btn outline" on:click={loadProgress}>🔄 Obnoviť</button>
             <button class="btn outline" on:click={clearCache} title="Vymaže feed→kategória cache pre čerstvý štart">🗑️ Vyčistiť cache</button>
+            <button class="btn outline" on:click={() => treeVerify(false)} disabled={treeVerifyLoading} title="AI analyzuje strom a navrhne opravy názvov, skloňovania, duplikátov">🌳 AI Verifikácia stromu</button>
         </div>
+
+        {#if treeVerifyLoading}
+        <div class="tree-verify-panel"><p>⏳ AI analyzuje strom kategórií...</p></div>
+        {/if}
+
+        {#if treeVerifySuggestions.length > 0}
+        <div class="tree-verify-panel">
+            <h3>🌳 AI Verifikácia stromu ({treeVerifySuggestions.length} návrhov, model: {treeVerifyModel}, {treeVerifySize} kategórií)</h3>
+            <div class="tree-actions">
+                <button class="btn green" on:click={() => treeVerify(true)}>✅ Aplikovať všetky premenovania</button>
+            </div>
+            <table class="tree-table">
+                <thead><tr><th>Akcia</th><th>Pôvodný názov</th><th>Nový názov</th><th>Dôvod</th></tr></thead>
+                <tbody>
+                {#each treeVerifySuggestions as s}
+                <tr class="action-{s.action}">
+                    <td><span class="action-badge {s.action}">{s.action === 'rename' ? '✏️' : s.action === 'merge' ? '🔗' : s.action === 'move' ? '📦' : '📝'} {s.action}</span></td>
+                    <td>{s.old_name || ''}</td>
+                    <td>{s.new_name || s.merge_into || ''}</td>
+                    <td>{s.reason || ''}</td>
+                </tr>
+                {/each}
+                </tbody>
+            </table>
+        </div>
+        {/if}
     </div>
 
     <!-- ============ SMART RE-KATEGORIZE TAB ============ -->
@@ -515,8 +563,8 @@
             <button class="btn orange" on:click={() => runCleanup(false,true,false)} disabled={cleanupLoading||!cleanupShopId}>{cleanupLoading ? '⏳...' : '📁 Zmazať prázdne kategórie'}</button>
             <button class="btn red" on:click={() => runCleanup(false,false,true)} disabled={cleanupLoading||!cleanupShopId}>📁💀 Zmazať VŠETKY kategórie</button>
             <button class="btn red" on:click={() => runCleanup(true,false,false)} disabled={cleanupLoading||!cleanupShopId}>🗑️ Zmazať AI produkty</button>
-            <button class="btn darkred" on:click={() => runCleanup(true,true,false)} disabled={cleanupLoading||!cleanupShopId}>💣 Zmazať produkty + kategórie</button>
-            <button class="btn darkred" on:click={() => runCleanup(true,true,false,true)} disabled={cleanupLoading||!cleanupShopId}>💀 Zmazať všetko + master</button>
+            <button class="btn darkred" on:click={() => runCleanup(true,false,true)} disabled={cleanupLoading||!cleanupShopId}>💣 Zmazať produkty + kategórie</button>
+            <button class="btn darkred" on:click={() => runCleanup(true,false,true,true)} disabled={cleanupLoading||!cleanupShopId}>💀 Zmazať všetko + master</button>
         </div>
         {#if cleanupMsg}<div class="cleanup-result">{cleanupMsg}</div>{/if}
     </div>
@@ -664,4 +712,18 @@ tr.row-created{background:#fffbeb} tr.row-matched{background:#f0fdf4} tr.row-ful
 .mapping-reason{font-size:11px;color:#94a3b8;width:100%;padding-left:28px}
 .progress-text{font-size:13px;color:#3b82f6;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.tree-verify-panel{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-top:16px}
+.tree-verify-panel h3{font-size:15px;margin:0 0 12px;color:#475569}
+.tree-actions{margin-bottom:12px}
+.tree-table{width:100%;border-collapse:collapse;font-size:13px}
+.tree-table th{background:#e2e8f0;padding:6px 10px;text-align:left;font-weight:600}
+.tree-table td{padding:6px 10px;border-bottom:1px solid #e2e8f0}
+.action-badge{padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600}
+.action-badge.rename{background:#dbeafe;color:#1d4ed8}
+.action-badge.merge{background:#fef3c7;color:#b45309}
+.action-badge.move{background:#ede9fe;color:#7c3aed}
+.action-badge.note{background:#f1f5f9;color:#64748b}
+tr.action-rename{background:#eff6ff}
+tr.action-merge{background:#fffbeb}
+tr.action-note{background:#f8fafc}
 </style>
