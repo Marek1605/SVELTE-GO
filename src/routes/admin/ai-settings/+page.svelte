@@ -21,7 +21,7 @@
     $: currentModels = settings.ai_provider === 'anthropic' ? anthropicModels : openaiModels;
     $: currentModelKey = settings.ai_provider === 'anthropic' ? 'ai_model_anthropic' : 'ai_model_openai';
     let shops = [], selectedShopId = '', reportShopId = '', cleanupShopId = '';
-    let job = null, polling = null, starting = false, displayStats = null, catMode = 'smart', useDescriptions = false;
+    let job = null, polling = null, starting = false, displayStats = null, catMode = 'smart', useDescriptions = false, useProductNames = true;
     let reportData = [], reportStats = {}, reportTotal = 0, reportPage = 1, reportTotalPages = 1, reportLoading = false, reportFilter = 'all';
     let cleanupLoading = false, cleanupMsg = '';
     let activeTab = 'settings';
@@ -99,7 +99,7 @@
     async function saveSettings() { saving = true; saveMsg = ''; const r = await apiFetch('/admin/ai/settings', { method: 'POST', body: JSON.stringify(settings) }); saveMsg = r?.success ? '✅ Uložené' : '❌ ' + (r?.error || 'Chyba'); saving = false; setTimeout(() => saveMsg = '', 3000); }
     async function loadProgress() { const r = await apiFetch('/admin/ai/bulk-categorize/progress'); if (r?.success && r.data) { job = r.data; if (job.status === 'running' && !polling) polling = setInterval(loadProgress, 2000); if (job.status !== 'running' && polling) { clearInterval(polling); polling = null; } setTimeout(() => { const el = document.querySelector('.log-content'); if (el) el.scrollTop = el.scrollHeight; }, 100); } }
     async function loadDisplayStats() { const r = await apiFetch('/admin/ai/display-mode-stats'); if (r?.success) displayStats = r.data; }
-    async function startCategorization(continueFromLast = false) { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; const modeNames = {fast:'⚡ RÝCHLU',precise:'🎯 PRESNÚ',ultra:'🔬 VEĽMI PRESNÚ',creative:'🆕 KREATÍVNU',smart:'💡 SMART',smart_create:'💡+ SMART+'}; const contMsg = continueFromLast ? ' (pokračovanie)' : ''; const descMsg = useDescriptions ? ' + popisy' : ''; if (!confirm(`Spustiť ${modeNames[catMode]||catMode} AI kategorizáciu${descMsg} pre "${sn}"${contMsg}?`)) return; starting = true; const r = await apiFetch('/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId, mode: catMode, continue_from_last: continueFromLast, use_descriptions: useDescriptions }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
+    async function startCategorization(continueFromLast = false) { if (!selectedShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === selectedShopId)?.shop_name || ''; const modeNames = {fast:'⚡ RÝCHLU',precise:'🎯 PRESNÚ',ultra:'🔬 VEĽMI PRESNÚ',creative:'🆕 KREATÍVNU',smart:'💡 SMART',smart_create:'💡+ SMART+'}; const contMsg = continueFromLast ? ' (pokračovanie)' : ''; const descMsg = useDescriptions ? ' + popisy' : ''; if (!confirm(`Spustiť ${modeNames[catMode]||catMode} AI kategorizáciu${descMsg} pre "${sn}"${contMsg}?`)) return; starting = true; const r = await apiFetch('/admin/ai/bulk-categorize', { method: 'POST', body: JSON.stringify({ shop_id: selectedShopId, mode: catMode, continue_from_last: continueFromLast, use_descriptions: useDescriptions, use_product_names: useProductNames }) }); if (r?.success) { job = { status: 'running', total_offers: r.unmatched, processed: 0, percent: 0 }; polling = setInterval(loadProgress, 2000); } else alert(r?.error || 'Chyba'); starting = false; }
     async function cancelCategorization() { if (!confirm('Zastaviť?')) return; await apiFetch('/admin/ai/bulk-categorize/cancel', { method: 'POST' }); if (polling) { clearInterval(polling); polling = null; } await loadProgress(); }
     async function clearCache() { if (!confirm('Vymazať celú feed→kategória cache? Ďalšia kategorizácia bude pomalšia ale presnejšia.')) return; const r = await apiFetch('/admin/ai/clear-cache', { method: 'POST' }); alert(r?.message || 'Cache vymazaná'); await loadProgress(); }
     async function loadReport() { reportLoading = true; let u = `/admin/ai/categorization-report?page=${reportPage}&per_page=50&match_type=${reportFilter}`; if (reportShopId) u += `&shop_id=${reportShopId}`; const r = await apiFetch(u); if (r?.success) { reportData = r.data || []; reportStats = r.stats || {}; reportTotal = r.total || 0; reportTotalPages = r.total_pages || 1; } reportLoading = false; }
@@ -253,8 +253,12 @@
                     <span class="mode-icon">💡+</span><strong>Smart+</strong><span class="mode-desc">Ako Smart, ale vytvára chýbajúce podkategórie (root musí existovať)</span>
                 </button>
             </div>
-            {#if catMode === 'smart' || catMode === 'smart_create' || catMode === 'precise' || catMode === 'ultra'}
+            {#if catMode === 'smart' || catMode === 'smart_create' || catMode === 'precise' || catMode === 'ultra' || catMode === 'creative'}
             <div class="ai-options">
+                <label class="option-check">
+                    <input type="checkbox" bind:checked={useProductNames}>
+                    🏷️ Brať do úvahy názov produktu <span class="option-hint">(presnejšie, ale drahšie — ak nie, AI použije len feed kategóriu)</span>
+                </label>
                 <label class="option-check">
                     <input type="checkbox" bind:checked={useDescriptions}>
                     📝 Brať do úvahy popis produktu <span class="option-hint">(presnejšie, ale pomalšie a drahšie)</span>
