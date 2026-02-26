@@ -599,7 +599,7 @@
         {#if showImport}
         <div style="margin-top:16px;padding:16px;background:#f8f8f0;border-radius:8px;border:1px solid #ddd">
             <p style="margin-bottom:8px;font-weight:600">Nahraj JSON mapovanie (feed_category → category_id):</p>
-            <textarea bind:value={importText} rows="8" style="width:100%;font-family:monospace;font-size:12px" placeholder='[{{"feed_category":"Hrácky | Hry","category_id":"abc-123"}},...]'></textarea>
+            <textarea bind:value={importText} rows="8" style="width:100%;font-family:monospace;font-size:12px" placeholder="Paste JSON mapping here..."></textarea>
             <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
                 <label><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
                 <button class="btn green" on:click={importMapping} disabled={!importText}>📥 Importovať</button>
@@ -618,7 +618,7 @@
         {#if showImport}
         <div style="margin-top:16px;padding:16px;background:#f8f8f0;border-radius:8px;border:1px solid #ddd">
             <p style="margin-bottom:8px;font-weight:600">Nahraj JSON mapovanie (feed_category → category_id):</p>
-            <textarea bind:value={importText} rows="8" style="width:100%;font-family:monospace;font-size:12px" placeholder='[{"feed_category":"Hrácky | Hry","category_id":"abc-123"}]'></textarea>
+            <textarea bind:value={importText} rows="8" style="width:100%;font-family:monospace;font-size:12px" placeholder="Paste JSON mapping here..."></textarea>
             <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
                 <label><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
             </div>
