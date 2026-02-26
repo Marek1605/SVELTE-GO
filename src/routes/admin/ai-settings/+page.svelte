@@ -71,9 +71,13 @@
             let mappings = Array.isArray(parsed) ? parsed : (parsed?.mappings || null);
             if (!Array.isArray(mappings)) { importMsg = '❌ JSON musí byť pole alebo objekt s kľúčom "mappings"'; return; }
             const r = await apiFetch('/admin/ai/import-mapping', { method: 'POST', body: JSON.stringify({ mappings, clear_existing: clearBeforeImport }) });
-            if (r?.success) { importMsg = '✅ ' + r.message; } else { importMsg = '❌ ' + (r?.error || 'Chyba'); }
+            if (r?.success) { 
+                importMsg = '✅ ' + r.message;
+                if (r.categories_created > 0) importMsg += ` (🆕 ${r.categories_created} nových kategórií vytvorených)`;
+                if (r.error_logs?.length) importMsg += '\n⚠️ Chyby:\n' + r.error_logs.join('\n');
+            } else { importMsg = '❌ ' + (r?.error || 'Chyba'); }
         } catch(e) { importMsg = '❌ ' + e.message; }
-        setTimeout(() => importMsg = '', 10000);
+        setTimeout(() => importMsg = '', 30000);
     }
     let applyLoading = false;
     let applyMsg = '';
@@ -675,7 +679,7 @@
                 <label style="font-size:13px"><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
                 <button class="btn green" on:click={importMapping} disabled={!importText.trim()}>📥 Importovať ({importCount} mapovaní)</button>
             </div>
-            {#if importMsg}<div class="cleanup-result" style="margin-top:8px">{importMsg}</div>{/if}
+            {#if importMsg}<pre class="cleanup-result" style="margin-top:8px;white-space:pre-wrap;font-family:inherit">{importMsg}</pre>{/if}
         </div>
         {/if}
 
