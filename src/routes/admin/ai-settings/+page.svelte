@@ -63,6 +63,32 @@
         } catch(e) { importMsg = '❌ ' + e.message; }
         setTimeout(() => importMsg = '', 10000);
     }
+    let applyLoading = false;
+    let applyMsg = '';
+    let applyStats = null;
+
+    async function applyMapping() {
+        if (!cleanupShopId) return;
+        applyLoading = true;
+        applyMsg = '';
+        applyStats = null;
+        try {
+            const r = await apiFetch('/admin/ai/apply-mapping', { 
+                method: 'POST', 
+                body: JSON.stringify({ shop_id: cleanupShopId }) 
+            });
+            if (r?.success) {
+                applyMsg = '✅ ' + r.message;
+                applyStats = r.stats;
+            } else {
+                applyMsg = '❌ ' + (r?.error || 'Chyba');
+            }
+        } catch(e) {
+            applyMsg = '❌ ' + e.message;
+        }
+        applyLoading = false;
+    }
+
     let treeVerifyLoading = false, treeVerifySuggestions = [], treeVerifyModel = '', treeVerifySize = 0;
     let activeTab = 'settings';
 
@@ -339,6 +365,40 @@
             <pre class="log-content">{job.error_log}</pre>
         </details>
         {/if}
+
+        <hr style="margin:24px 0;border-color:#e5e5e5">
+        <h3 style="margin:0 0 8px">🚀 Aplikovať mapovanie na produkty</h3>
+        <p class="desc">Použije importované mapovanie na zaradenie ponúk do kategórií. <strong>Bez AI API tokenov — zadarmo a okamžite.</strong></p>
+        <button class="btn orange" on:click={applyMapping} disabled={!cleanupShopId || applyLoading}>
+            {applyLoading ? '⏳ Spracovávam...' : '🚀 Aplikovať mapovanie'}
+        </button>
+        {#if applyMsg}
+        <div class="cleanup-result" style="margin-top:12px">{applyMsg}</div>
+        {/if}
+        {#if applyStats}
+        <div style="margin-top:12px;padding:12px;background:#f0f8f0;border-radius:8px;border:1px solid #c3e6c3;font-size:13px">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">
+                <div><strong>{applyStats.total_offers}</strong><br><small>Ponúk celkom</small></div>
+                <div><strong>{applyStats.matched}</strong><br><small>Namapovaných</small></div>
+                <div style="color:#2a7">{applyStats.created ? `<strong>+${applyStats.created}</strong>` : '0'}<br><small>Vytvorených</small></div>
+                <div style="color:#27a">{applyStats.updated ? `<strong>${applyStats.updated}</strong>` : '0'}<br><small>Aktualizovaných</small></div>
+            </div>
+            {#if applyStats.unmatched > 0}
+            <div style="color:#c50;margin-top:4px">⚠️ {applyStats.unmatched} nenámapovaných ponúk</div>
+            {/if}
+            {#if applyStats.top_unmatched?.length}
+            <details style="margin-top:8px">
+                <summary style="cursor:pointer;font-weight:600">Nenámapované kategórie (top {applyStats.top_unmatched.length})</summary>
+                <ul style="margin:4px 0;padding-left:20px;font-size:12px">
+                    {#each applyStats.top_unmatched as u}
+                    <li>{u.category} ({u.count}x)</li>
+                    {/each}
+                </ul>
+            </details>
+            {/if}
+        </div>
+        {/if}
+
         {/if}
         <div class="actions">
             {#if job?.status === 'running'}<button class="btn red" on:click={cancelCategorization}>⛔ Zastaviť</button>
