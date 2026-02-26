@@ -230,6 +230,7 @@
             <button class="tab" class:active={activeTab === 'report'} on:click={switchToReport}>📊 Report</button>
             <button class="tab" class:active={activeTab === 'audit'} on:click={switchToAudit}>🔍 Audit stromu</button>
             <button class="tab" class:active={activeTab === 'cleanup'} on:click={() => activeTab = 'cleanup'}>🗑️ Vyčistenie</button>
+            <button class="tab" class:active={activeTab === 'mapping'} on:click={() => activeTab = 'mapping'}>📤 Mapovanie</button>
         </div>
     </div>
 
@@ -602,6 +603,24 @@
             <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
                 <label><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
                 <button class="btn green" on:click={importMapping} disabled={!importText}>📥 Importovať</button>
+            </div>
+            {#if importMsg}<div class="cleanup-result" style="margin-top:8px">{importMsg}</div>{/if}
+        </div>
+        {/if}
+    </div>
+
+    {:else if activeTab === 'mapping'}
+    <div class="section">
+        <h2>📤 Export / Import mapovanie kategórií</h2>
+        <div class="form-row"><label>Obchod</label><select bind:value={cleanupShopId}><option value="">-- Vyberte --</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select></div>
+        <div class="cleanup-actions">
+        </div>
+        {#if showImport}
+        <div style="margin-top:16px;padding:16px;background:#f8f8f0;border-radius:8px;border:1px solid #ddd">
+            <p style="margin-bottom:8px;font-weight:600">Nahraj JSON mapovanie (feed_category → category_id):</p>
+            <textarea bind:value={importText} rows="8" style="width:100%;font-family:monospace;font-size:12px" placeholder='[{"feed_category":"Hrácky | Hry","category_id":"abc-123"}]'></textarea>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+                <label><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
             </div>
             {#if importMsg}<div class="cleanup-result" style="margin-top:8px">{importMsg}</div>{/if}
         </div>
