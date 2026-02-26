@@ -55,9 +55,10 @@
     async function importMapping() {
         if (!importText.trim()) return;
         try {
-            let mappings;
-            try { mappings = JSON.parse(importText.trim()); } catch(e) { importMsg = '❌ Neplatný JSON'; return; }
-            if (!Array.isArray(mappings)) { importMsg = '❌ JSON musí byť pole'; return; }
+            let parsed;
+            try { parsed = JSON.parse(importText.trim()); } catch(e) { importMsg = '❌ Neplatný JSON'; return; }
+            let mappings = Array.isArray(parsed) ? parsed : (parsed?.mappings || null);
+            if (!Array.isArray(mappings)) { importMsg = '❌ JSON musí byť pole alebo objekt s kľúčom "mappings"'; return; }
             const r = await apiFetch('/admin/ai/import-mapping', { method: 'POST', body: JSON.stringify({ mappings, clear_existing: clearBeforeImport }) });
             if (r?.success) { importMsg = '✅ ' + r.message; } else { importMsg = '❌ ' + (r?.error || 'Chyba'); }
         } catch(e) { importMsg = '❌ ' + e.message; }
@@ -366,39 +367,6 @@
         </details>
         {/if}
 
-        <hr style="margin:24px 0;border-color:#e5e5e5">
-        <h3 style="margin:0 0 8px">🚀 Aplikovať mapovanie na produkty</h3>
-        <p class="desc">Použije importované mapovanie na zaradenie ponúk do kategórií. <strong>Bez AI API tokenov — zadarmo a okamžite.</strong></p>
-        <button class="btn orange" on:click={applyMapping} disabled={!cleanupShopId || applyLoading}>
-            {applyLoading ? '⏳ Spracovávam...' : '🚀 Aplikovať mapovanie'}
-        </button>
-        {#if applyMsg}
-        <div class="cleanup-result" style="margin-top:12px">{applyMsg}</div>
-        {/if}
-        {#if applyStats}
-        <div style="margin-top:12px;padding:12px;background:#f0f8f0;border-radius:8px;border:1px solid #c3e6c3;font-size:13px">
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">
-                <div><strong>{applyStats.total_offers}</strong><br><small>Ponúk celkom</small></div>
-                <div><strong>{applyStats.matched}</strong><br><small>Namapovaných</small></div>
-                <div style="color:#2a7">{applyStats.created ? `<strong>+${applyStats.created}</strong>` : '0'}<br><small>Vytvorených</small></div>
-                <div style="color:#27a">{applyStats.updated ? `<strong>${applyStats.updated}</strong>` : '0'}<br><small>Aktualizovaných</small></div>
-            </div>
-            {#if applyStats.unmatched > 0}
-            <div style="color:#c50;margin-top:4px">⚠️ {applyStats.unmatched} nenámapovaných ponúk</div>
-            {/if}
-            {#if applyStats.top_unmatched?.length}
-            <details style="margin-top:8px">
-                <summary style="cursor:pointer;font-weight:600">Nenámapované kategórie (top {applyStats.top_unmatched.length})</summary>
-                <ul style="margin:4px 0;padding-left:20px;font-size:12px">
-                    {#each applyStats.top_unmatched as u}
-                    <li>{u.category} ({u.count}x)</li>
-                    {/each}
-                </ul>
-            </details>
-            {/if}
-        </div>
-        {/if}
-
         {/if}
         <div class="actions">
             {#if job?.status === 'running'}<button class="btn red" on:click={cancelCategorization}>⛔ Zastaviť</button>
@@ -669,48 +637,58 @@
         {#if cleanupMsg}<div class="cleanup-result">{cleanupMsg}</div>{/if}
     </div>
 
-    <div class="section" style="margin-top:24px">
+    {:else if activeTab === 'mapping'}
+    <div class="section">
         <h2>📤 Export / Import mapovanie kategórií</h2>
         <p class="desc">Export unikátnych feed kategórií → manuálne mapovanie v Claude → import späť. Zadarmo a presné!</p>
         <div class="form-row"><label>Obchod</label><select bind:value={cleanupShopId}><option value="">-- Vyberte --</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select></div>
         <div class="cleanup-actions">
             <button class="btn blue" on:click={exportMapping} disabled={!cleanupShopId || exportLoading}>{exportLoading ? "⏳ Načítavam..." : "📤 Export feed kategórií (JSON)"}</button>
-            <button class="btn green" on:click={() => showImport = !showImport}>📥 Import mapovanie</button>
+            <button class="btn green" on:click={() => showImport = !showImport}>{showImport ? '✕ Zavrieť import' : '📥 Import mapovanie'}</button>
         </div>
         {#if showImport}
         <div style="margin-top:16px;padding:16px;background:#f8f8f0;border-radius:8px;border:1px solid #ddd">
             <p style="margin-bottom:8px;font-weight:600">Nahraj JSON mapovanie (feed_category → category_id):</p>
-            <textarea bind:value={importText} rows="8" style="width:100%;font-family:monospace;font-size:12px" placeholder="Paste JSON mapping here..."></textarea>
-            <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-                <label><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
-                <button class="btn green" on:click={importMapping} disabled={!importText}>📥 Importovať</button>
+            <p style="font-size:12px;color:#64748b;margin-bottom:8px">Formát: pole objektov <code>[{{"feed_category":"...", "category_id":"..."}}, ...]</code> alebo objekt s kľúčom <code>"mappings"</code></p>
+            <textarea bind:value={importText} rows="10" style="width:100%;font-family:monospace;font-size:12px" placeholder='Paste JSON mapping here...'></textarea>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <label style="font-size:13px"><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
+                <button class="btn green" on:click={importMapping} disabled={!importText.trim()}>📥 Importovať</button>
             </div>
             {#if importMsg}<div class="cleanup-result" style="margin-top:8px">{importMsg}</div>{/if}
         </div>
         {/if}
-    </div>
 
-    {:else if activeTab === 'mapping'}
-    <div class="section">
-        <h2>📤 Export / Import mapovanie kategórií</h2>
-        <div class="form-row"><label>Obchod</label><select bind:value={cleanupShopId}><option value="">-- Vyberte --</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select></div>
-        <div class="cleanup-actions">
-        </div>
-        {#if exportData}
-        <div style="margin-top:16px">
-            <p style="font-weight:600;margin-bottom:8px">📋 Skopíruj tento JSON a pošli mi ho (Claude):</p>
-            <textarea readonly value={exportData} rows="20" style="width:100%;font-family:monospace;font-size:11px;background:#f8f8f0;border:1px solid #ccc;border-radius:6px;padding:8px"></textarea>
-            <button class="btn" style="margin-top:8px" on:click={() => { navigator.clipboard.writeText(exportData); }}>📋 Kopírovať do schránky</button>
-        </div>
+        <hr style="margin:24px 0;border-color:#e5e5e5">
+        <h3 style="margin:0 0 8px">🚀 Aplikovať mapovanie na produkty</h3>
+        <p class="desc">Použije importované mapovanie na zaradenie ponúk do kategórií. <strong>Bez AI API tokenov — zadarmo a okamžite.</strong></p>
+        <button class="btn orange" on:click={applyMapping} disabled={!cleanupShopId || applyLoading}>
+            {applyLoading ? '⏳ Spracovávam...' : '🚀 Aplikovať mapovanie'}
+        </button>
+        {#if applyMsg}
+        <div class="cleanup-result" style="margin-top:12px">{applyMsg}</div>
         {/if}
-        {#if showImport}
-        <div style="margin-top:16px;padding:16px;background:#f8f8f0;border-radius:8px;border:1px solid #ddd">
-            <p style="margin-bottom:8px;font-weight:600">Nahraj JSON mapovanie (feed_category → category_id):</p>
-            <textarea bind:value={importText} rows="8" style="width:100%;font-family:monospace;font-size:12px" placeholder="Paste JSON mapping here..."></textarea>
-            <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-                <label><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
+        {#if applyStats}
+        <div style="margin-top:12px;padding:12px;background:#f0f8f0;border-radius:8px;border:1px solid #c3e6c3;font-size:13px">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">
+                <div><strong>{applyStats.total_offers}</strong><br><small>Ponúk celkom</small></div>
+                <div><strong>{applyStats.matched}</strong><br><small>Namapovaných</small></div>
+                <div style="color:#2a7"><strong>+{applyStats.created || 0}</strong><br><small>Vytvorených</small></div>
+                <div style="color:#27a"><strong>{applyStats.updated || 0}</strong><br><small>Aktualizovaných</small></div>
             </div>
-            {#if importMsg}<div class="cleanup-result" style="margin-top:8px">{importMsg}</div>{/if}
+            {#if applyStats.unmatched > 0}
+            <div style="color:#c50;margin-top:4px">⚠️ {applyStats.unmatched} nenámapovaných ponúk</div>
+            {/if}
+            {#if applyStats.top_unmatched?.length}
+            <details style="margin-top:8px">
+                <summary style="cursor:pointer;font-weight:600">Nenámapované kategórie (top {applyStats.top_unmatched.length})</summary>
+                <ul style="margin:4px 0;padding-left:20px;font-size:12px">
+                    {#each applyStats.top_unmatched as u}
+                    <li>{u.category} ({u.count}x)</li>
+                    {/each}
+                </ul>
+            </details>
+            {/if}
         </div>
         {/if}
     </div>
