@@ -25,6 +25,17 @@
     let reportData = [], reportStats = {}, reportTotal = 0, reportPage = 1, reportTotalPages = 1, reportLoading = false, reportFilter = 'all';
     let cleanupLoading = false, cleanupMsg = '';
     let showImport = false, importText = '', clearBeforeImport = false, importMsg = '';
+    let uploadedFileName = '';
+    $: importCount = (() => { try { const p = JSON.parse(importText); return Array.isArray(p) ? p.length : (p?.mappings?.length || 0); } catch { return 0; } })();
+
+    function handleFileUpload(e) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        uploadedFileName = file.name;
+        const reader = new FileReader();
+        reader.onload = (ev) => { importText = ev.target.result; };
+        reader.readAsText(file);
+    }
 
     let exportLoading = false;
 
@@ -649,11 +660,20 @@
         {#if showImport}
         <div style="margin-top:16px;padding:16px;background:#f8f8f0;border-radius:8px;border:1px solid #ddd">
             <p style="margin-bottom:8px;font-weight:600">Nahraj JSON mapovanie (feed_category → category_id):</p>
-            <p style="font-size:12px;color:#64748b;margin-bottom:8px">Formát: pole objektov <code>[{{"feed_category":"...", "category_id":"..."}}, ...]</code> alebo objekt s kľúčom <code>"mappings"</code></p>
-            <textarea bind:value={importText} rows="10" style="width:100%;font-family:monospace;font-size:12px" placeholder='Paste JSON mapping here...'></textarea>
-            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+                <label class="btn blue" style="cursor:pointer;margin:0">
+                    📁 Vybrať súbor (.json)
+                    <input type="file" accept=".json" style="display:none" on:change={handleFileUpload}>
+                </label>
+                {#if uploadedFileName}<span style="font-size:13px;color:#059669;font-weight:600">✅ {uploadedFileName}</span>{/if}
+            </div>
+            <details style="margin-bottom:8px">
+                <summary style="cursor:pointer;font-size:13px;color:#64748b">Alebo vlož JSON manuálne</summary>
+                <textarea bind:value={importText} rows="6" style="width:100%;font-family:monospace;font-size:12px;margin-top:8px" placeholder='Paste JSON mapping here...'></textarea>
+            </details>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:13px"><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
-                <button class="btn green" on:click={importMapping} disabled={!importText.trim()}>📥 Importovať</button>
+                <button class="btn green" on:click={importMapping} disabled={!importText.trim()}>📥 Importovať ({importCount} mapovaní)</button>
             </div>
             {#if importMsg}<div class="cleanup-result" style="margin-top:8px">{importMsg}</div>{/if}
         </div>
