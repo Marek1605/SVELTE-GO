@@ -699,6 +699,12 @@
             {#if applyStats.unmatched > 0}
             <div style="color:#c50;margin-top:4px">⚠️ {applyStats.unmatched} nenámapovaných ponúk</div>
             {/if}
+            {#if applyStats.error_logs?.length}
+            <details open style="margin-top:8px">
+                <summary style="cursor:pointer;font-weight:600;color:#dc2626">🐛 Error logy (prvých {applyStats.error_logs.length})</summary>
+                <pre style="margin:4px 0;padding:8px;background:#1e293b;color:#f87171;border-radius:6px;font-size:11px;overflow-x:auto;max-height:200px">{applyStats.error_logs.join('\n')}</pre>
+            </details>
+            {/if}
             {#if applyStats.top_unmatched?.length}
             <details style="margin-top:8px">
                 <summary style="cursor:pointer;font-weight:600">Nenámapované kategórie (top {applyStats.top_unmatched.length})</summary>
