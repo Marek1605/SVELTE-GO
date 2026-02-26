@@ -24,6 +24,24 @@
     let job = null, polling = null, starting = false, displayStats = null, catMode = 'smart', useDescriptions = false, useProductNames = true;
     let reportData = [], reportStats = {}, reportTotal = 0, reportPage = 1, reportTotalPages = 1, reportLoading = false, reportFilter = 'all';
     let cleanupLoading = false, cleanupMsg = '';
+    let showImport = false, importText = '', clearBeforeImport = false, importMsg = '';
+
+    async function exportMapping() {
+        if (!cleanupShopId) return;
+        window.open(`${API_BASE}/admin/ai/export-mapping?shop_id=${cleanupShopId}`, '_blank');
+    }
+
+    async function importMapping() {
+        if (!importText.trim()) return;
+        try {
+            let mappings;
+            try { mappings = JSON.parse(importText.trim()); } catch(e) { importMsg = '❌ Neplatný JSON'; return; }
+            if (!Array.isArray(mappings)) { importMsg = '❌ JSON musí byť pole'; return; }
+            const r = await apiFetch('/admin/ai/import-mapping', { method: 'POST', body: JSON.stringify({ mappings, clear_existing: clearBeforeImport }) });
+            if (r?.success) { importMsg = '✅ ' + r.message; } else { importMsg = '❌ ' + (r?.error || 'Chyba'); }
+        } catch(e) { importMsg = '❌ ' + e.message; }
+        setTimeout(() => importMsg = '', 10000);
+    }
     let treeVerifyLoading = false, treeVerifySuggestions = [], treeVerifyModel = '', treeVerifySize = 0;
     let activeTab = 'settings';
 
@@ -567,6 +585,27 @@
             <button class="btn darkred" on:click={() => runCleanup(true,true,false,true)} disabled={cleanupLoading||!cleanupShopId}>💀 Zmazať všetko + master</button>
         </div>
         {#if cleanupMsg}<div class="cleanup-result">{cleanupMsg}</div>{/if}
+    </div>
+
+    <div class="section" style="margin-top:24px">
+        <h2>📤 Export / Import mapovanie kategórií</h2>
+        <p class="desc">Export unikátnych feed kategórií → manuálne mapovanie v Claude → import späť. Zadarmo a presné!</p>
+        <div class="form-row"><label>Obchod</label><select bind:value={cleanupShopId}><option value="">-- Vyberte --</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select></div>
+        <div class="cleanup-actions">
+            <button class="btn blue" on:click={exportMapping} disabled={!cleanupShopId}>📤 Export feed kategórií (CSV)</button>
+            <button class="btn green" on:click={() => showImport = !showImport}>📥 Import mapovanie</button>
+        </div>
+        {#if showImport}
+        <div style="margin-top:16px;padding:16px;background:#f8f8f0;border-radius:8px;border:1px solid #ddd">
+            <p style="margin-bottom:8px;font-weight:600">Nahraj JSON mapovanie (feed_category → category_id):</p>
+            <textarea bind:value={importText} rows="8" style="width:100%;font-family:monospace;font-size:12px" placeholder='[{{"feed_category":"Hrácky | Hry","category_id":"abc-123"}},...]'></textarea>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+                <label><input type="checkbox" bind:checked={clearBeforeImport}> Vymazať existujúce mapovanie</label>
+                <button class="btn green" on:click={importMapping} disabled={!importText}>📥 Importovať</button>
+            </div>
+            {#if importMsg}<div class="cleanup-result" style="margin-top:8px">{importMsg}</div>{/if}
+        </div>
+        {/if}
     </div>
     {/if}
     {/if}
