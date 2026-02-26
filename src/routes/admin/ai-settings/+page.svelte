@@ -26,22 +26,28 @@
     let cleanupLoading = false, cleanupMsg = '';
     let showImport = false, importText = '', clearBeforeImport = false, importMsg = '';
 
-    let exportData = '';
     let exportLoading = false;
 
     async function exportMapping() {
         if (!cleanupShopId) return;
         exportLoading = true;
-        exportData = '';
         try {
             const r = await apiFetch('/admin/ai/export-mapping?shop_id=' + cleanupShopId);
             if (r?.success) {
-                exportData = JSON.stringify(r, null, 2);
+                const blob = new Blob([JSON.stringify(r, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mapping-' + (r.shop || 'export') + '.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             } else {
-                exportData = 'Chyba: ' + (r?.error || 'neznáma');
+                alert('Chyba: ' + (r?.error || 'unknown'));
             }
         } catch(e) {
-            exportData = 'Chyba: ' + e.message;
+            alert('Chyba: ' + e.message);
         }
         exportLoading = false;
     }
@@ -608,18 +614,9 @@
         <p class="desc">Export unikátnych feed kategórií → manuálne mapovanie v Claude → import späť. Zadarmo a presné!</p>
         <div class="form-row"><label>Obchod</label><select bind:value={cleanupShopId}><option value="">-- Vyberte --</option>{#each shops as shop}<option value={shop.id}>{shop.shop_name}</option>{/each}</select></div>
         <div class="cleanup-actions">
-            <button class="btn blue" on:click={exportMapping} disabled={!cleanupShopId || exportLoading}>
-                {exportLoading ? '⏳ Načítavam...' : '📤 Export feed kategórií (JSON)'}
-            </button>
+            <button class="btn blue" on:click={exportMapping} disabled={!cleanupShopId || exportLoading}>{exportLoading ? "⏳ Načítavam..." : "📤 Export feed kategórií (JSON)"}</button>
             <button class="btn green" on:click={() => showImport = !showImport}>📥 Import mapovanie</button>
         </div>
-        {#if exportData}
-        <div style="margin-top:16px">
-            <p style="font-weight:600;margin-bottom:8px">📋 Skopíruj tento JSON a pošli mi ho (Claude):</p>
-            <textarea readonly value={exportData} rows="20" style="width:100%;font-family:monospace;font-size:11px;background:#f8f8f0;border:1px solid #ccc;border-radius:6px;padding:8px"></textarea>
-            <button class="btn" style="margin-top:8px" on:click={() => { navigator.clipboard.writeText(exportData); }}>📋 Kopírovať do schránky</button>
-        </div>
-        {/if}
         {#if showImport}
         <div style="margin-top:16px;padding:16px;background:#f8f8f0;border-radius:8px;border:1px solid #ddd">
             <p style="margin-bottom:8px;font-weight:600">Nahraj JSON mapovanie (feed_category → category_id):</p>
