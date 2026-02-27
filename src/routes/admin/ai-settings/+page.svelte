@@ -243,6 +243,14 @@
     function switchToReport() { activeTab = 'report'; if (reportData.length === 0) loadReport(); }
     async function runCleanup(delP, delC, delAllC = false, delMaster = false) { if (!cleanupShopId) { alert('Vyberte obchod'); return; } const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || ''; let m = `Vyčistiť pre "${sn}":\n`; if (delP) m += '- Zmazať AI produkty\n'; if (delMaster) m += '- Zmazať master produkty bez ponúk\n'; if (delAllC) m += '⚠️ POZOR: Zmazať VŠETKY prázdne kategórie (vrátane Google/manuálnych)!\n'; else if (delC) m += '- Zmazať prázdne AI kategórie (len vytvorené týmto vendorom)\n'; if (!confirm(m + '\nPokračovať?')) return; if (delAllC && !confirm('NAOZAJ zmazať VŠETKY prázdne kategórie? Toto zmaže aj Google/manuálne kategórie!')) return; cleanupLoading = true; cleanupMsg = ''; const r = await apiFetch('/admin/ai/cleanup', { method: 'POST', body: JSON.stringify({ shop_id: cleanupShopId, delete_products: delP, delete_categories: delC, delete_all_categories: delAllC, delete_master_products: delMaster }) }); if (r?.success) { cleanupMsg = '✅ ' + r.message; if (r.logs?.length) cleanupMsg += '\n' + r.logs.join('\n'); await loadDisplayStats(); if (reportData.length > 0) loadReport(); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); } cleanupLoading = false; setTimeout(() => cleanupMsg = '', 15000); }
     function fmt(n) { return (n || 0).toLocaleString('sk-SK'); }
+    async function deleteImportedCategories() {
+        if (!confirm('Zmazať všetky prázdne kategórie vytvorené cez mapping import + vyčistiť feed cache?')) return;
+        cleanupLoading = true; cleanupMsg = '';
+        const r = await apiFetch('/admin/ai/delete-imported-categories', { method: 'POST' });
+        if (r?.success) { cleanupMsg = '✅ ' + r.message; if (r.logs?.length) cleanupMsg += '\n' + r.logs.join('\n'); } else { cleanupMsg = '❌ ' + (r?.error || 'Chyba'); }
+        cleanupLoading = false;
+        setTimeout(() => cleanupMsg = '', 15000);
+    }
     function shortDate(s) { if (!s) return '—'; return s.length > 19 ? s.slice(0, 19).replace('T', ' ') : s; }
 
     // AUDIT functions
@@ -648,6 +656,7 @@
             <button class="btn red" on:click={() => runCleanup(true,false,false)} disabled={cleanupLoading||!cleanupShopId}>🗑️ Zmazať AI produkty</button>
             <button class="btn darkred" on:click={() => runCleanup(true,true,false)} disabled={cleanupLoading||!cleanupShopId}>💣 Zmazať produkty + kategórie</button>
             <button class="btn darkred" on:click={() => runCleanup(true,true,false,true)} disabled={cleanupLoading||!cleanupShopId}>💀 Zmazať všetko + master</button>
+            <button class="btn orange" on:click={deleteImportedCategories} disabled={cleanupLoading}>🧹 Zmazať importované kategórie</button>
         </div>
         {#if cleanupMsg}<div class="cleanup-result">{cleanupMsg}</div>{/if}
     </div>
