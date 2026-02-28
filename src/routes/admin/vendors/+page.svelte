@@ -23,6 +23,13 @@
     let creditHistory = [];
     let loadingHistory = false;
     
+    // Password reset state
+    let showPasswordModal = false;
+    let passwordVendor = null;
+    let newPassword = '';
+    let passwordLoading = false;
+    let passwordMsg = '';
+    
     let filter = 'all'; // all, pending, active, inactive
     let searchQuery = '';
     
@@ -150,6 +157,33 @@
         } catch (e) {
             alert('Chyba pri mazaní');
         }
+    }
+    
+    function openPasswordReset(vendor) {
+        passwordVendor = vendor;
+        newPassword = '';
+        passwordMsg = '';
+        showPasswordModal = true;
+    }
+    
+    async function resetPassword() {
+        if (!newPassword || newPassword.length < 6) { passwordMsg = '❌ Heslo musí mať minimálne 6 znakov'; return; }
+        passwordLoading = true; passwordMsg = '';
+        try {
+            const res = await adminRawFetch(`${API_BASE}/admin/vendors/${passwordVendor.id}/reset-password`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ new_password: newPassword })
+            });
+            const data = await res.json();
+            if (data.success) { passwordMsg = '✅ Heslo bolo úspešne zmenené'; setTimeout(() => { showPasswordModal = false; }, 1500); }
+            else { passwordMsg = '❌ ' + (data.error || 'Chyba'); }
+        } catch (e) { passwordMsg = '❌ Chyba pri resetovaní hesla'; }
+        passwordLoading = false;
+    }
+    
+    function generatePassword() {
+        const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+        newPassword = Array.from({length: 12}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     }
     
     async function addCredit(vendor) {
@@ -422,6 +456,9 @@
                                 <button class="btn btn-sm btn-primary" on:click={() => editVendor(vendor)} title="Upraviť">
                                     ✎
                                 </button>
+                                <button class="btn btn-sm btn-warning" on:click={() => openPasswordReset(vendor)} title="Resetovať heslo">
+                                    🔑
+                                </button>
                                 {#if vendor.shop}
                                     <button class="btn btn-sm btn-info" on:click={() => addCredit(vendor)} title="Pridať kredit">
                                         💰
@@ -647,6 +684,55 @@
                     {:else}
                         {parseFloat(creditAmount) > 0 ? '➕ Pridať kredit' : '➖ Odpísať kredit'}
                     {/if}
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<!-- Password Reset Modal -->
+{#if showPasswordModal && passwordVendor}
+    <div class="modal-overlay" on:click={() => showPasswordModal = false}>
+        <div class="modal" on:click|stopPropagation style="max-width: 440px;">
+            <div class="modal-header">
+                <h3>🔑 Resetovať heslo</h3>
+                <button class="modal-close" on:click={() => showPasswordModal = false}>✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="vendor-info-card" style="margin-bottom: 20px;">
+                    <div class="vendor-avatar" style="background: #f59e0b; color: white;">
+                        {passwordVendor.company_name?.charAt(0) || passwordVendor.email?.charAt(0) || 'V'}
+                    </div>
+                    <div>
+                        <strong>{passwordVendor.company_name || passwordVendor.email}</strong>
+                        <span class="vendor-email">{passwordVendor.email}</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nové heslo</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" bind:value={newPassword} placeholder="Min. 6 znakov" class="form-input" style="flex:1;" />
+                        <button class="btn btn-sm" on:click={generatePassword} style="white-space:nowrap; background: #6b7280; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+                            🎲 Generovať
+                        </button>
+                    </div>
+                </div>
+                {#if newPassword}
+                    <div style="margin-top: 8px; padding: 10px 14px; background: #f3f4f6; border-radius: 8px; font-family: monospace; font-size: 15px; letter-spacing: 0.5px; word-break: break-all;">
+                        {newPassword}
+                    </div>
+                    <small style="color: #6b7280; display: block; margin-top: 4px;">Toto heslo si skopírujte pred uložením — už sa nezobrazí.</small>
+                {/if}
+                {#if passwordMsg}
+                    <div class="alert" style="margin-top: 12px; background: {passwordMsg.startsWith('✅') ? '#f0fdf4' : '#fef2f2'}; color: {passwordMsg.startsWith('✅') ? '#166534' : '#991b1b'};">
+                        {passwordMsg}
+                    </div>
+                {/if}
+            </div>
+            <div class="modal-footer">
+                <button class="btn" on:click={() => showPasswordModal = false}>Zrušiť</button>
+                <button class="btn btn-warning" on:click={resetPassword} disabled={passwordLoading || !newPassword}>
+                    {passwordLoading ? 'Resetujem...' : '🔑 Resetovať heslo'}
                 </button>
             </div>
         </div>
@@ -883,6 +969,8 @@
     .btn-danger { background: #ef4444; color: white; }
     .btn-secondary { background: #6b7280; color: white; }
     .btn-info { background: #06b6d4; color: white; }
+    .btn-warning { background: #f59e0b; color: white; }
+    .btn-warning:hover { background: #d97706; }
     
     .btn:hover { opacity: 0.9; transform: translateY(-1px); }
     

@@ -477,15 +477,15 @@
 .cn-pill__txt { line-height: 1; }
 
 /* ICONS variant */
-.cn-ico { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 8px; border-radius: 10px; transition: all 0.2s; flex-shrink: 0; }
-.cn-ico:hover { background: #fef7f0; }
+.cn-ico { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px; border-radius: 14px; transition: all 0.2s; flex-shrink: 0; cursor: pointer; }
+.cn-ico:hover { background: linear-gradient(135deg, #fef7f0 0%, #fff5eb 100%); }
 .cn-ico.is-active .cn-ico__circle { border-color: #c4956a; box-shadow: 0 0 0 3px rgba(196,149,106,0.15); }
-.cn-ico__circle { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: all 0.2s; }
-.cn-ico:hover .cn-ico__circle { border-color: #c4956a; transform: scale(1.08); }
+.cn-ico__circle { width: 56px; height: 56px; border-radius: 50%; border: 2.5px solid #e5e7eb; background: linear-gradient(145deg, #fff 0%, #f9fafb 100%); display: flex; align-items: center; justify-content: center; overflow: hidden; transition: all 0.2s; }
+.cn-ico:hover .cn-ico__circle { border-color: #c4956a; transform: scale(1.1); box-shadow: 0 4px 14px rgba(196,149,106,0.15); }
 .cn-ico__circle img { width: 100%; height: 100%; object-fit: cover; }
-.cn-ico__circle span { font-size: 18px; }
-.cn-ico__name { font-size: 10px; font-weight: 500; color: #6b7280; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
-.cn-ico:hover .cn-ico__name { color: #c4956a; }
+.cn-ico__circle span { font-size: 22px; }
+.cn-ico__name { font-size: 11.5px; font-weight: 600; color: #4b5563; max-width: 88px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+.cn-ico:hover .cn-ico__name { color: #b07d4f; }
 
 /* MINIMAL variant */
 .cn-min { padding: 12px 18px; font-size: 14px; font-weight: 500; color: #4b5563; position: relative; white-space: nowrap; transition: color 0.2s; flex-shrink: 0; }
