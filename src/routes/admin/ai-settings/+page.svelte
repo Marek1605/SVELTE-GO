@@ -26,6 +26,15 @@
     let cleanupLoading = false, cleanupMsg = '';
     let showImport = false, importText = '', clearBeforeImport = false, importMsg = '';
     let uploadedFileName = '';
+    let savedMappings = [];
+    let savedMappingsLoading = false;
+    let showSaveMappingModal = false;
+    let saveMappingName = '';
+    let saveMappingDesc = '';
+    let saveMappingShopId = '';
+    let saveMappingLoading = false;
+    let saveMappingMsg = '';
+
     let resetLoading = false, resetMsg = '', resetClearCache = false;
     $: importCount = (() => { try { const p = JSON.parse(importText); return Array.isArray(p) ? p.length : (p?.mappings?.length || 0); } catch { return 0; } })();
 
@@ -104,6 +113,53 @@
             applyMsg = '❌ ' + e.message;
         }
         applyLoading = false;
+    }
+
+
+    async function loadSavedMappings() {
+        savedMappingsLoading = true;
+        try { const r = await apiFetch('/admin/ai/saved-mappings'); if (r.success) savedMappings = r.data || []; } catch(e) {}
+        savedMappingsLoading = false;
+    }
+    async function saveMappingFromExport() {
+        if (!saveMappingName) { saveMappingMsg = '\u274c Zadajte nazov'; return; }
+        saveMappingLoading = true; saveMappingMsg = '';
+        try {
+            const exp = await apiFetch('/admin/ai/export-mapping?shop_id=' + (cleanupShopId||''));
+            if (!exp.success || !exp.mappings?.length) { saveMappingMsg = '\u274c Ziadne mapovanie'; saveMappingLoading = false; return; }
+            const r = await adminRawFetch(`${API_BASE}/admin/ai/saved-mappings`, {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ shop_id: saveMappingShopId||null, name: saveMappingName, description: saveMappingDesc,
+                    mappings: exp.mappings.map(m=>({feed_category:m.feed_category, category_path:m.category_path})) })
+            });
+            const d = await r.json();
+            if (d.success) { saveMappingMsg = '\u2705 ' + d.message; await loadSavedMappings(); setTimeout(()=>{showSaveMappingModal=false;},1500); }
+            else saveMappingMsg = '\u274c ' + (d.error||'Chyba');
+        } catch(e) { saveMappingMsg = '\u274c ' + e.message; }
+        saveMappingLoading = false;
+    }
+    async function deleteSavedMapping(id, name) {
+        if (!confirm('Vymazat "'+name+'"?')) return;
+        try { await adminRawFetch(`${API_BASE}/admin/ai/saved-mappings/${id}`,{method:'DELETE'}); await loadSavedMappings(); } catch(e) { alert(e.message); }
+    }
+    async function applySavedMapping(id) {
+        if (!confirm('Aplikovat toto mapovanie? Prepise existujuci cache.')) return;
+        try {
+            const r = await apiFetch(`/admin/ai/saved-mappings/${id}`);
+            if (!r.success) { alert('Chyba pri nacitani'); return; }
+            const ir = await adminRawFetch(`${API_BASE}/admin/ai/import-mapping`, { method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({mappings:r.data.mappings, clear_existing:true}) });
+            const d = await ir.json();
+            alert(d.success ? '\u2705 '+d.message : '\u274c '+(d.error||'Chyba'));
+        } catch(e) { alert(e.message); }
+    }
+    async function downloadSavedMapping(id, name) {
+        try {
+            const r = await apiFetch(`/admin/ai/saved-mappings/${id}`);
+            if (!r.success) return;
+            const b = new Blob([JSON.stringify({mappings:r.data.mappings,clear_existing:true},null,2)],{type:'application/json'});
+            const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name.replace(/[^a-z0-9-]/gi,'-').toLowerCase()+'.json'; a.click();
+        } catch(e) { alert(e.message); }
     }
 
     async function resetMapping() {
@@ -763,7 +819,51 @@
         </div>
         {/if}
 
+        
         <hr style="margin:24px 0;border-color:#e5e5e5">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="margin:0">💾 Ulozene mapovania</h3>
+            <div style="display:flex;gap:8px">
+                <button class="btn" style="background:#3b82f6;color:white" on:click={loadSavedMappings}>🔄 Obnovit</button>
+                <button class="btn" style="background:#10b981;color:white" on:click={()=>{showSaveMappingModal=true;saveMappingName='';saveMappingDesc='';saveMappingMsg='';}}>+ Ulozit aktualne</button>
+            </div>
+        </div>
+        {#if savedMappingsLoading}<p style="color:#64748b">Nacitavam...</p>
+        {:else if savedMappings.length===0}<p style="color:#64748b;font-style:italic">Ziadne ulozene mapovanie.</p>
+        {:else}
+        <div style="display:flex;flex-direction:column;gap:8px">
+        {#each savedMappings as m, i}
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#f9fafb;border:1px solid #e2e8f0;border-radius:10px">
+                <div style="flex:1">
+                    <strong>{m.name}</strong>
+                    {#if m.shop_name}<span style="margin-left:8px;padding:2px 8px;background:#dbeafe;color:#1e40af;border-radius:4px;font-size:11px">{m.shop_name}</span>{/if}
+                    <div style="font-size:12px;color:#64748b;margin-top:2px">#{i+1} · {m.mapping_count} mapovani · {new Date(m.updated_at).toLocaleDateString('sk-SK')} {new Date(m.updated_at).toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'})}{#if m.description} · {m.description}{/if}</div>
+                </div>
+                <button class="btn" style="background:#3b82f6;color:white;font-size:12px" on:click={()=>applySavedMapping(m.id)}>▶ Pouzit</button>
+                <button class="btn" style="background:#64748b;color:white;font-size:12px" on:click={()=>downloadSavedMapping(m.id,m.name)}>⬇ JSON</button>
+                <button class="btn" style="background:#ef4444;color:white;font-size:12px" on:click={()=>deleteSavedMapping(m.id,m.name)}>🗑</button>
+            </div>
+        {/each}
+        </div>
+        {/if}
+
+        {#if showSaveMappingModal}
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center" on:click={()=>showSaveMappingModal=false}>
+        <div style="background:white;border-radius:12px;padding:24px;width:440px;max-width:90vw" on:click|stopPropagation>
+            <h3 style="margin:0 0 16px">💾 Ulozit aktualne mapovanie</h3>
+            <div style="margin-bottom:12px"><label style="display:block;font-weight:600;margin-bottom:4px">Nazov *</label><input type="text" bind:value={saveMappingName} placeholder="napr. Dodavatel AXI v3" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px" /></div>
+            <div style="margin-bottom:12px"><label style="display:block;font-weight:600;margin-bottom:4px">Popis</label><input type="text" bind:value={saveMappingDesc} placeholder="napr. 1037 mapovani, 100% d3+" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px" /></div>
+            <div style="margin-bottom:16px"><label style="display:block;font-weight:600;margin-bottom:4px">Priradit obchodu</label>
+                <select bind:value={saveMappingShopId} style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px"><option value="">-- Globalne (admin) --</option>{#each shops as s}<option value={s.id}>{s.shop_name}</option>{/each}</select></div>
+            {#if saveMappingMsg}<p style="margin:8px 0">{saveMappingMsg}</p>{/if}
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button class="btn" on:click={()=>showSaveMappingModal=false}>Zrusit</button>
+                <button class="btn" style="background:#10b981;color:white" on:click={saveMappingFromExport} disabled={saveMappingLoading}>{saveMappingLoading?'Ukladam...':'💾 Ulozit'}</button>
+            </div>
+        </div></div>
+        {/if}
+
+<hr style="margin:24px 0;border-color:#e5e5e5">
         <h3 style="margin:0 0 8px">🔄 Reset mapovania</h3>
         <p class="desc">Zmaže produkty vytvorené importom, odpojí ponuky a zmaže importované prázdne kategórie. <strong>Existujúce (Google/master) kategórie zostanú nedotknuté.</strong></p>
         <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
