@@ -90,6 +90,10 @@
         { key: 'system', label: 'Systém', items: [
             { href: '/admin/settings', label: 'Nastavenia', icon: '⚙️' },
         ]},
+        { key: 'analytics', label: 'Analytika', items: [
+            { href: '/admin/top-produkty', label: 'Rebríčky (TOP)', icon: '🏆' },
+            { href: '/admin/product-stats', label: 'Štatistiky', icon: '📊' },
+        ]},
     ];
 
     function isActive(href) {

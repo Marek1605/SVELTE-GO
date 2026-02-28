@@ -21,7 +21,7 @@
     let maxPrice = '';
     let selectedBrand = '';
     let selectedAttributes = {};
-    let sort = 'newest';
+    let sort = 'popular'; // 'popular' for leaf categories, shows rank badges
     let brandSearch = '';
     let mobileFilterOpen = false;
     let viewMode = 'list'; // 'grid' or 'list'
@@ -41,7 +41,7 @@
         minPrice = params.get('min_price') || '';
         maxPrice = params.get('max_price') || '';
         selectedBrand = params.get('brand') || '';
-        sort = params.get('sort') || 'newest';
+        sort = params.get('sort') || 'popular';
         selectedAttributes = {};
         for (const [key, value] of params.entries()) {
             if (key.startsWith('attr_')) {
@@ -161,6 +161,18 @@
 
     function openMobileFilter() { mobileFilterOpen = true; document.body.style.overflow = 'hidden'; }
     function closeMobileFilter() { mobileFilterOpen = false; document.body.style.overflow = ''; }
+
+    function getRankClass(rank) {
+        if (rank <= 3) return 'rank-gold';
+        if (rank <= 10) return 'rank-blue';
+        if (rank <= 25) return 'rank-warm';
+        return 'rank-gray';
+    }
+
+    function decodeHtml(text) {
+        if (!text) return '';
+        return text.replace(/&amp;#039;/g, "'").replace(/&#039;/g, "'").replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+    }
 </script>
 
 <svelte:head>
@@ -195,6 +207,7 @@
                 <div class="cat-controls">
                     <div class="cat-sort">
                         <select bind:value={sort} on:change={applyFilters}>
+                            <option value="popular">Obľúbenosť</option>
                             <option value="newest">Najnovšie</option>
                             <option value="price_asc">Najlacnejšie</option>
                             <option value="price_desc">Najdrahšie</option>
@@ -369,6 +382,7 @@
                             {#if activeFilterCount > 0}<span class="mob-bar__badge">{activeFilterCount}</span>{/if}
                         </button>
                         <select class="mob-bar__sort" bind:value={sort} on:change={applyFilters}>
+                            <option value="popular">Obľúbenosť</option>
                             <option value="newest">Najnovšie</option>
                             <option value="price_asc">Najlacnejšie</option>
                             <option value="price_desc">Najdrahšie</option>
@@ -406,7 +420,12 @@
                             {#if viewMode === 'list'}
                                 <div class="prods__list">
                                     {#each products as product, i}
-                                        <article class="pl" class:pl--featured={i === 0}>
+                                        <article class="pl" class:pl--featured={isLeaf && product.rank <= 3}>
+                                            {#if isLeaf && product.rank && product.rank <= 50}
+                                                <div class="pl__rank {getRankClass(product.rank)}">
+                                                    <span class="pl__rank-num">{product.rank}</span>
+                                                </div>
+                                            {/if}
                                             <a href="/produkt/{product.slug}" class="pl__img">
                                                 {#if product.image_url}
                                                     <img src={product.image_url} alt={product.title} loading="lazy">
@@ -421,15 +440,17 @@
                                                     {#if product.brand}
                                                         <span class="pl__brand">{product.brand}</span>
                                                     {/if}
-                                                    {#if i === 0}
-                                                        <span class="pl__badge pl__badge--top">🔥 Populárny</span>
+                                                    {#if isLeaf && product.rank === 1}
+                                                        <span class="pl__badge pl__badge--gold">⭐ Najlepšia voľba</span>
+                                                    {:else if isLeaf && product.rank <= 3}
+                                                        <span class="pl__badge pl__badge--hot">🔥 Obľúbený</span>
                                                     {/if}
                                                 </div>
-                                                <h3 class="pl__title"><a href="/produkt/{product.slug}">{product.title}</a></h3>
+                                                <h3 class="pl__title"><a href="/produkt/{product.slug}">{decodeHtml(product.title)}</a></h3>
                                                 {#if product.description}
                                                     <p class="pl__desc">{product.description.substring(0, 160)}{product.description.length > 160 ? '...' : ''}</p>
                                                 {/if}
-                                                {#if product.offer_count > 0}
+                                                {#if isLeaf && product.offer_count > 0}
                                                     <div class="pl__meta">
                                                         <span class="pl__offers-badge">
                                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
@@ -451,11 +472,11 @@
                                                         <span class="pl__price-val">{formatPrice(product.price || 0)}</span>
                                                     {/if}
                                                 </div>
-                                                {#if product.offer_count > 1}
+                                                {#if isLeaf && product.offer_count > 1}
                                                     <span class="pl__shop-count">v {product.offer_count} obchodoch</span>
                                                 {/if}
                                                 <a href="/produkt/{product.slug}" class="pl__cta">
-                                                    Porovnať ceny
+                                                    {isLeaf ? 'Porovnať ceny' : 'Zobraziť ponuky'}
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                                                 </a>
                                             </div>
@@ -820,6 +841,25 @@
 .pl__brand { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
 .pl__badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; white-space: nowrap; }
 .pl__badge--top { background: linear-gradient(135deg, #ff6b35, #ff8f5e); color: #fff; }
+.pl__badge--gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.pl__badge--hot { background: linear-gradient(135deg, #ef4444, #f87171); color: #fff; }
+
+/* RANK BADGES - leaf categories */
+.pl__rank { position: absolute; left: -2px; top: 12px; z-index: 2; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; font-weight: 800; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.pl__rank.rank-gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; width: 36px; height: 36px; font-size: 15px; }
+.pl__rank.rank-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+.pl__rank.rank-warm { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.pl__rank.rank-gray { background: #e2e8f0; color: #64748b; font-size: 11px; width: 28px; height: 28px; }
+.pl { position: relative; }
+
+/* Grid rank badges */
+.pc { position: relative; }
+.pc__rank { position: absolute; left: 8px; top: 8px; z-index: 2; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+.pc__rank.rank-gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; width: 32px; height: 32px; font-size: 14px; }
+.pc__rank.rank-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+.pc__rank.rank-warm { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.pc__rank.rank-gray { background: #e2e8f0; color: #64748b; font-size: 10px; width: 24px; height: 24px; }
+.pc--ranked { border-color: #fbbf24; }
 .pl__title { font-size: 16px; font-weight: 700; margin: 0 0 6px; line-height: 1.35; }
 .pl__title a { color: #1f2937; transition: color 0.15s; }
 .pl__title a:hover { color: #c4956a; }
