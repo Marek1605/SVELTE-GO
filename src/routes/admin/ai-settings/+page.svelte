@@ -26,6 +26,7 @@
     let cleanupLoading = false, cleanupMsg = '';
     let showImport = false, importText = '', clearBeforeImport = false, importMsg = '';
     let uploadedFileName = '';
+    let resetLoading = false, resetMsg = '', resetClearCache = false;
     $: importCount = (() => { try { const p = JSON.parse(importText); return Array.isArray(p) ? p.length : (p?.mappings?.length || 0); } catch { return 0; } })();
 
     function handleFileUpload(e) {
@@ -103,6 +104,37 @@
             applyMsg = '❌ ' + e.message;
         }
         applyLoading = false;
+    }
+
+    async function resetMapping() {
+        if (!cleanupShopId) { alert('Vyberte obchod'); return; }
+        const sn = shops.find(s => s.id === cleanupShopId)?.shop_name || '';
+        let msg = `⚠️ Reset mapovania pre "${sn}":\n\n`;
+        msg += '• Odpojí všetky ponuky zaradené cez mapping import (stanú sa nesparované)\n';
+        msg += '• Zmaže produkty vytvorené týmto importom\n';
+        msg += '• Zmaže prázdne kategórie vytvorené importom\n';
+        if (resetClearCache) msg += '• Vymaže feed cache pre tento obchod\n';
+        msg += '\nPokračovať?';
+        if (!confirm(msg)) return;
+        
+        resetLoading = true;
+        resetMsg = '';
+        try {
+            const r = await apiFetch('/admin/ai/reset-mapping', {
+                method: 'POST',
+                body: JSON.stringify({ shop_id: cleanupShopId, clear_cache: resetClearCache })
+            });
+            if (r?.success) {
+                resetMsg = '✅ ' + r.message;
+                if (r.logs?.length) resetMsg += '\n\n' + r.logs.join('\n');
+            } else {
+                resetMsg = '❌ ' + (r?.error || 'Chyba');
+            }
+        } catch(e) {
+            resetMsg = '❌ ' + e.message;
+        }
+        resetLoading = false;
+        setTimeout(() => resetMsg = '', 30000);
     }
 
     let treeVerifyLoading = false, treeVerifySuggestions = [], treeVerifyModel = '', treeVerifySize = 0;
@@ -730,6 +762,20 @@
             {/if}
         </div>
         {/if}
+
+        <hr style="margin:24px 0;border-color:#e5e5e5">
+        <h3 style="margin:0 0 8px">🔄 Reset mapovania</h3>
+        <p class="desc">Zmaže produkty vytvorené importom, odpojí ponuky a zmaže importované prázdne kategórie. <strong>Existujúce (Google/master) kategórie zostanú nedotknuté.</strong></p>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <button class="btn red" on:click={resetMapping} disabled={!cleanupShopId || resetLoading}>
+                {resetLoading ? '⏳ Resetujem...' : '🔄 Reset mapovania'}
+            </button>
+            <label style="font-size:13px;display:flex;align-items:center;gap:4px">
+                <input type="checkbox" bind:checked={resetClearCache}>
+                Vymazať aj feed cache (len pre tento obchod)
+            </label>
+        </div>
+        {#if resetMsg}<pre class="cleanup-result" style="margin-top:12px;white-space:pre-wrap;font-family:inherit">{resetMsg}</pre>{/if}
     </div>
     {/if}
     {/if}
