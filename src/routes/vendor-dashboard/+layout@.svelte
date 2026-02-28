@@ -354,6 +354,9 @@
         padding: 12px 20px;
         background: #fff;
         border-bottom: 1px solid #e2e8f0;
+        position: sticky;
+        top: 0;
+        z-index: 50;
     }
     
     .vp-topbar-left {
