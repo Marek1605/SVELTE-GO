@@ -16,7 +16,7 @@
     let activeCategoryId = null;
     let activeCategoryData = null;
     let closeTimeout = null;
-    let catNavStyle = 'pills';
+    let catNavStyle = 'icons';
     let showAllCats = false;
     let editMode = false;
     let hiddenCats = new Set();
@@ -89,10 +89,7 @@
         update();
         window.addEventListener('scroll', onScroll, { passive: true });
 
-        try {
-            const saved = localStorage.getItem('mp_catnav_style');
-            if (saved && ['pills','icons','minimal','cards'].includes(saved)) catNavStyle = saved;
-        } catch(e) {}
+        // catNavStyle forced to 'icons' - no localStorage override
 
         // Load hidden categories
         try {
@@ -100,11 +97,7 @@
             if (hidden) hiddenCats = new Set(JSON.parse(hidden));
         } catch(e) {}
 
-        // Listen for admin style changes
-        const onStorage = (e) => {
-            if (e.key === 'mp_catnav_style' && e.newValue) catNavStyle = e.newValue;
-        };
-        window.addEventListener('storage', onStorage);
+        // Style fixed to icons
 
         // Load site settings
         fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/site/settings')
@@ -118,13 +111,11 @@
                 showWishlist = s?.show_wishlist !== 'false';
                 showCompare = s?.show_compare !== 'false';
                 if (s?.show_mobile_catnav !== undefined) showMobileCatnav = s.show_mobile_catnav === 'true';
-                if (s?.catnav_style && ['pills','icons','minimal','cards'].includes(s.catnav_style)) catNavStyle = s.catnav_style;
             })
             .catch(e => { console.warn('Settings load failed:', e); });
 
         return () => {
             window.removeEventListener('scroll', onScroll);
-            window.removeEventListener('storage', onStorage);
             if (closeTimeout) clearTimeout(closeTimeout);
         };
     });
@@ -497,8 +488,8 @@
 /* CARDS variant */
 .cn-card { display: flex; align-items: center; gap: 8px; padding: 7px 14px 7px 7px; background: rgba(243,244,246,0.6); border: 1px solid #e5e7eb; border-radius: 12px; font-size: 13px; font-weight: 600; color: #374151; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
 .cn-card:hover { background: #fff; border-color: #c4956a; box-shadow: 0 4px 12px rgba(196,149,106,0.1); transform: translateY(-1px); }
-.cn-card.is-active { background: #c4956a; color: #fff; border-color: #c4956a; }
-.cn-card__img { width: 32px; height: 32px; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.cn-card.is-active { background: #c4956a; color: #fff; border-color: #c4956a; box-shadow: 0 4px 12px rgba(196,149,106,0.3); }
+.cn-card__img { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(145deg, #f9fafb, #f3f4f6); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
 .cn-card__img img { width: 100%; height: 100%; object-fit: cover; }
 .cn-card__img span { font-size: 16px; }
 .cn-card__name { line-height: 1; }
