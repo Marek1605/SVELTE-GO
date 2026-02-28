@@ -24,7 +24,7 @@
     let sort = 'popular'; // 'popular' for leaf categories, shows rank badges
     let brandSearch = '';
     let mobileFilterOpen = false;
-    let viewMode = 'list'; // 'grid' or 'list'
+    let viewMode = 'grid'; // default grid for product cards side-by-side // 'grid' or 'list'
 
     // Leaf category = no subcategories → default to list view
     $: isLeaf = children.length === 0;
@@ -441,9 +441,9 @@
                                                         <span class="pl__brand">{product.brand}</span>
                                                     {/if}
                                                     {#if isLeaf && product.rank === 1}
-                                                        <span class="pl__badge pl__badge--gold">⭐ Najlepšia voľba</span>
+                                                        <span class="pl__badge pl__badge--gold">Najlepšia voľba</span>
                                                     {:else if isLeaf && product.rank <= 3}
-                                                        <span class="pl__badge pl__badge--hot">🔥 Obľúbený</span>
+                                                        <span class="pl__badge pl__badge--hot">Obľúbený produkt</span>
                                                     {/if}
                                                 </div>
                                                 <h3 class="pl__title"><a href="/produkt/{product.slug}">{decodeHtml(product.title)}</a></h3>
@@ -775,7 +775,7 @@
 .prods__info { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
 
 /* Product grid */
-.prods__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.prods__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
 
 /* Product card */
 .pc { background: #fff; border-radius: 12px; border: 1px solid #eef0f4; overflow: hidden; transition: all 0.2s; display: flex; flex-direction: column; }
@@ -841,25 +841,25 @@
 .pl__brand { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
 .pl__badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; white-space: nowrap; }
 .pl__badge--top { background: linear-gradient(135deg, #ff6b35, #ff8f5e); color: #fff; }
-.pl__badge--gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
-.pl__badge--hot { background: linear-gradient(135deg, #ef4444, #f87171); color: #fff; }
+.pl__badge--gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 700; }
+.pl__badge--hot { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: #fff; font-weight: 700; }
 
-/* RANK BADGES - leaf categories */
-.pl__rank { position: absolute; left: -2px; top: 12px; z-index: 2; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; font-weight: 800; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-.pl__rank.rank-gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; width: 36px; height: 36px; font-size: 15px; }
-.pl__rank.rank-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
-.pl__rank.rank-warm { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
-.pl__rank.rank-gray { background: #e2e8f0; color: #64748b; font-size: 11px; width: 28px; height: 28px; }
+/* RANK BADGES - leaf categories (ribbon style) */
+.pl__rank { position: absolute; left: 0; top: 10px; z-index: 2; display: flex; align-items: center; justify-content: center; min-width: 28px; height: 24px; padding: 0 8px; font-weight: 800; font-size: 11px; letter-spacing: -0.3px; border-radius: 0 6px 6px 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+.pl__rank.rank-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; font-size: 13px; min-width: 32px; height: 28px; }
+.pl__rank.rank-blue { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
+.pl__rank.rank-warm { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; opacity: 0.85; }
+.pl__rank.rank-gray { background: #e2e8f0; color: #64748b; font-size: 10px; }
 .pl { position: relative; }
 
-/* Grid rank badges */
+/* Grid rank badges (ribbon style) */
 .pc { position: relative; }
-.pc__rank { position: absolute; left: 8px; top: 8px; z-index: 2; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
-.pc__rank.rank-gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; width: 32px; height: 32px; font-size: 14px; }
-.pc__rank.rank-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
-.pc__rank.rank-warm { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
-.pc__rank.rank-gray { background: #e2e8f0; color: #64748b; font-size: 10px; width: 24px; height: 24px; }
-.pc--ranked { border-color: #fbbf24; }
+.pc__rank { position: absolute; left: 0; top: 10px; z-index: 2; display: flex; align-items: center; justify-content: center; min-width: 26px; height: 22px; padding: 0 7px; font-weight: 800; font-size: 10px; letter-spacing: -0.3px; border-radius: 0 5px 5px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+.pc__rank.rank-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; font-size: 12px; min-width: 30px; height: 26px; }
+.pc__rank.rank-blue { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
+.pc__rank.rank-warm { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; opacity: 0.85; }
+.pc__rank.rank-gray { background: #e2e8f0; color: #64748b; font-size: 9px; }
+.pc--ranked { border-color: #fde68a; }
 .pl__title { font-size: 16px; font-weight: 700; margin: 0 0 6px; line-height: 1.35; }
 .pl__title a { color: #1f2937; transition: color 0.15s; }
 .pl__title a:hover { color: #c4956a; }
