@@ -548,7 +548,7 @@
 .p__ph{font-size:28px;opacity:.12}
 .p__body{padding:10px;flex:1;display:flex;flex-direction:column}
 .p__brand{font-size:9px;font-weight:700;color:#c4956a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px}
-.p__name{font-size:11px;font-weight:600;line-height:1.3;margin:0 0 4px;color:#1e293b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:28px}
+.p__name{font-size:12.5px;font-weight:700;line-height:1.3;margin:0 0 4px;color:#0f172a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:32px}
 .p__offers{font-size:9px;color:#64748b;margin-bottom:3px}
 .p__price{margin-bottom:6px}
 .p__pf{font-size:9px;color:#94a3b8}

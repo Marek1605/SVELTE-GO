@@ -447,8 +447,8 @@
 
 /* ═══ CATNAV ═══ */
 .mp-catnav { background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 998; }
-.mp-catnav__inner { display: flex; align-items: center; max-width: 100%; padding: 0 0 0 16px; position: relative; }
-.mp-catnav__list { display: flex; gap: 4px; flex: 1; min-width: 0; overflow: hidden; padding: 6px 0; }
+.mp-catnav__inner { display: flex; align-items: center; max-width: 100%; padding: 0 16px; position: relative; }
+.mp-catnav__list { display: flex; gap: 4px; flex: 1; min-width: 0; overflow: hidden; padding: 6px 0; justify-content: center; }
 .mp-catnav__list::-webkit-scrollbar { display: none; }
 
 /* END SECTION - ≡ covers any partial category with white bg */
