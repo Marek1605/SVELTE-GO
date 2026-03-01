@@ -24,7 +24,7 @@
         if (reviewData.reviews.length > 0 || reviewLoading) return;
         reviewLoading = true;
         try {
-            const res = await fetch(\`/api/products/\${product.id}/reviews\`);
+            const res = await fetch(`/api/products/${product.id}/reviews`);
             const json = await res.json();
             if (json.success) reviewData = json.data;
         } catch(e) { console.error(e); }

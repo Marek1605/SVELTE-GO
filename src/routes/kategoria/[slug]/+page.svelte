@@ -25,10 +25,12 @@
     let sort = 'popular'; // 'popular' for leaf categories, shows rank badges
     let brandSearch = '';
     let mobileFilterOpen = false;
-    let viewMode = 'list'; // default list view // 'grid' or 'list'
+    let viewMode = 'grid';
+    let viewModeManual = false; // default list view // 'grid' or 'list'
 
     // Leaf category = no subcategories → default to list view
     $: isLeaf = children.length === 0;
+    $: if (!viewModeManual) viewMode = isLeaf ? 'list' : 'grid';
 
     // Range slider state
     let sliderMin = 0, sliderMax = 1000;
