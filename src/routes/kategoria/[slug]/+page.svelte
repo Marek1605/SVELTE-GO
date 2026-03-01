@@ -406,11 +406,7 @@
                                             <span>{child.name?.charAt(0)?.toUpperCase() || '?'}</span>
                                         {/if}
                                     </div>
-                                    <div class="subcat__text">
-                                        <span class="subcat__name">{child.name}</span>
-                                        {#if child.product_count}<span class="subcat__count">{child.product_count} produktov</span>{/if}
-                                    </div>
-                                    <svg class="subcat__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                    <span class="subcat__name">{child.name}</span>
                                 </a>
                             {/each}
                         </div>
@@ -784,17 +780,13 @@
 .mob-bar { display: none; }
 
 /* Subcategories */
-.subcats { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 20px; }
-.subcat { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fff; border: 1px solid #eef0f4; border-radius: 10px; transition: all 0.15s; }
-.subcat:hover { border-color: #c4956a; box-shadow: 0 4px 12px rgba(196,149,106,0.12); transform: translateY(-1px); }
-.subcat__img { width: 40px; height: 40px; background: linear-gradient(135deg, #f8f9fb, #f1f3f5); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.subcat__img img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
-.subcat__img span { font-size: 14px; color: #adb5bd; font-weight: 700; }
-.subcat__text { flex: 1; min-width: 0; }
-.subcat__name { font-size: 13px; font-weight: 600; color: #374151; line-height: 1.3; }
-.subcat__count { font-size: 11px; color: #94a3b8; margin-top: 2px; display: block; }
-.subcat__arrow { color: #d1d5db; flex-shrink: 0; transition: color 0.2s, transform 0.2s; }
-.subcat:hover .subcat__arrow { color: #c4956a; transform: translateX(2px); }
+.subcats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-bottom: 20px; }
+.subcat { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #eef0f4; border-radius: 8px; transition: all 0.15s; }
+.subcat:hover { border-color: #c4956a; box-shadow: 0 2px 8px rgba(196,149,106,0.1); }
+.subcat__img { width: 28px; height: 28px; background: #f8f9fb; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+.subcat__img img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+.subcat__img span { font-size: 12px; color: #adb5bd; font-weight: 600; }
+.subcat__name { font-size: 12px; font-weight: 500; color: #374151; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .subcat:hover .subcat__name { color: #c4956a; }
 
 /* Products info */
@@ -978,7 +970,6 @@
 @media (max-width: 600px) {
     .cat-title { font-size: 22px; }
     .subcats { grid-template-columns: 1fr; gap: 6px; }
-    .subcat__arrow { display: none; }
     .prods__grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .pc__body { padding: 10px; }
     .pc__price-val { font-size: 17px; }
