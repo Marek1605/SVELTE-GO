@@ -261,25 +261,21 @@
     <!-- ===== TRUST BAR ===== -->
     <section class="trust">
         <div class="trust__inner">
-            <div class="trust__pill trust__pill--warm">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="12" rx="2" fill="currentColor" opacity=".12"/><rect x="3" y="3" width="18" height="12" rx="2"/><line x1="8" y1="19" x2="16" y2="19"/><line x1="12" y1="15" x2="12" y2="19"/></svg>
-                <span class="trust__val">{fmtNum(animProducts)}+</span>
-                <span class="trust__lbl">produktov</span>
+            <div class="trust__item">
+                <div class="trust__ic trust__ic--o"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="12" rx="2" fill="currentColor" opacity=".12"/><rect x="3" y="3" width="18" height="12" rx="2"/><line x1="8" y1="19" x2="16" y2="19"/><line x1="12" y1="15" x2="12" y2="19"/></svg></div>
+                <div class="trust__txt"><span class="trust__num">{fmtNum(animProducts)}+</span><span class="trust__label">produktov</span></div>
             </div>
-            <div class="trust__pill trust__pill--blue">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="currentColor" opacity=".12"/><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor" opacity=".12"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor" opacity=".12"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="currentColor" opacity=".12"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-                <span class="trust__val">{fmtNum(animCategories)}</span>
-                <span class="trust__lbl">kategórií</span>
+            <div class="trust__item">
+                <div class="trust__ic trust__ic--b"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="currentColor" opacity=".12"/><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor" opacity=".12"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor" opacity=".12"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="currentColor" opacity=".12"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+                <div class="trust__txt"><span class="trust__num">{fmtNum(animCategories)}</span><span class="trust__label">kategórií</span></div>
             </div>
-            <div class="trust__pill trust__pill--green">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" opacity=".12"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                <span class="trust__val">Overené</span>
-                <span class="trust__lbl">e-shopy</span>
+            <div class="trust__item">
+                <div class="trust__ic trust__ic--g"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" opacity=".12"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
+                <div class="trust__txt"><span class="trust__num">Overené</span><span class="trust__label">e-shopy</span></div>
             </div>
-            <div class="trust__pill trust__pill--violet">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="currentColor" opacity=".12"/><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span class="trust__val">Denne</span>
-                <span class="trust__lbl">aktualizované</span>
+            <div class="trust__item">
+                <div class="trust__ic trust__ic--p"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="currentColor" opacity=".12"/><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                <div class="trust__txt"><span class="trust__num">Denne</span><span class="trust__label">aktualizované</span></div>
             </div>
         </div>
     </section>
@@ -474,21 +470,20 @@
 .banners__dot{width:7px;height:7px;border-radius:50%;background:#cbd5e1;border:none;padding:0;cursor:pointer;transition:all .3s}
 .banners__dot.active{background:#c4956a;width:20px;border-radius:4px}
 
+
 /* ====== TRUST BAR ====== */
 .trust{padding:0 16px;margin-top:12px;position:relative;z-index:2}
-.trust__inner{max-width:960px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.trust__pill{display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:12px}
-.trust__pill--warm{background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px solid #fed7aa}
-.trust__pill--blue{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe}
-.trust__pill--green{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1px solid #a7f3d0}
-.trust__pill--violet{background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1px solid #ddd6fe}
-.trust__pill--warm svg{color:#c2410c}
-.trust__pill--blue svg{color:#1d4ed8}
-.trust__pill--green svg{color:#15803d}
-.trust__pill--violet svg{color:#7c3aed}
-.trust__pill svg{flex-shrink:0}
-.trust__val{font-size:14px;font-weight:800;color:#0f172a;line-height:1.1;white-space:nowrap}
-.trust__lbl{font-size:10px;color:#64748b;line-height:1.1;display:none}
+.trust__inner{max-width:960px;margin:0 auto;padding:0;background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(2,1fr);overflow:hidden}
+.trust__item{display:flex;align-items:center;gap:8px;padding:12px 12px}
+.trust__ic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.trust__ic svg{width:16px;height:16px}
+.trust__ic--o{background:linear-gradient(135deg,#fff7ed,#fed7aa);color:#c2410c}
+.trust__ic--b{background:linear-gradient(135deg,#eff6ff,#bfdbfe);color:#1d4ed8}
+.trust__ic--g{background:linear-gradient(135deg,#ecfdf5,#a7f3d0);color:#15803d}
+.trust__ic--p{background:linear-gradient(135deg,#f5f3ff,#ddd6fe);color:#7c3aed}
+.trust__txt{display:flex;flex-direction:column}
+.trust__num{font-size:13px;font-weight:800;color:#0f172a;line-height:1.2}
+.trust__label{font-size:9px;color:#64748b}
 
 /* ====== CATEGORIES ====== */
 .cats{padding:24px 0 8px}
@@ -637,12 +632,15 @@
     .dhero__tag:hover{background:rgba(196,149,106,.15);border-color:rgba(196,149,106,.3);color:#c4956a}
     .dhero__tags-label{font-size:12px;color:#64748b}
     /* ── Floating Trust Bar (wide, monochrome pro icons) ── */
-    .trust{padding:0 24px;margin-top:-28px;position:relative;z-index:2}
-    .trust__inner{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:960px;margin:0 auto}
-    .trust__pill{flex-direction:row;align-items:center;gap:10px;padding:16px 20px;border-radius:14px;justify-content:center}
-    .trust__pill svg{width:20px;height:20px}
-    .trust__val{font-size:17px;font-weight:800}
-    .trust__lbl{display:inline;font-size:11px;color:#64748b}
+.trust{padding:0 24px;margin-top:-28px;position:relative;z-index:2}
+    .trust__inner{display:grid;grid-template-columns:repeat(4,1fr);border-radius:16px;max-width:960px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.08);overflow:hidden;background:#fff}
+    .trust__item{display:flex;align-items:center;gap:10px;padding:14px 18px;position:relative;justify-content:center}
+    .trust__item:not(:last-child)::after{content:'';position:absolute;right:0;top:22%;height:56%;width:1px;background:#e2e8f0}
+    .trust__ic{width:38px;height:38px;border-radius:10px}
+    .trust__ic svg{width:20px;height:20px}
+    .trust__txt{flex-direction:column}
+    .trust__num{font-size:17px;font-weight:800;color:#0f172a}
+    .trust__label{font-size:11px;color:#64748b;margin-top:1px}
     /* ── 5-col Categories ── */
     .cats{padding:28px 24px 12px;max-width:1200px;margin:0 auto}
     .cats__grid{grid-template-columns:repeat(5,1fr);gap:10px;padding:0}
@@ -706,9 +704,11 @@
     .banners{padding:8px 12px 0}
     .banners__title{font-size:15px;max-width:85%}
     .banners__slide{padding:16px 14px}
-    .trust__inner{gap:6px}
-    .trust__pill{padding:10px 10px;gap:6px;border-radius:10px}
-    .trust__val{font-size:12px}
+.trust__inner{border-radius:12px}
+    .trust__item{padding:10px 10px;gap:6px}
+    .trust__ic{width:28px;height:28px;border-radius:7px}
+    .trust__ic svg{width:14px;height:14px}
+    .trust__num{font-size:12px}
     .cats__grid{gap:6px;padding:0 12px}
     .cc{padding:10px;gap:8px}
     .cc__ic{width:34px;height:34px}
