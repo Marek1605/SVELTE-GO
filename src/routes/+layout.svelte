@@ -89,7 +89,7 @@
         update();
         window.addEventListener('scroll', onScroll, { passive: true });
 
-        try { const s = localStorage.getItem('mp_catnav_style'); if (s) catNavStyle = s; } catch(e) {}
+        // catNavStyle forced to 'icons' - no localStorage override
 
         // Load hidden categories
         try {
@@ -100,7 +100,7 @@
         // Style loaded from localStorage
 
         // Load site settings
-        fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/site/settings')
+        fetch((typeof window !== 'undefined' ? window.location.origin : '') + '/api/v1/site/settings')
             .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(d => {
                 const s = d?.data || d;
@@ -497,7 +497,7 @@
 .cn-ico:hover .cn-ico__circle { border-color: #c4956a; transform: scale(1.1); box-shadow: 0 4px 14px rgba(196,149,106,0.15); }
 .cn-ico__circle img { width: 100%; height: 100%; object-fit: cover; }
 .cn-ico__circle span { font-size: 22px; }
-.cn-ico__name { font-size: 11.5px; font-weight: 600; color: #4b5563; max-width: 88px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+.cn-ico__name { font-size: 13px; font-weight: 600; color: #4b5563; max-width: 110px; text-align: center; white-space: normal; line-height: 1.2; }
 .cn-ico:hover .cn-ico__name { color: #b07d4f; }
 
 /* MINIMAL variant */
@@ -548,7 +548,7 @@
 .mp-catnav.is-collapsed .cn-pill__ico span { font-size: 10px; }
 .mp-catnav.is-collapsed .cn-ico { padding: 2px 6px; gap: 2px; }
 .mp-catnav.is-collapsed .cn-ico__circle { width: 28px; height: 28px; border-width: 1.5px; }
-.mp-catnav.is-collapsed .cn-ico__name { font-size: 10px; max-width: 56px; font-weight: 600; color: #374151; }
+.mp-catnav.is-collapsed .cn-ico__name { font-size: 10px; max-width: 56px; font-weight: 600; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp-catnav.is-collapsed .cn-min { padding: 6px 10px; font-size: 12px; font-weight: 700; color: #1f2937; }
 .mp-catnav.is-collapsed .cn-card { padding: 3px 8px 3px 3px; font-size: 12px; font-weight: 700; color: #1f2937; }
 .mp-catnav.is-collapsed .cn-card__img { width: 22px; height: 22px; border-radius: 5px; }

@@ -9,7 +9,7 @@
     $: { if (data.category) viewModeManual = false; } // reset on nav
     $: ancestors = data.ancestors || [];
     $: children = data.children || [];
-    $: products = data.products || [];
+    $: products = (data.products || []).map((p, i) => ({ ...p, rank: p.rank || (i + 1) }));
     $: brands = data.brands || [];
     $: attributes = data.attributes || [];
     $: priceRange = data.priceRange || { min: 0, max: 1000 };
@@ -427,8 +427,8 @@
                             {#if viewMode === 'list'}
                                 <div class="prods__list">
                                     {#each products as product, i}
-                                        <article class="pl" class:pl--featured={isLeaf && product.rank <= 3}>
-                                            {#if isLeaf && product.rank && product.rank <= 50}
+                                        <article class="pl" class:pl--featured={product.rank <= 3}>
+                                            {#if product.rank && product.rank <= 50}
                                                 <div class="pl__rank {getRankClass(product.rank)}">
                                                     <span class="pl__rank-num">{product.rank}</span>
                                                 </div>
@@ -447,9 +447,9 @@
                                                     {#if product.brand}
                                                         <span class="pl__brand">{product.brand}</span>
                                                     {/if}
-                                                    {#if isLeaf && product.rank === 1}
+                                                    {#if product.rank === 1}
                                                         <span class="pl__badge pl__badge--gold">Najlepšia voľba</span>
-                                                    {:else if isLeaf && product.rank <= 3}
+                                                    {:else if product.rank <= 3}
                                                         <span class="pl__badge pl__badge--hot">Obľúbený produkt</span>
                                                     {/if}
                                                 </div>
@@ -461,9 +461,9 @@
                                                     {#if product.review_count}<span class="pl__reviews">({product.review_count})</span>{/if}
                                                 </div>
                                                 {#if product.description}
-                                                    <p class="pl__desc">{product.description.substring(0, 160)}{product.description.length > 160 ? '...' : ''}</p>
+                                                    <p class="pl__desc">{decodeHtml(product.description).substring(0, 160)}{product.description.length > 160 ? '...' : ''}</p>
                                                 {/if}
-                                                {#if isLeaf && product.offer_count > 0}
+                                                {#if product.offer_count > 0}
                                                     <div class="pl__meta">
                                                         <span class="pl__offers-badge">
                                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
@@ -488,11 +488,11 @@
                                                         <span class="pl__price-val">{formatPrice(product.price || 0)}</span>
                                                     {/if}
                                                 </div>
-                                                {#if isLeaf && product.offer_count > 1}
+                                                {#if product.offer_count > 1}
                                                     <span class="pl__shop-count">v {product.offer_count} obchodoch</span>
                                                 {/if}
                                                 <a href="/produkt/{product.slug}" class="pl__cta">
-                                                    {isLeaf ? 'Porovnať ceny' : 'Zobraziť ponuky'}
+                                                    {'Porovnať ceny'}
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                                                 </a>
                                             </div>
@@ -504,7 +504,10 @@
                             {:else}
                                 <div class="prods__grid">
                                     {#each products as product}
-                                        <article class="pc">
+                                        <article class="pc" class:pc--ranked={product.rank <= 3}>
+                                            {#if product.rank && product.rank <= 50}
+                                                <div class="pc__rank {getRankClass(product.rank)}">{product.rank}</div>
+                                            {/if}
                                             <a href="/produkt/{product.slug}" class="pc__img">
                                                 {#if product.image_url}
                                                     <img src={product.image_url} alt={product.title} loading="lazy">
