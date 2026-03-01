@@ -404,7 +404,11 @@
                                             <span>{child.name?.charAt(0)?.toUpperCase() || '?'}</span>
                                         {/if}
                                     </div>
-                                    <span class="subcat__name">{child.name}</span>
+                                    <div class="subcat__text">
+                                        <span class="subcat__name">{child.name}</span>
+                                        {#if child.product_count}<span class="subcat__count">{child.product_count} produktov</span>{/if}
+                                    </div>
+                                    <svg class="subcat__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                                 </a>
                             {/each}
                         </div>
@@ -463,6 +467,9 @@
                                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                                                             {product.offer_count} {product.offer_count === 1 ? 'obchod' : product.offer_count < 5 ? 'obchody' : 'obchodov'}
                                                         </span>
+                                                        {#if product.price_min && product.price_max && product.price_max > product.price_min}
+                                                            <span class="pl__save-badge">Ušetrite {formatPrice(product.price_max - product.price_min)}</span>
+                                                        {/if}
                                                     </div>
                                                 {/if}
                                             </div>
@@ -514,8 +521,11 @@
                                                     <span class="pc__price-from">od</span>
                                                     <span class="pc__price-val">{formatPrice(product.price_min || product.price)}</span>
                                                 </div>
-                                                {#if product.offer_count > 1}
-                                                    <div class="pc__offers">{product.offer_count} ponúk</div>
+                                                {#if product.offer_count > 0}
+                                                    <div class="pc__offers">
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                                        {product.offer_count} {product.offer_count === 1 ? 'obchod' : product.offer_count < 5 ? 'obchody' : 'obchodov'}
+                                                    </div>
                                                 {/if}
                                                 <a href="/produkt/{product.slug}" class="pc__btn">Porovnať ceny</a>
                                             </div>
@@ -769,13 +779,17 @@
 .mob-bar { display: none; }
 
 /* Subcategories */
-.subcats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-bottom: 20px; }
-.subcat { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #eef0f4; border-radius: 8px; transition: all 0.15s; }
-.subcat:hover { border-color: #c4956a; box-shadow: 0 2px 8px rgba(196,149,106,0.1); }
-.subcat__img { width: 28px; height: 28px; background: #f8f9fb; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.subcat__img img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
-.subcat__img span { font-size: 12px; color: #adb5bd; font-weight: 600; }
-.subcat__name { font-size: 12px; font-weight: 500; color: #374151; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.subcats { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 24px; }
+.subcat { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #fff; border: 1px solid #eef0f4; border-radius: 12px; transition: all 0.2s; }
+.subcat:hover { border-color: #c4956a; box-shadow: 0 4px 12px rgba(196,149,106,0.12); transform: translateY(-1px); }
+.subcat__img { width: 40px; height: 40px; background: linear-gradient(135deg, #f8f9fb, #f1f3f5); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+.subcat__img img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+.subcat__img span { font-size: 14px; color: #adb5bd; font-weight: 700; }
+.subcat__text { flex: 1; min-width: 0; }
+.subcat__name { font-size: 13px; font-weight: 600; color: #1f2937; line-height: 1.2; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.subcat__count { font-size: 11px; color: #94a3b8; margin-top: 2px; display: block; }
+.subcat__arrow { color: #d1d5db; flex-shrink: 0; transition: color 0.2s, transform 0.2s; }
+.subcat:hover .subcat__arrow { color: #c4956a; transform: translateX(2px); }
 .subcat:hover .subcat__name { color: #c4956a; }
 
 /* Products info */
@@ -798,7 +812,8 @@
 .pc__price { margin-bottom: 4px; }
 .pc__price-from { font-size: 11px; color: #6b7280; }
 .pc__price-val { font-size: 20px; font-weight: 800; color: #111; margin-left: 3px; }
-.pc__offers { font-size: 11px; color: #6b7280; margin-bottom: 8px; }
+.pc__offers { font-size: 11px; color: #6b7280; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+.pc__offers svg { color: #c4956a; }
 .pc__btn { display: block; text-align: center; padding: 9px; background: linear-gradient(135deg, #c4956a, #b8875c); color: #fff; border-radius: 8px; font-weight: 600; font-size: 12px; transition: all 0.15s; margin-top: auto; }
 .pc__btn:hover { background: linear-gradient(135deg, #b8875c, #a67a50); }
 
@@ -874,6 +889,7 @@
 .pl__meta { display: flex; align-items: center; gap: 12px; margin-top: auto; }
 .pl__offers-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: #6b7280; }
 .pl__offers-badge svg { color: #c4956a; }
+.pl__save-badge { font-size: 11px; font-weight: 600; color: #16a34a; background: #f0fdf4; padding: 2px 8px; border-radius: 100px; }
 
 /* List action area */
 .pl__action {
@@ -956,7 +972,8 @@
 }
 @media (max-width: 600px) {
     .cat-title { font-size: 22px; }
-    .subcats { grid-template-columns: repeat(2, 1fr); }
+    .subcats { grid-template-columns: 1fr; gap: 6px; }
+    .subcat__arrow { display: none; }
     .prods__grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .pc__body { padding: 10px; }
     .pc__price-val { font-size: 17px; }

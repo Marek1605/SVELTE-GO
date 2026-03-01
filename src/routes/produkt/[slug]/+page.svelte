@@ -13,6 +13,44 @@
     let isWishlisted = false;
     let isCompared = false;
     let activeTab = 'offers';
+    let reviewData = { reviews: [], total: 0, avg_rating: 0, distribution: [] };
+    let reviewLoading = false;
+    let showReviewForm = false;
+    let reviewForm = { author_name: '', rating: 5, title: '', body: '', pros: '', cons: '', verification_code: '' };
+    let reviewSubmitting = false;
+    let reviewMessage = '';
+
+    async function loadReviews() {
+        if (reviewData.reviews.length > 0 || reviewLoading) return;
+        reviewLoading = true;
+        try {
+            const res = await fetch(\`/api/products/\${product.id}/reviews\`);
+            const json = await res.json();
+            if (json.success) reviewData = json.data;
+        } catch(e) { console.error(e); }
+        reviewLoading = false;
+    }
+
+    async function submitReview() {
+        reviewSubmitting = true;
+        reviewMessage = '';
+        try {
+            const res = await fetch('/api/reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...reviewForm, product_id: product.id })
+            });
+            const json = await res.json();
+            reviewMessage = json.message || (json.success ? 'Odoslané!' : 'Chyba');
+            if (json.success) {
+                showReviewForm = false;
+                reviewForm = { author_name: '', rating: 5, title: '', body: '', pros: '', cons: '', verification_code: '' };
+                reviewData = { ...reviewData, reviews: [], total: 0 };
+                loadReviews();
+            }
+        } catch(e) { reviewMessage = 'Chyba pri odosielaní'; }
+        reviewSubmitting = false;
+    }
     let offersFilter = 'all';
     
     $: mainImage = images[currentImageIndex] || product?.image_url || '';
@@ -248,6 +286,9 @@
         <!-- Tabs Navigation -->
         <div class="mp-tabs">
             <button class="mp-tabs__btn" class:active={activeTab === 'offers'} on:click={() => activeTab = 'offers'}>Kde kúpiť</button>
+                <button class="mp-tabs__btn" class:active={activeTab === 'reviews'} on:click={() => { activeTab = 'reviews'; loadReviews(); }}>
+                    Recenzie {#if reviewData.total > 0}<span class="mp-tabs__count">({reviewData.total})</span>{/if}
+                </button>
             <button class="mp-tabs__btn" class:active={activeTab === 'desc'} on:click={() => activeTab = 'desc'}>Popis</button>
             <button class="mp-tabs__btn" class:active={activeTab === 'params'} on:click={() => activeTab = 'params'}>Parametre</button>
         </div>
@@ -327,6 +368,93 @@
             {/if}
             
             <!-- Description -->
+            
+            {#if activeTab === 'reviews'}
+            <section class="mp-reviews">
+                <!-- Rating summary -->
+                <div class="rv-summary">
+                    <div class="rv-summary__big">
+                        <span class="rv-summary__num">{reviewData.avg_rating?.toFixed(1) || '0.0'}</span>
+                        <div class="rv-summary__stars">
+                            {#each Array(5) as _, s}
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="{s < Math.round(reviewData.avg_rating || 0) ? '#fbbf24' : 'none'}" stroke="{s < Math.round(reviewData.avg_rating || 0) ? '#fbbf24' : '#d1d5db'}" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            {/each}
+                        </div>
+                        <span class="rv-summary__total">{reviewData.total} {reviewData.total === 1 ? 'recenzia' : reviewData.total < 5 ? 'recenzie' : 'recenzií'}</span>
+                    </div>
+                    <div class="rv-summary__bars">
+                        {#each [5,4,3,2,1] as star}
+                            {@const cnt = reviewData.distribution?.find(d => d.stars === star)?.count || 0}
+                            <div class="rv-bar">
+                                <span class="rv-bar__label">{star} ★</span>
+                                <div class="rv-bar__track"><div class="rv-bar__fill" style="width:{reviewData.total > 0 ? (cnt/reviewData.total*100) : 0}%"></div></div>
+                                <span class="rv-bar__count">{cnt}</span>
+                            </div>
+                        {/each}
+                    </div>
+                    <button class="rv-write-btn" on:click={() => showReviewForm = !showReviewForm}>
+                        ✏️ Napísať recenziu
+                    </button>
+                </div>
+
+                <!-- Review form -->
+                {#if showReviewForm}
+                <div class="rv-form">
+                    <h3>Vaša recenzia</h3>
+                    <div class="rv-form__stars">
+                        {#each Array(5) as _, s}
+                            <button class="rv-form__star" on:click={() => reviewForm.rating = s + 1}>
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="{s < reviewForm.rating ? '#fbbf24' : 'none'}" stroke="{s < reviewForm.rating ? '#fbbf24' : '#d1d5db'}" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </button>
+                        {/each}
+                    </div>
+                    <input type="text" placeholder="Vaše meno" bind:value={reviewForm.author_name} class="rv-form__input">
+                    <input type="text" placeholder="Titulok recenzie" bind:value={reviewForm.title} class="rv-form__input">
+                    <textarea placeholder="Vaša skúsenosť s produktom..." bind:value={reviewForm.body} class="rv-form__textarea" rows="4"></textarea>
+                    <div class="rv-form__row">
+                        <input type="text" placeholder="👍 Klady" bind:value={reviewForm.pros} class="rv-form__input rv-form__input--half">
+                        <input type="text" placeholder="👎 Zápory" bind:value={reviewForm.cons} class="rv-form__input rv-form__input--half">
+                    </div>
+                    <input type="text" placeholder="Overovací kód (ak máte)" bind:value={reviewForm.verification_code} class="rv-form__input rv-form__input--code">
+                    {#if reviewMessage}<p class="rv-form__msg">{reviewMessage}</p>{/if}
+                    <button class="rv-form__submit" on:click={submitReview} disabled={reviewSubmitting}>
+                        {reviewSubmitting ? 'Odosielam...' : 'Odoslať recenziu'}
+                    </button>
+                </div>
+                {/if}
+
+                <!-- Reviews list -->
+                {#if reviewLoading}
+                    <div class="rv-loading">Načítavam recenzie...</div>
+                {:else if reviewData.reviews.length === 0}
+                    <div class="rv-empty">
+                        <p>Zatiaľ žiadne recenzie. Buďte prvý!</p>
+                    </div>
+                {:else}
+                    <div class="rv-list">
+                        {#each reviewData.reviews as review}
+                            <div class="rv-item">
+                                <div class="rv-item__head">
+                                    <div class="rv-item__stars">
+                                        {#each Array(5) as _, s}
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="{s < review.rating ? '#fbbf24' : '#e5e7eb'}" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        {/each}
+                                    </div>
+                                    <span class="rv-item__author">{review.author_name}</span>
+                                    {#if review.verified_purchase}<span class="rv-item__verified">✓ Overený nákup</span>{/if}
+                                    <span class="rv-item__date">{new Date(review.created_at).toLocaleDateString('sk-SK')}</span>
+                                </div>
+                                {#if review.title}<h4 class="rv-item__title">{review.title}</h4>{/if}
+                                {#if review.body}<p class="rv-item__body">{review.body}</p>{/if}
+                                {#if review.pros}<p class="rv-item__pros">👍 {review.pros}</p>{/if}
+                                {#if review.cons}<p class="rv-item__cons">👎 {review.cons}</p>{/if}
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
+            </section>
+            {/if}
+
             {#if activeTab === 'desc'}
             <section id="popis" class="mp-desc">
                 <h2>Popis produktu</h2>
@@ -1092,4 +1220,44 @@
     .mp-params__grid { grid-template-columns: 1fr; }
     .mp-ai-box__actions { grid-template-columns: 1fr; }
 }
+
+/* ═══ REVIEWS ═══ */
+.rv-summary { display: flex; gap: 24px; align-items: flex-start; padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.rv-summary__big { text-align: center; min-width: 120px; }
+.rv-summary__num { font-size: 42px; font-weight: 800; color: #111; display: block; line-height: 1; }
+.rv-summary__stars { display: flex; gap: 2px; justify-content: center; margin: 6px 0; }
+.rv-summary__total { font-size: 13px; color: #6b7280; }
+.rv-summary__bars { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 4px; }
+.rv-bar { display: flex; align-items: center; gap: 8px; }
+.rv-bar__label { font-size: 12px; font-weight: 600; color: #6b7280; width: 30px; text-align: right; }
+.rv-bar__track { flex: 1; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+.rv-bar__fill { height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); border-radius: 4px; transition: width 0.3s; }
+.rv-bar__count { font-size: 12px; color: #94a3b8; width: 24px; }
+.rv-write-btn { padding: 10px 20px; background: #c4956a; color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap; align-self: center; }
+.rv-write-btn:hover { background: #b8875c; }
+.rv-form { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.rv-form h3 { font-size: 16px; margin: 0 0 12px; }
+.rv-form__stars { display: flex; gap: 4px; margin-bottom: 12px; }
+.rv-form__star { background: none; border: none; cursor: pointer; padding: 2px; }
+.rv-form__input { width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 8px; }
+.rv-form__input--half { width: calc(50% - 4px); }
+.rv-form__input--code { max-width: 260px; font-family: monospace; }
+.rv-form__textarea { width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 8px; resize: vertical; font-family: inherit; }
+.rv-form__row { display: flex; gap: 8px; }
+.rv-form__msg { font-size: 13px; color: #16a34a; margin: 8px 0; }
+.rv-form__submit { padding: 12px 28px; background: #c4956a; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.rv-form__submit:disabled { opacity: 0.5; }
+.rv-loading, .rv-empty { text-align: center; padding: 32px; color: #6b7280; font-size: 14px; }
+.rv-list { display: flex; flex-direction: column; gap: 0; }
+.rv-item { padding: 16px 0; border-bottom: 1px solid #f3f4f6; }
+.rv-item:last-child { border-bottom: none; }
+.rv-item__head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.rv-item__stars { display: flex; gap: 1px; }
+.rv-item__author { font-size: 13px; font-weight: 600; color: #1f2937; }
+.rv-item__verified { font-size: 11px; color: #16a34a; font-weight: 600; background: #f0fdf4; padding: 2px 8px; border-radius: 100px; }
+.rv-item__date { font-size: 11px; color: #94a3b8; margin-left: auto; }
+.rv-item__title { font-size: 15px; font-weight: 600; margin: 4px 0 6px; color: #111; }
+.rv-item__body { font-size: 14px; color: #374151; line-height: 1.5; margin: 0 0 6px; }
+.rv-item__pros { font-size: 13px; color: #16a34a; margin: 2px 0; }
+.rv-item__cons { font-size: 13px; color: #dc2626; margin: 2px 0; }
 </style>
