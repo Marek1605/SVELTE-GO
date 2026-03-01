@@ -451,7 +451,7 @@
 .banners__dot{width:7px;height:7px;border-radius:50%;background:#cbd5e1;border:none;padding:0;cursor:pointer;transition:all .3s}
 .banners__dot.active{background:#c4956a;width:20px;border-radius:4px}
 
-/* ====== TRUST BAR (modern card) ====== */
+/* ====== TRUST BAR ====== */
 .trust{padding:0 16px;margin-top:12px;position:relative;z-index:2}
 .trust__inner{max-width:960px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .trust__pill{display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:12px}
