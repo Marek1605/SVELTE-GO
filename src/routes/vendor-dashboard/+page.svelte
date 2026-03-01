@@ -106,19 +106,6 @@
         </div>
         <p class="mkma-credit-info">Pri priemernom CPC {formatNumber(avgCpc, 3)} € vám zostáva ~{formatNumber(remainingClicks)} klikov</p>
     </div>
-    
-    <!-- Shop Card -->
-    {#if shop}
-
-        
-        <div class="mkma-shop-card">
-            <div class="mkma-shop-header">
-                <div class="mkma-shop-logo">
-                    {#if shop.shop_logo}
-                        <img src={shop.shop_logo} alt={shop.shop_name}>
-                    {:else}
-                        🏪
-                    {/if}
                 </div>
                 <div class="mkma-shop-info">
                     <h3>{shop.shop_name}</h3>
