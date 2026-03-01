@@ -89,7 +89,7 @@
         update();
         window.addEventListener('scroll', onScroll, { passive: true });
 
-        // catNavStyle forced to 'icons' - no localStorage override
+        try { const s = localStorage.getItem('mp_catnav_style'); if (s) catNavStyle = s; } catch(e) {}
 
         // Load hidden categories
         try {
@@ -97,7 +97,7 @@
             if (hidden) hiddenCats = new Set(JSON.parse(hidden));
         } catch(e) {}
 
-        // Style fixed to icons
+        // Style loaded from localStorage
 
         // Load site settings
         fetch('http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1/site/settings')
@@ -212,6 +212,28 @@
                                 {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
                             </div>
                             <span class="cn-card__name">{cat.name}</span>
+                        </a>
+                    {/each}
+
+                {:else if catNavStyle === 'modern'}
+                    {#each visibleCategories as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-mod" class:is-active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
+                            <div class="cn-mod__ico">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                            </div>
+                            <span class="cn-mod__name">{cat.name}</span>
+                        </a>
+                    {/each}
+
+                {:else if catNavStyle === 'clean'}
+                    {#each visibleCategories as cat}
+                        <a href={"/kategoria/" + (cat.slug || cat.id)} class="cn-cln" class:is-active={activeCategoryId === cat.id}
+                            on:mouseenter={() => handleCategoryMouseEnter(cat)} on:mouseleave={handleCategoryMouseLeave}>
+                            <div class="cn-cln__img">
+                                {#if cat.image_url}<img src={cat.image_url} alt="">{:else}<span>{getCategoryEmoji(cat.name)}</span>{/if}
+                            </div>
+                            <span class="cn-cln__name">{cat.name}</span>
                         </a>
                     {/each}
                 {/if}
@@ -493,6 +515,28 @@
 .cn-card__img img { width: 100%; height: 100%; object-fit: cover; }
 .cn-card__img span { font-size: 16px; }
 .cn-card__name { line-height: 1; }
+/* Modern — square icon, border-bottom hover, gradient bg */
+.cn-mod { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 12px; border-bottom: 2px solid transparent; transition: all 0.2s; flex-shrink: 0; cursor: pointer; position: relative; }
+.cn-mod:hover { border-bottom-color: #c4956a; background: linear-gradient(to top, #fff7ed, transparent); }
+.cn-mod.is-active { border-bottom-color: #c4956a; background: linear-gradient(to top, #fff7ed, transparent); }
+.cn-mod__ico { width: 40px; height: 40px; border-radius: 10px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: all 0.2s; }
+.cn-mod:hover .cn-mod__ico { background: #fff7ed; }
+.cn-mod__ico img { width: 100%; height: 100%; object-fit: cover; }
+.cn-mod__ico span { font-size: 20px; }
+.cn-mod__name { font-size: 11px; font-weight: 700; color: #475569; white-space: nowrap; max-width: 85px; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+.cn-mod:hover .cn-mod__name { color: #0f172a; }
+.cn-mod.is-active .cn-mod__name { color: #92400e; }
+/* Clean — free-floating image, no border/bg, name below */
+.cn-cln { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 10px; transition: all 0.2s; flex-shrink: 0; cursor: pointer; }
+.cn-cln:hover { transform: translateY(-2px); }
+.cn-cln.is-active .cn-cln__name { color: #c4956a; font-weight: 800; }
+.cn-cln__img { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; overflow: visible; transition: transform 0.2s; }
+.cn-cln:hover .cn-cln__img { transform: scale(1.08); }
+.cn-cln__img img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }
+.cn-cln__img span { font-size: 26px; }
+.cn-cln__name { font-size: 11px; font-weight: 600; color: #4b5563; white-space: nowrap; max-width: 85px; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+.cn-cln:hover .cn-cln__name { color: #0f172a; }
+
 
 /* Collapsed sizes - compact but readable */
 .mp-catnav.is-collapsed { border-bottom: 1px solid #f3f4f6; }
@@ -508,6 +552,14 @@
 .mp-catnav.is-collapsed .cn-min { padding: 6px 10px; font-size: 12px; font-weight: 700; color: #1f2937; }
 .mp-catnav.is-collapsed .cn-card { padding: 3px 8px 3px 3px; font-size: 12px; font-weight: 700; color: #1f2937; }
 .mp-catnav.is-collapsed .cn-card__img { width: 22px; height: 22px; border-radius: 5px; }
+.mp-catnav.is-collapsed .cn-mod { padding: 4px 8px; gap: 2px; border-bottom-width: 1.5px; }
+.mp-catnav.is-collapsed .cn-mod__ico { width: 24px; height: 24px; border-radius: 6px; }
+.mp-catnav.is-collapsed .cn-mod__ico span { font-size: 12px; }
+.mp-catnav.is-collapsed .cn-mod__name { font-size: 10px; }
+.mp-catnav.is-collapsed .cn-cln { padding: 4px 6px; gap: 1px; }
+.mp-catnav.is-collapsed .cn-cln__img { width: 26px; height: 26px; }
+.mp-catnav.is-collapsed .cn-cln__img span { font-size: 14px; }
+.mp-catnav.is-collapsed .cn-cln__name { font-size: 10px; }
 .mp-catnav.is-collapsed .cn-more { width: 28px; height: 28px; }
 .mp-catnav.is-collapsed .cn-more svg { width: 14px; height: 14px; }
 

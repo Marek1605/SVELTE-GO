@@ -27,7 +27,9 @@
         { id: 'pills', name: '💊 Pills', desc: 'Zaoblené čipy s ikonami — moderný Heureka štýl' },
         { id: 'icons', name: '⭕ Ikony', desc: 'Kruhy s obrázkami a názvom pod nimi — Instagram/Allegro štýl' },
         { id: 'minimal', name: '✏️ Minimal', desc: 'Čistý text s podčiarknutím — Apple/Adidas štýl' },
-        { id: 'cards', name: '🃏 Karty', desc: 'Malé kartičky s obrázkom — Amazon/Temu štýl' }
+        { id: 'cards', name: '🃏 Karty', desc: 'Malé kartičky s obrázkom — Amazon/Temu štýl' },
+        { id: 'modern', name: '🔲 Modern', desc: 'Štvorcová ikona s hover podčiarknutím — Allegro štýl' },
+        { id: 'clean', name: '🖼️ Clean', desc: 'Voľný obrázok bez orámovania — čistý minimalizmus' }
     ];
 
     function loadNavStyle() {
