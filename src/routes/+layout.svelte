@@ -480,10 +480,10 @@
 @keyframes fadeActions { from { opacity: 0; } to { opacity: 1; } }
 
 /* PILLS variant */
-.cn-pill { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: #f3f4f6; border: 1.5px solid transparent; border-radius: 100px; color: #374151; font-weight: 600; font-size: 13px; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
+.cn-pill { display: flex; align-items: center; gap: 8px; padding: 8px 16px 8px 8px; background: #f3f4f6; border: 1.5px solid transparent; border-radius: 100px; color: #1f2937; font-weight: 700; font-size: 13px; white-space: nowrap; transition: all 0.2s; flex: 1; justify-content: center; max-width: 160px; }
 .cn-pill:hover { background: #fef7f0; border-color: #c4956a; color: #c4956a; }
 .cn-pill.is-active { background: #c4956a; color: #fff; border-color: #c4956a; }
-.cn-pill__ico { width: 28px; height: 28px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.cn-pill__ico { width: 32px; height: 32px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
 .cn-pill__ico img { width: 100%; height: 100%; object-fit: cover; }
 .cn-pill__ico span { font-size: 14px; }
 .cn-pill.is-active .cn-pill__ico { background: rgba(255,255,255,0.25); }
@@ -501,17 +501,17 @@
 .cn-ico:hover .cn-ico__name { color: #92400e; font-weight: 800; }
 
 /* MINIMAL variant */
-.cn-min { padding: 12px 18px; font-size: 14px; font-weight: 500; color: #4b5563; position: relative; white-space: nowrap; transition: color 0.2s; flex-shrink: 0; }
+.cn-min { padding: 12px 14px; font-size: 14px; font-weight: 700; color: #1f2937; position: relative; white-space: nowrap; transition: color 0.2s; flex: 1; text-align: center; }
 .cn-min::after { content: ''; position: absolute; bottom: 0; left: 18px; right: 18px; height: 2px; background: #c4956a; transform: scaleX(0); transition: transform 0.2s; }
 .cn-min:hover { color: #c4956a; }
 .cn-min:hover::after, .cn-min.is-active::after { transform: scaleX(1); }
 .cn-min.is-active { color: #c4956a; font-weight: 600; }
 
 /* CARDS variant */
-.cn-card { display: flex; align-items: center; gap: 8px; padding: 7px 14px 7px 7px; background: rgba(243,244,246,0.6); border: 1px solid #e5e7eb; border-radius: 12px; font-size: 13px; font-weight: 600; color: #374151; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
+.cn-card { display: flex; align-items: center; gap: 10px; padding: 10px 16px 10px 10px; background: #fff; border: 1.5px solid #e5e7eb; border-radius: 14px; font-size: 13px; font-weight: 700; color: #1f2937; white-space: nowrap; transition: all 0.25s; flex: 1; justify-content: center; max-width: 170px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 .cn-card:hover { background: #fff; border-color: #c4956a; box-shadow: 0 4px 12px rgba(196,149,106,0.1); transform: translateY(-1px); }
 .cn-card.is-active { background: #c4956a; color: #fff; border-color: #c4956a; box-shadow: 0 4px 12px rgba(196,149,106,0.3); }
-.cn-card__img { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(145deg, #f9fafb, #f3f4f6); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.cn-card__img { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(145deg, #f9fafb, #f3f4f6); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
 .cn-card__img img { width: 100%; height: 100%; object-fit: cover; }
 .cn-card__img span { font-size: 16px; }
 .cn-card__name { line-height: 1; }
@@ -543,14 +543,14 @@
 .mp-catnav.is-collapsed .mp-catnav__inner { padding: 0 8px; }
 .mp-catnav.is-collapsed .mp-catnav__list { padding: 3px 0; gap: 0; }
 .mp-catnav.is-collapsed .mp-catnav__end { padding: 0 4px; gap: 3px; }
-.mp-catnav.is-collapsed .cn-pill { padding: 3px 8px 3px 3px; font-size: 12px; gap: 5px; font-weight: 700; color: #1f2937; }
+.mp-catnav.is-collapsed .cn-pill { padding: 4px 10px 4px 4px; font-size: 12px; gap: 5px; font-weight: 700; color: #1f2937; flex: 1; justify-content: center; }
 .mp-catnav.is-collapsed .cn-pill__ico { width: 20px; height: 20px; }
 .mp-catnav.is-collapsed .cn-pill__ico span { font-size: 10px; }
 .mp-catnav.is-collapsed .cn-ico { padding: 4px 2px; gap: 2px; flex: 1; }
 .mp-catnav.is-collapsed .cn-ico__circle { width: 32px; height: 32px; border-width: 1.5px; }
 .mp-catnav.is-collapsed .cn-ico__name { font-size: 10.5px; font-weight: 700; color: #1f2937; text-align: center; white-space: normal; line-height: 1.2; }
-.mp-catnav.is-collapsed .cn-min { padding: 6px 10px; font-size: 12px; font-weight: 700; color: #1f2937; }
-.mp-catnav.is-collapsed .cn-card { padding: 3px 8px 3px 3px; font-size: 12px; font-weight: 700; color: #1f2937; }
+.mp-catnav.is-collapsed .cn-min { padding: 6px 8px; font-size: 12px; font-weight: 700; color: #1f2937; flex: 1; text-align: center; }
+.mp-catnav.is-collapsed .cn-card { padding: 4px 8px 4px 4px; font-size: 12px; font-weight: 700; color: #1f2937; flex: 1; justify-content: center; }
 .mp-catnav.is-collapsed .cn-card__img { width: 22px; height: 22px; border-radius: 5px; }
 .mp-catnav.is-collapsed .cn-mod { padding: 4px 8px; gap: 2px; border-bottom-width: 1.5px; }
 .mp-catnav.is-collapsed .cn-mod__ico { width: 24px; height: 24px; border-radius: 6px; }
