@@ -65,31 +65,31 @@
         
         <div class="mkma-stat-card">
             <div class="mkma-stat-icon-wrapper">
-                <span class="mkma-stat-icon">💸</span>
+                <span class="mkma-stat-icon">🛍️</span>
             </div>
             <div class="mkma-stat-content">
-                <p class="mkma-stat-value">{formatNumber(stats.spentCredit, 2)} €</p>
-                <h3>Minutý kredit (30 dní)</h3>
+                <p class="mkma-stat-value">{formatNumber(shop?.total_offers || stats.totalProducts)}</p>
+                <h3>Produkty</h3>
             </div>
         </div>
         
         <div class="mkma-stat-card">
             <div class="mkma-stat-icon-wrapper">
-                <span class="mkma-stat-icon">📊</span>
+                <span class="mkma-stat-icon">✅</span>
             </div>
             <div class="mkma-stat-content">
-                <p class="mkma-stat-value">{formatNumber(avgCpc, 3)} €</p>
-                <h3>Priemerný CPC</h3>
+                <p class="mkma-stat-value">{formatNumber(stats.conversions)}</p>
+                <h3>Konverzie</h3>
             </div>
         </div>
         
         <div class="mkma-stat-card">
             <div class="mkma-stat-icon-wrapper">
-                <span class="mkma-stat-icon">🎯</span>
+                <span class="mkma-stat-icon">💰</span>
             </div>
             <div class="mkma-stat-content">
-                <p class="mkma-stat-value">{formatNumber(stats.conversionRate, 1)}%</p>
-                <h3>Konverzný pomer</h3>
+                <p class="mkma-stat-value">{formatNumber(currentCredit, 2)} €</p>
+                <h3>Kredit</h3>
             </div>
         </div>
     </div>
@@ -109,7 +109,7 @@
     
     <!-- Shop Card -->
     {#if shop}
-        <h2 class="mkma-section-title">Váš obchod</h2>
+
         
         <div class="mkma-shop-card">
             <div class="mkma-shop-header">
@@ -130,24 +130,7 @@
                 </div>
             </div>
             
-            <div class="mkma-shop-stats">
-                <div class="mkma-shop-stat">
-                    <div class="mkma-shop-stat-label">Produkty</div>
-                    <div class="mkma-shop-stat-value">{formatNumber(shop.total_offers || stats.totalProducts)}</div>
-                </div>
-                <div class="mkma-shop-stat">
-                    <div class="mkma-shop-stat-label">Kliky</div>
-                    <div class="mkma-shop-stat-value">{formatNumber(shop.total_clicks || stats.clicks)}</div>
-                </div>
-                <div class="mkma-shop-stat">
-                    <div class="mkma-shop-stat-label">Konverzie</div>
-                    <div class="mkma-shop-stat-value">{formatNumber(stats.conversions)}</div>
-                </div>
-                <div class="mkma-shop-stat">
-                    <div class="mkma-shop-stat-label">Kredit</div>
-                    <div class="mkma-shop-stat-value">{formatNumber(shop.credit_balance || 0, 2)} €</div>
-                </div>
-            </div>
+
         </div>
     {/if}
     
@@ -349,7 +332,7 @@
         border: 1px solid #E4E7EB;
         border-radius: 12px;
         padding: 24px;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
     }
     
     .mkma-shop-header {
