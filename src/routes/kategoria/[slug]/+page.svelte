@@ -24,7 +24,7 @@
     let sort = 'popular'; // 'popular' for leaf categories, shows rank badges
     let brandSearch = '';
     let mobileFilterOpen = false;
-    let viewMode = 'grid'; // default grid for product cards side-by-side // 'grid' or 'list'
+    let viewMode = 'list'; // default list view // 'grid' or 'list'
 
     // Leaf category = no subcategories → default to list view
     $: isLeaf = children.length === 0;
@@ -447,6 +447,12 @@
                                                     {/if}
                                                 </div>
                                                 <h3 class="pl__title"><a href="/produkt/{product.slug}">{decodeHtml(product.title)}</a></h3>
+                                                <div class="pl__rating">
+                                                    {#each Array(5) as _, s}
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="{s < Math.round(product.rating || 0) ? '#fbbf24' : 'none'}" stroke="{s < Math.round(product.rating || 0) ? '#fbbf24' : '#d1d5db'}" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                                    {/each}
+                                                    {#if product.review_count}<span class="pl__reviews">({product.review_count})</span>{/if}
+                                                </div>
                                                 {#if product.description}
                                                     <p class="pl__desc">{product.description.substring(0, 160)}{product.description.length > 160 ? '...' : ''}</p>
                                                 {/if}
@@ -959,4 +965,9 @@
     .pl__title { font-size: 14px; }
     .pl__desc { display: none; }
 }
+
+/* Star ratings */
+.pl__rating { display: flex; align-items: center; gap: 1px; margin: 4px 0; }
+.pl__reviews { font-size: 11px; color: #94a3b8; margin-left: 4px; }
+.pc__rating { display: flex; align-items: center; gap: 0; margin: 3px 0; }
 </style>
