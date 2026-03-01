@@ -235,6 +235,29 @@
         </div>
     </section>
 
+    <!-- ===== DESKTOP HERO (gradient + centered search) — hidden on mobile ===== -->
+    <section class="dhero">
+        <div class="dhero__bg">
+            <div class="dhero__glow dhero__glow--1"></div>
+            <div class="dhero__glow dhero__glow--2"></div>
+        </div>
+        <div class="dhero__inner">
+            <h1 class="dhero__title">{@html heroTitle.replace(/\*([^*]+)\*/g, '<span class="dhero__em">$1</span>')}</h1>
+            <p class="dhero__sub">{heroSubtitle}</p>
+            <form class="dhero__search" on:submit={handleSearch}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Čo hľadáte? napr. iPhone, notebook..." bind:value={searchQuery}>
+                <button type="submit">Hľadať</button>
+            </form>
+            <div class="dhero__tags">
+                <span class="dhero__tags-label">Populárne:</span>
+                {#each popularSearches.slice(0,6) as term}
+                    <a href="/hladat?q={encodeURIComponent(term)}" class="dhero__tag">{term}</a>
+                {/each}
+            </div>
+        </div>
+    </section>
+
     <!-- ===== TRUST BAR ===== -->
     <section class="trust">
         <div class="trust__inner">
