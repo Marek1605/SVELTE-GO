@@ -89,7 +89,7 @@
         update();
         window.addEventListener('scroll', onScroll, { passive: true });
 
-        // catNavStyle forced to 'icons' - no localStorage override
+        try { const s = localStorage.getItem('mp_catnav_style'); if (s) catNavStyle = s; } catch(e) {}
 
         // Load hidden categories
         try {
@@ -415,12 +415,12 @@
 
 <style>
 :global(*) { box-sizing: border-box; margin: 0; padding: 0; }
-:global(html) { overflow-x: hidden; -webkit-text-size-adjust: 100%; overscroll-behavior-x: none; }
-:global(body) { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1f2937; line-height: 1.5; overflow-x: hidden; width: 100%; max-width: 100vw; margin: 0; overscroll-behavior-x: none; }
+:global(html) { overflow-x: clip; -webkit-text-size-adjust: 100%; overscroll-behavior-x: none; }
+:global(body) { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1f2937; line-height: 1.5; overflow-x: clip; width: 100%; max-width: 100vw; margin: 0; overscroll-behavior-x: none; }
 :global(a) { text-decoration: none; color: inherit; }
 :global(img) { max-width: 100%; height: auto; }
 :global(button) { cursor: pointer; font-family: inherit; }
-.mp-site { min-height: 100vh; display: flex; flex-direction: column; width: 100%; max-width: 100vw; overflow-x: hidden; position: relative; }
+.mp-site { min-height: 100vh; display: flex; flex-direction: column; width: 100%; max-width: 100vw; overflow-x: clip; position: relative; }
 
 /* HEADER */
 .mp-header { background: #fff; border-bottom: 1px solid #f0f0f0; position: relative; z-index: 1000; }
