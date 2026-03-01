@@ -106,6 +106,13 @@
         </div>
         <p class="mkma-credit-info">Pri priemernom CPC {formatNumber(avgCpc, 3)} € vám zostáva ~{formatNumber(remainingClicks)} klikov</p>
     </div>
+
+    <div class="mkma-settings-section">
+        <h3>⚙️ Nastavenia</h3>
+        <div class="mkma-settings-grid">
+            <a href="/vendor-dashboard/moj-ucet" class="mkma-settings-link-card">
+                <span class="mkma-settings-icon">👤</span>
+                <div class="mkma-settings-content">
                     <strong>Môj účet</strong>
                     <p>Osobné údaje, heslo a prihlasovanie</p>
                 </div>
