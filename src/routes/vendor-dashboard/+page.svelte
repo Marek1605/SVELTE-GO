@@ -444,40 +444,39 @@
     
     /* Quick Actions */
     .mkma-quick-actions {
-        margin-top: 32px;
-        padding: 24px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
-        color: white;
+        margin-top: 24px;
     }
     
     .mkma-quick-actions h3 {
-        margin: 0 0 16px;
-        font-size: 20px;
-        font-weight: 600;
-        color: white;
+        margin: 0 0 12px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1A202C;
     }
     
     .mkma-actions-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 12px;
+        gap: 10px;
     }
     
     .mkma-action-btn {
-        padding: 12px 16px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 8px;
-        color: white;
+        padding: 14px 16px;
+        background: #fff;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        color: #1A202C;
         text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.15s ease;
         text-align: center;
     }
     
     .mkma-action-btn:hover {
-        background: rgba(255,255,255,0.3);
-        transform: translateY(-2px);
+        border-color: #CBD5E0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transform: translateY(-1px);
     }
     
     /* Responsive */
