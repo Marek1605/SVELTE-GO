@@ -80,6 +80,7 @@
             { href: '/admin/vendors', label: 'Zoznam predajcov', icon: '👥' },
             { href: '/admin/pending-shops', label: 'Nové obchody', icon: '⏳' },
             { href: '/admin/vendor-offers', label: 'Ponuky vendorov', icon: '🏪' },
+            { href: '/admin/vendor-requests', label: 'Žiadosti vendorov', icon: '📩' },
             { href: '/admin/offers', label: 'Feedy predajcov', icon: '📋' },
         ]},
         { key: 'tools', label: 'Import & AI', items: [
