@@ -50,6 +50,9 @@
     let categoryNote = '';
     let savingRequest = false;
     let categorySearchTimer;
+    let showCategoryTree = false;
+    let categoryTree = [];
+    let loadingTree = false;
     
     onMount(async () => {
         if (!browser) return;
@@ -279,6 +282,20 @@
         }, 300);
     }
     
+    async function toggleCategoryTree() {
+        showCategoryTree = !showCategoryTree;
+        if (showCategoryTree && categoryTree.length === 0) {
+            loadingTree = true;
+            const token = localStorage.getItem('vendor_token');
+            try {
+                const res = await fetch(API_BASE + '/vendor/search-categories?q=__tree__', { headers: { 'Authorization': 'Bearer ' + token } });
+                const data = await res.json();
+                categoryTree = data.data || [];
+            } catch (e) { console.error(e); }
+            loadingTree = false;
+        }
+    }
+    
     async function submitCategoryRequest() {
         if (!selectedCategory || !currentProduct) return;
         savingRequest = true;
@@ -440,13 +457,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th>IMG</th>
-                        <th>MASTER PRODUKT</th>
-                        <th>ID</th>
+                        <th style="width:40px"></th>
+                        <th>PRODUKT</th>
+                        <th>EAN</th>
                         <th>CENA</th>
                         <th>STAV</th>
                         <th>PREDAJCOV</th>
-                        <th>BUY BOX</th>
                         <th>KATEGÓRIA</th>
                         <th>AKCIE</th>
                     </tr>
@@ -455,13 +471,12 @@
                     {#each products as p}
                         <tr>
                             <td><img src={p.image_url || p.master_image || placeholder} alt="" class="thumb" on:error={(e) => e.target.src = placeholder}></td>
-                            <td class="name"><strong>{p.title || p.master_title || p.name || '-'}</strong></td>
-                            <td><code>{p.id?.slice(0,8) || '-'}</code></td>
+                            <td class="name"><strong class="clickable" on:click={() => openEditModal(p)}>{p.title || p.master_title || p.name || '-'}</strong></td>
+                            <td><code class="ean">{p.ean || '—'}</code></td>
                             <td class="price">{formatPrice(p.price)}</td>
                             <td>{#if p.stock_status === 'instock'}<span class="stock in">✓ Skladom</span>{:else}<span class="stock out">✗ Vypredané</span>{/if}</td>
                             <td class="center">{p.vendors_count || 1}</td>
-                            <td class="center">{#if p.is_buybox}🏆{:else}—{/if}</td>
-                            <td>{#if p.category}<span class="cat">{p.category}</span>{:else}<span class="nocat">❌ Bez kategórie</span>{/if}</td>
+                            <td>{#if p.category}<span class="cat">{p.category}</span>{:else}<span class="nocat">—</span>{/if}</td>
                             <td class="actions">
                                 <button on:click={() => openEditModal(p)}>✏️ Upraviť</button>
                                 {#if p.product_id && p.master_slug}
@@ -469,7 +484,7 @@
                                 {:else if p.product_id}
                                     <a href="/produkt/{p.product_id}" target="_blank" class="action-link">↗ Ponuka</a>
                                 {/if}
-                                <button class="red" on:click={() => disconnectProduct(p.id)} title="Odpojiť">✕</button>
+                                <button class="red" on:click={() => disconnectProduct(p.id)}>🔌 Odpojiť</button>
                             </td>
                         </tr>
                     {/each}
@@ -594,15 +609,25 @@
             </div>
             
             {#if editTab === 'price'}
-                <div class="section-title">💰 Cenové nastavenia</div>
+                <div class="section-title">💰 Predajná cena</div>
                 <div class="form-group">
                     <label>Aktuálna predajná cena (€) <span class="instant">⚡ Okamžite</span></label>
                     <input type="number" step="0.01" bind:value={currentProduct.price} required>
-                    <small class="hint">Táto cena sa zobrazí zákazníkom</small>
+                    <small class="hint">Táto cena sa zobrazí zákazníkom na stránke produktu</small>
                 </div>
                 
-                <div class="section-title">🤖 AI Cenový rozsah</div>
-                <p class="ai-info">Nastavte cenové rozpätie pre automatickú optimalizáciu ceny cez AI.</p>
+                <div class="section-title">
+                    📊 Automatické prispôsobenie ceny
+                    <span class="info-icon" title="Systém automaticky sleduje ceny konkurencie. Ak konkurencia zníži cenu, vaša cena sa automaticky prispôsobí v rámci nastaveného rozsahu. Nikdy neklesne pod minimum a neprekročí maximum.">ⓘ</span>
+                </div>
+                <div class="price-info-box">
+                    <p>Nastavte cenové rozpätie, v ktorom sa bude vaša cena <strong>automaticky prispôsobovať</strong> podľa konkurencie:</p>
+                    <ul>
+                        <li>Ak konkurencia zníži cenu — vaša cena sa primerane zníži</li>
+                        <li>Ak konkurencia zvýši cenu — vaša cena sa primerane zvýši</li>
+                        <li>Cena nikdy neklesne pod <strong>minimum</strong> a neprekročí <strong>maximum</strong></li>
+                    </ul>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Minimálna cena (€)</label>
@@ -614,22 +639,23 @@
                     </div>
                 </div>
                 
-                <div class="section-title">🔗 Affiliate nastavenia</div>
+                <div class="section-title">🔗 URL do vášho obchodu</div>
                 <div class="form-group">
-                    <label>Affiliate URL (odkaz do vášho obchodu)</label>
+                    <label>Odkaz na produkt vo vašom e-shope</label>
                     <input type="url" bind:value={currentProduct.affiliate_url} placeholder="https://vaseshop.sk/produkt/...">
+                    <small class="hint">Po kliknutí na „Kúpiť" bude zákazník presmerovaný na túto adresu</small>
                 </div>
             {:else}
                 <p style="margin:0 0 12px;font-size:13px;color:#64748b">Aktuálna kategória: <strong>{currentProduct.category || 'Bez kategórie'}</strong></p>
                 
                 <div class="form-group">
-                    <label>Vyhľadať novú kategóriu</label>
-                    <input type="text" placeholder="Začnite písať názov kategórie..." bind:value={categorySearchQuery} on:input={searchCategories}>
+                    <label>Vyhľadať kategóriu</label>
+                    <input type="text" placeholder="Začnite písať názov..." bind:value={categorySearchQuery} on:input={searchCategories}>
                 </div>
                 
                 {#if searchingCategories}
-                    <p class="searching">Hľadám kategórie...</p>
-                {:else if categoryResults.length > 0}
+                    <p class="searching">Hľadám...</p>
+                {:else if categorySearchQuery.length >= 2 && categoryResults.length > 0}
                     <div class="results">
                         {#each categoryResults as cat}
                             <div class="result" class:selected={selectedCategory?.id === cat.id} on:click={() => selectedCategory = cat} on:keydown={() => {}} role="button" tabindex="0">
@@ -642,7 +668,32 @@
                         {/each}
                     </div>
                 {:else if categorySearchQuery.length >= 2}
-                    <p class="noresults">Žiadne kategórie</p>
+                    <p class="noresults">Žiadne výsledky</p>
+                {/if}
+                
+                <!-- Category tree toggle -->
+                <div class="tree-toggle">
+                    <button class="btn-link" on:click={toggleCategoryTree}>
+                        {showCategoryTree ? '▼' : '▶'} Zobraziť celý strom kategórií
+                    </button>
+                </div>
+                
+                {#if showCategoryTree}
+                    {#if loadingTree}
+                        <p class="searching">Načítavam strom kategórií...</p>
+                    {:else}
+                        <div class="cat-tree">
+                            {#each categoryTree as cat}
+                                <div class="tree-item depth-{cat.depth}" class:selected={selectedCategory?.id === cat.id}
+                                     on:click={() => selectedCategory = cat} on:keydown={() => {}} role="button" tabindex="0">
+                                    <span class="tree-indent">{#each Array(cat.depth) as _}{'  '}{/each}{cat.depth > 0 ? '└ ' : ''}</span>
+                                    <span class="tree-name">{cat.name}</span>
+                                    <span class="tree-count">{cat.product_count}</span>
+                                    {#if selectedCategory?.id === cat.id}<span class="tree-check">✓</span>{/if}
+                                </div>
+                            {/each}
+                        </div>
+                    {/if}
                 {/if}
                 
                 {#if selectedCategory}
@@ -811,6 +862,34 @@
     
     /* Action link */
     .result.selected { background: #f0fdf4; border-color: #10b981; }
+    
+    .clickable { cursor: pointer; transition: all 0.15s; }
+    .clickable:hover { color: #3b82f6; text-decoration: underline; }
+    .ean { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #475569; }
+    
+    .price-info-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 12px; color: #475569; line-height: 1.6; }
+    .price-info-box p { margin: 0 0 6px 0; }
+    .price-info-box ul { margin: 0; padding-left: 18px; }
+    .price-info-box li { margin-bottom: 2px; }
+    
+    .info-icon { display: inline-block; width: 16px; height: 16px; line-height: 16px; text-align: center; background: #e2e8f0; color: #64748b; border-radius: 50%; font-size: 10px; cursor: help; margin-left: 4px; vertical-align: middle; }
+    
+    .tree-toggle { margin: 12px 0 8px; }
+    .btn-link { background: none; border: none; color: #3b82f6; cursor: pointer; font-size: 13px; padding: 4px 0; font-weight: 500; }
+    .btn-link:hover { text-decoration: underline; }
+    .cat-tree { max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+    .tree-item { display: flex; align-items: center; padding: 6px 10px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f8fafc; transition: background 0.1s; }
+    .tree-item:hover { background: #f0f9ff; }
+    .tree-item.selected { background: #d1fae5; }
+    .tree-indent { white-space: pre; color: #cbd5e1; font-family: monospace; font-size: 11px; }
+    .tree-name { flex: 1; }
+    .tree-count { color: #94a3b8; font-size: 10px; margin: 0 8px; }
+    .tree-check { color: #10b981; font-weight: 700; }
+    .depth-0 .tree-name { font-weight: 600; }
+    .depth-1 { padding-left: 20px; }
+    .depth-2 { padding-left: 36px; }
+    .depth-3 { padding-left: 52px; }
+    .depth-4 { padding-left: 68px; }
     
     /* Message banner */
     .msg-banner { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
