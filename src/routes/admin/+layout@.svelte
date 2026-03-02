@@ -97,13 +97,14 @@
         ]},
     ];
 
-    function isActive(href) {
-        const p = $page.url.pathname;
+    $: adminPath = $page.url.pathname;
+    
+    function isActive(href, p) {
         if (href === '/admin') return p === '/admin';
         return p === href || p.startsWith(href + '/');
     }
-    function groupHasActive(group) {
-        return group.items.some(i => isActive(i.href));
+    function groupHasActive(group, p) {
+        return group.items.some(i => isActive(i.href, p));
     }
 </script>
 
@@ -149,7 +150,7 @@
 
         <nav class="sb__nav">
             {#each groups as group}
-                <div class="sb__group" class:is-open={openGroups[group.key]} class:has-active={groupHasActive(group)}>
+                <div class="sb__group" class:is-open={openGroups[group.key]} class:has-active={groupHasActive(group, adminPath)}>
                     {#if !sidebarCollapsed}
                         <button class="sb__group-head" on:click={() => toggleGroup(group.key)}>
                             <span class="sb__group-label">{group.label}</span>
@@ -159,7 +160,7 @@
                     {#if openGroups[group.key] || sidebarCollapsed}
                         <div class="sb__items">
                             {#each group.items as item}
-                                <a href={item.href} class="sb__link" class:active={isActive(item.href)} title={sidebarCollapsed ? item.label : ''}>
+                                <a href={item.href} class="sb__link" class:active={isActive(item.href, adminPath)} title={sidebarCollapsed ? item.label : ''}>
                                     <span class="sb__link-icon">{item.icon}</span>
                                     {#if !sidebarCollapsed}<span>{item.label}</span>{/if}
                                 </a>

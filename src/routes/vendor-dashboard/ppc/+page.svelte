@@ -195,53 +195,33 @@
     {/if}
     
     <!-- Stats s jednotnými štvorcovými ikonami -->
-    <div class="ppc-stats-grid">
-        <div class="ppc-stat-card">
-            <div class="ppc-stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                </svg>
-            </div>
-            <div class="ppc-stat-content">
-                <span class="ppc-stat-value">{formatNumber(stats.totalClicks)}</span>
-                <span class="ppc-stat-label">Preklikov (30 dní)</span>
+    <div class="mkma-stats-grid">
+        <div class="mkma-stat-card">
+            <div class="mkma-stat-icon s1"><span>👆</span></div>
+            <div class="mkma-stat-body">
+                <p class="mkma-stat-value">{formatNumber(stats.totalClicks)}</p>
+                <h3>Preklikov (30 dní)</h3>
             </div>
         </div>
-        <div class="ppc-stat-card">
-            <div class="ppc-stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
-            </div>
-            <div class="ppc-stat-content">
-                <span class="ppc-stat-value">{formatNumber(stats.totalCost, 2)} €</span>
-                <span class="ppc-stat-label">Minutý kredit (30 dní)</span>
+        <div class="mkma-stat-card">
+            <div class="mkma-stat-icon s2"><span>💸</span></div>
+            <div class="mkma-stat-body">
+                <p class="mkma-stat-value">{formatNumber(stats.totalCost, 2)} €</p>
+                <h3>Minutý kredit (30 dní)</h3>
             </div>
         </div>
-        <div class="ppc-stat-card">
-            <div class="ppc-stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                </svg>
-            </div>
-            <div class="ppc-stat-content">
-                <span class="ppc-stat-value">{formatNumber(avgCpc, 3)} €</span>
-                <span class="ppc-stat-label">Priemerný CPC</span>
+        <div class="mkma-stat-card">
+            <div class="mkma-stat-icon s3"><span>📊</span></div>
+            <div class="mkma-stat-body">
+                <p class="mkma-stat-value">{formatNumber(avgCpc, 3)} €</p>
+                <h3>Priemerný CPC</h3>
             </div>
         </div>
-        <div class="ppc-stat-card">
-            <div class="ppc-stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-            </div>
-            <div class="ppc-stat-content">
-                <span class="ppc-stat-value">{formatNumber(stats.conversionRate, 1)}%</span>
-                <span class="ppc-stat-label">Konverzný pomer</span>
+        <div class="mkma-stat-card">
+            <div class="mkma-stat-icon s4"><span>🎯</span></div>
+            <div class="mkma-stat-body">
+                <p class="mkma-stat-value">{formatNumber(stats.conversionRate, 1)}%</p>
+                <h3>Konverzný pomer</h3>
             </div>
         </div>
     </div>
@@ -467,34 +447,22 @@
     .ppc-message.error { background: #fee2e2; color: #991b1b; }
     .ppc-message button { background: none; border: none; font-size: 18px; cursor: pointer; opacity: 0.7; }
     
-    /* Stats Grid - UNIFIED SQUARE ICONS */
-    .ppc-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    
-    .ppc-stat-card {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    
-    .ppc-stat-icon {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f8fafc;
-        border-radius: 10px;
-        color: #64748b;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-    }
-    
-    .ppc-stat-content { display: flex; flex-direction: column; }
-    .ppc-stat-value { font-size: 24px; font-weight: 700; color: #1f2937; }
-    .ppc-stat-label { font-size: 13px; color: #6b7280; }
+    /* Stats Grid */
+    .mkma-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .mkma-stat-card { background: #fff; border: 1px solid #e8ebef; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; transition: all 0.15s; position: relative; overflow: hidden; }
+    .mkma-stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 0 3px 3px 0; opacity: 0; transition: opacity 0.15s; }
+    .mkma-stat-card:hover::before { opacity: 1; }
+    .mkma-stat-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); transform: translateY(-1px); }
+    .mkma-stat-card:nth-child(1)::before { background: #6366f1; }
+    .mkma-stat-card:nth-child(2)::before { background: #06b6d4; }
+    .mkma-stat-card:nth-child(3)::before { background: #10b981; }
+    .mkma-stat-card:nth-child(4)::before { background: #f59e0b; }
+    .mkma-stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+    .mkma-stat-icon.s1 { background: #eef2ff; } .mkma-stat-icon.s2 { background: #ecfeff; }
+    .mkma-stat-icon.s3 { background: #ecfdf5; } .mkma-stat-icon.s4 { background: #fffbeb; }
+    .mkma-stat-body { flex: 1; min-width: 0; }
+    .mkma-stat-value { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.1; margin: 0; }
+    .mkma-stat-card h3 { font-size: 11px; font-weight: 500; color: #94a3b8; margin: 2px 0 0 0; }
     
     /* Credit Overview */
     .ppc-credit-overview { background: white; border-radius: 12px; padding: 20px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }

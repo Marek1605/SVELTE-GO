@@ -120,11 +120,11 @@
         { href: '/vendor-dashboard/xml-feedy', label: 'XML Feedy', icon: 'rss_feed' },
     ];
     
-    function isActive(href) {
+    function isActive(href, path) {
         if (href === '/vendor-dashboard') {
-            return currentPath === '/vendor-dashboard' || currentPath === '/vendor-dashboard/';
+            return path === '/vendor-dashboard' || path === '/vendor-dashboard/';
         }
-        return currentPath.startsWith(href);
+        return path.startsWith(href);
     }
     
     $: displayMode = shop?.display_mode || 'free';
@@ -163,7 +163,7 @@
             <nav class="vp-nav">
                 <div class="vp-nav-group">
                     {#each menuItems as item}
-                        <a href={item.href} class="vp-nav-item" class:active={isActive(item.href)} on:click={() => mobileMenuOpen = false}>
+                        <a href={item.href} class="vp-nav-item" class:active={isActive(item.href, currentPath)} on:click={() => mobileMenuOpen = false}>
                             <span class="material-icons-round">{item.icon}</span>
                             <span class="vp-nav-label">{item.label}</span>
                         </a>
@@ -175,7 +175,7 @@
                 <div class="vp-nav-group">
                     <div class="vp-nav-title">Nastavenia</div>
                     {#each settingsItems as item}
-                        <a href={item.href} class="vp-nav-item" class:active={isActive(item.href)} on:click={() => mobileMenuOpen = false}>
+                        <a href={item.href} class="vp-nav-item" class:active={isActive(item.href, currentPath)} on:click={() => mobileMenuOpen = false}>
                             <span class="material-icons-round">{item.icon}</span>
                             <span class="vp-nav-label">{item.label}</span>
                         </a>
