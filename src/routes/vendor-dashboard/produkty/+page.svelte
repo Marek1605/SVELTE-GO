@@ -363,22 +363,27 @@
     <!-- STATS -->
     <div class="stats">
         <button class="stat" class:active={filter === 'all'} on:click={() => handleFilterChange('all')}>
+            <span class="stat-ico si-all"><span class="material-icons-round">inventory_2</span></span>
             <span class="num">{formatNumber(stats.total)}</span>
             <span class="lbl">Celkom produktov</span>
         </button>
         <button class="stat" class:active={filter === 'paired'} on:click={() => handleFilterChange('paired')}>
+            <span class="stat-ico si-paired"><span class="material-icons-round">link</span></span>
             <span class="num">{formatNumber(stats.paired)}</span>
             <span class="lbl">Spárované ({stats.pairingRate}%)</span>
         </button>
         <button class="stat" class:active={filter === 'unpaired'} on:click={() => handleFilterChange('unpaired')}>
+            <span class="stat-ico si-unpaired"><span class="material-icons-round">link_off</span></span>
             <span class="num">{formatNumber(stats.unpaired)}</span>
             <span class="lbl">Nespárované</span>
         </button>
         <button class="stat" class:active={filter === 'no_category'} on:click={() => handleFilterChange('no_category')} class:disabled={isFree}>
+            <span class="stat-ico si-nocat"><span class="material-icons-round">category</span></span>
             <span class="num">{isFree ? formatNumber(stats.total) : formatNumber(stats.withoutCategories)}</span>
             <span class="lbl">Bez kategórie</span>
         </button>
         <button class="stat" class:active={filter === 'pending'} on:click={() => handleFilterChange('pending')} class:disabled={isFree}>
+            <span class="stat-ico si-pending"><span class="material-icons-round">hourglass_top</span></span>
             <span class="num">{isFree ? '—' : formatNumber(stats.pendingApprovals)}</span>
             <span class="lbl">Na schválenie</span>
         </button>
@@ -754,7 +759,7 @@
     .free-banner a { color: #d97706; font-weight: 600; margin-left: 12px; }
     
     .stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-    .stat { flex: 1; min-width: 110px; padding: 12px 14px; background: #fff; border: 1px solid #e8ebef; border-radius: 10px; cursor: pointer; text-align: left; transition: all 0.15s; position: relative; overflow: hidden; }
+    .stat { flex: 1; min-width: 110px; padding: 12px 14px; background: #fff; border: 1px solid #e8ebef; border-radius: 10px; cursor: pointer; text-align: left; transition: all 0.15s; position: relative; overflow: hidden; display: flex; align-items: center; gap: 10px; }
     .stat::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 0 3px 3px 0; opacity: 0; transition: opacity 0.15s; }
     .stat:hover::before { opacity: 1; }
     .stat:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); transform: translateY(-1px); }
@@ -763,6 +768,13 @@
     .stat.active { border-color: #3b82f6; background: #f0f7ff; }
     .stat .num { display: block; font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.1; }
     .stat .lbl { font-size: 11px; color: #94a3b8; font-weight: 500; margin-top: 2px; display: block; }
+    .stat-ico { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .stat-ico .material-icons-round { font-size: 18px; }
+    .si-all { background: #eef2ff; color: #6366f1; }
+    .si-paired { background: #ecfdf5; color: #10b981; }
+    .si-unpaired { background: #fffbeb; color: #f59e0b; }
+    .si-nocat { background: #fef2f2; color: #ef4444; }
+    .si-pending { background: #ecfeff; color: #06b6d4; }
     .stat.disabled { opacity: 0.6; }
     
     .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }

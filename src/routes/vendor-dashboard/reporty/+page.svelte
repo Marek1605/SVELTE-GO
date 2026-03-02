@@ -106,12 +106,6 @@
 </script>
 
 <div class="reports-container">
-    <div class="reports-header">
-        <button class="export-btn" on:click={exportCSV}>
-            📥 Exportovať CSV
-        </button>
-    </div>
-    
     {#if loading}
         <div class="loading">
             <div class="spinner"></div>
@@ -161,6 +155,11 @@
             <div class="filter-group">
                 <label>Do</label>
                 <input type="date" bind:value={dateTo}>
+            </div>
+            <div class="filter-group" style="margin-left:auto; align-self:flex-end">
+                <button class="export-btn" on:click={exportCSV}>
+                    <span class="material-icons-round" style="font-size:16px">download</span> Exportovať CSV
+                </button>
             </div>
         </div>
         
