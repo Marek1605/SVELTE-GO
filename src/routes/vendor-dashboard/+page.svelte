@@ -194,11 +194,11 @@
     .mkma-stat-card {
         background: #fff;
         border: 1px solid #e8ebef;
-        border-radius: 14px;
-        padding: 18px 20px;
+        border-radius: 10px;
+        padding: 12px 14px;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
         transition: all 0.15s;
         position: relative;
         overflow: hidden;
@@ -223,12 +223,12 @@
     .mkma-stat-card:nth-child(4)::before { background: #f59e0b; }
     
     .mkma-stat-icon {
-        width: 42px; height: 42px;
-        border-radius: 10px;
+        width: 36px; height: 36px;
+        border-radius: 8px;
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
     }
-    .mkma-stat-icon .material-icons-round { font-size: 22px; }
+    .mkma-stat-icon .material-icons-round { font-size: 20px; }
     .mkma-stat-icon.clicks { background: #eef2ff; color: #6366f1; }
     .mkma-stat-icon.products { background: #ecfeff; color: #06b6d4; }
     .mkma-stat-icon.conversions { background: #ecfdf5; color: #10b981; }
@@ -236,12 +236,12 @@
     
     .mkma-stat-body { flex: 1; min-width: 0; }
     .mkma-stat-value {
-        font-size: 22px; font-weight: 800; color: #0f172a;
-        line-height: 1.1; letter-spacing: -0.5px; margin: 0;
+        font-size: 18px; font-weight: 800; color: #0f172a;
+        line-height: 1.1; letter-spacing: -0.3px; margin: 0;
     }
     .mkma-stat-card h3 {
-        font-size: 12px; font-weight: 500; color: #94a3b8;
-        margin: 3px 0 0 0;
+        font-size: 11px; font-weight: 500; color: #94a3b8;
+        margin: 2px 0 0 0;
     }
 
     /* Credit Section */

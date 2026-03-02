@@ -88,39 +88,33 @@
     {/if}
     
     <!-- Stats Cards -->
-    <div class="conv-stats">
-        <div class="conv-stat conv-stat-success">
-            <div class="conv-stat-icon">✅</div>
-            <div class="conv-stat-content">
-                <span class="conv-stat-label">Celkom konverzií</span>
-                <span class="conv-stat-value">{formatNumber(stats.total_conversions)}</span>
-                <span class="conv-stat-change positive">↑ {stats.conversions_change}%</span>
+    <div class="mkma-stats-grid">
+        <div class="mkma-stat-card">
+            <div class="mkma-stat-icon s1"><span>✅</span></div>
+            <div class="mkma-stat-body">
+                <p class="mkma-stat-value">{formatNumber(stats.total_conversions)}</p>
+                <h3>Celkom konverzií</h3>
             </div>
         </div>
-        
-        <div class="conv-stat">
-            <div class="conv-stat-icon">💰</div>
-            <div class="conv-stat-content">
-                <span class="conv-stat-label">Celkové tržby</span>
-                <span class="conv-stat-value">{formatNumber(stats.total_revenue, 2)} €</span>
-                <span class="conv-stat-note">z konverzií</span>
+        <div class="mkma-stat-card">
+            <div class="mkma-stat-icon s2"><span>💰</span></div>
+            <div class="mkma-stat-body">
+                <p class="mkma-stat-value">{formatNumber(stats.total_revenue, 2)} €</p>
+                <h3>Celkové tržby</h3>
             </div>
         </div>
-        
-        <div class="conv-stat">
-            <div class="conv-stat-icon">📊</div>
-            <div class="conv-stat-content">
-                <span class="conv-stat-label">Konverzný pomer</span>
-                <span class="conv-stat-value">{formatNumber(stats.conversion_rate, 1)}%</span>
-                <span class="conv-stat-note">z klikov</span>
+        <div class="mkma-stat-card">
+            <div class="mkma-stat-icon s3"><span>📊</span></div>
+            <div class="mkma-stat-body">
+                <p class="mkma-stat-value">{formatNumber(stats.conversion_rate, 1)}%</p>
+                <h3>Konverzný pomer</h3>
             </div>
         </div>
-        
-        <div class="conv-stat">
-            <div class="conv-stat-icon">🛒</div>
-            <div class="conv-stat-content">
-                <span class="conv-stat-label">Priem. objednávka</span>
-                <span class="conv-stat-value">{formatNumber(stats.avg_order_value, 2)} €</span>
+        <div class="mkma-stat-card">
+            <div class="mkma-stat-icon s4"><span>🛒</span></div>
+            <div class="mkma-stat-body">
+                <p class="mkma-stat-value">{formatNumber(stats.avg_order_value, 2)} €</p>
+                <h3>Priem. objednávka</h3>
             </div>
         </div>
     </div>
@@ -443,25 +437,21 @@ function megaprice_track_conversion($order_id) {'{'}
     .conv-header h1 { font-size: 28px; font-weight: 700; color: #1f2937; margin: 0 0 8px; }
     .conv-header p { color: #6b7280; margin: 0; }
     
-    .conv-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    
-    .conv-stat {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        display: flex;
-        gap: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    
-    .conv-stat-success { border-left: 4px solid #10b981; }
-    .conv-stat-icon { font-size: 28px; }
-    .conv-stat-content { display: flex; flex-direction: column; }
-    .conv-stat-label { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
-    .conv-stat-value { font-size: 26px; font-weight: 700; color: #1f2937; }
-    .conv-stat-change { font-size: 13px; margin-top: 4px; }
-    .conv-stat-change.positive { color: #10b981; }
-    .conv-stat-note { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+    .mkma-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .mkma-stat-card { background: #fff; border: 1px solid #e8ebef; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; transition: all 0.15s; position: relative; overflow: hidden; }
+    .mkma-stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 0 3px 3px 0; opacity: 0; transition: opacity 0.15s; }
+    .mkma-stat-card:hover::before { opacity: 1; }
+    .mkma-stat-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); transform: translateY(-1px); }
+    .mkma-stat-card:nth-child(1)::before { background: #10b981; }
+    .mkma-stat-card:nth-child(2)::before { background: #f59e0b; }
+    .mkma-stat-card:nth-child(3)::before { background: #6366f1; }
+    .mkma-stat-card:nth-child(4)::before { background: #06b6d4; }
+    .mkma-stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+    .mkma-stat-icon.s1 { background: #ecfdf5; } .mkma-stat-icon.s2 { background: #fffbeb; }
+    .mkma-stat-icon.s3 { background: #eef2ff; } .mkma-stat-icon.s4 { background: #ecfeff; }
+    .mkma-stat-body { flex: 1; min-width: 0; }
+    .mkma-stat-value { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.1; margin: 0; }
+    .mkma-stat-card h3 { font-size: 11px; font-weight: 500; color: #94a3b8; margin: 2px 0 0 0; }
     
     .conv-card {
         background: white;
@@ -637,6 +627,6 @@ function megaprice_track_conversion($order_id) {'{'}
     @media (max-width: 768px) {
         .conv-tabs { flex-direction: column; }
         .conv-credentials { grid-template-columns: 1fr; }
-        .conv-stats { grid-template-columns: 1fr 1fr; }
+        .mkma-stats-grid { grid-template-columns: 1fr 1fr; }
     }
 </style>

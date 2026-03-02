@@ -119,26 +119,26 @@
         </div>
     {:else}
         <!-- Summary Cards -->
-        <div class="summary-grid">
-            <div class="summary-card success">
-                <span class="summary-icon">💵</span>
-                <div class="summary-content">
-                    <span class="summary-value">{formatNumber(summary.totalTopup, 2)} €</span>
-                    <span class="summary-label">Celkom dobitý kredit</span>
+        <div class="mkma-stats-grid three">
+            <div class="mkma-stat-card">
+                <div class="mkma-stat-icon s1"><span>💵</span></div>
+                <div class="mkma-stat-body">
+                    <p class="mkma-stat-value">{formatNumber(summary.totalTopup, 2)} €</p>
+                    <h3>Celkom dobitý kredit</h3>
                 </div>
             </div>
-            <div class="summary-card danger">
-                <span class="summary-icon">💸</span>
-                <div class="summary-content">
-                    <span class="summary-value">{formatNumber(summary.totalSpent, 2)} €</span>
-                    <span class="summary-label">Celkom minuté</span>
+            <div class="mkma-stat-card">
+                <div class="mkma-stat-icon s2"><span>💸</span></div>
+                <div class="mkma-stat-body">
+                    <p class="mkma-stat-value">{formatNumber(summary.totalSpent, 2)} €</p>
+                    <h3>Celkom minuté</h3>
                 </div>
             </div>
-            <div class="summary-card info">
-                <span class="summary-icon">👆</span>
-                <div class="summary-content">
-                    <span class="summary-value">{formatNumber(summary.totalClicks)}</span>
-                    <span class="summary-label">Počet preklikov</span>
+            <div class="mkma-stat-card">
+                <div class="mkma-stat-icon s3"><span>👆</span></div>
+                <div class="mkma-stat-body">
+                    <p class="mkma-stat-value">{formatNumber(summary.totalClicks)}</p>
+                    <h3>Počet preklikov</h3>
                 </div>
             </div>
         </div>
@@ -280,52 +280,21 @@
     to { transform: rotate(360deg); }
 }
 
-/* Summary Grid */
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.summary-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    border-left: 4px solid #e5e7eb;
-}
-
-.summary-card.success {
-    border-left-color: #10b981;
-}
-
-.summary-card.danger {
-    border-left-color: #ef4444;
-}
-
-.summary-card.info {
-    border-left-color: #3b82f6;
-}
-
-.summary-icon {
-    font-size: 32px;
-}
-
-.summary-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1f2937;
-    display: block;
-}
-
-.summary-label {
-    font-size: 13px;
-    color: #6b7280;
-}
+/* Summary Grid - unified mkma style */
+.mkma-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.mkma-stats-grid.three { grid-template-columns: repeat(3, 1fr); }
+.mkma-stat-card { background: #fff; border: 1px solid #e8ebef; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; transition: all 0.15s; position: relative; overflow: hidden; }
+.mkma-stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 0 3px 3px 0; opacity: 0; transition: opacity 0.15s; }
+.mkma-stat-card:hover::before { opacity: 1; }
+.mkma-stat-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); transform: translateY(-1px); }
+.mkma-stat-card:nth-child(1)::before { background: #10b981; }
+.mkma-stat-card:nth-child(2)::before { background: #ef4444; }
+.mkma-stat-card:nth-child(3)::before { background: #3b82f6; }
+.mkma-stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+.mkma-stat-icon.s1 { background: #ecfdf5; } .mkma-stat-icon.s2 { background: #fef2f2; } .mkma-stat-icon.s3 { background: #eff6ff; }
+.mkma-stat-body { flex: 1; min-width: 0; }
+.mkma-stat-value { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.1; margin: 0; }
+.mkma-stat-card h3 { font-size: 11px; font-weight: 500; color: #94a3b8; margin: 2px 0 0 0; }
 
 /* Filters */
 .filters {

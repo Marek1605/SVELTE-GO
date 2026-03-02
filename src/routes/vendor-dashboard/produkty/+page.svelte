@@ -754,12 +754,16 @@
     .free-banner a { color: #d97706; font-weight: 600; margin-left: 12px; }
     
     .stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-    .stat { flex: 1; min-width: 140px; padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s; }
-    .stat:hover { border-color: #3b82f6; }
-    .stat.active { border-color: #3b82f6; background: #eff6ff; }
+    .stat { flex: 1; min-width: 110px; padding: 12px 14px; background: #fff; border: 1px solid #e8ebef; border-radius: 10px; cursor: pointer; text-align: left; transition: all 0.15s; position: relative; overflow: hidden; }
+    .stat::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 0 3px 3px 0; opacity: 0; transition: opacity 0.15s; }
+    .stat:hover::before { opacity: 1; }
+    .stat:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); transform: translateY(-1px); }
+    .stat:nth-child(1)::before { background: #6366f1; } .stat:nth-child(2)::before { background: #10b981; }
+    .stat:nth-child(3)::before { background: #f59e0b; } .stat:nth-child(4)::before { background: #ef4444; } .stat:nth-child(5)::before { background: #06b6d4; }
+    .stat.active { border-color: #3b82f6; background: #f0f7ff; }
+    .stat .num { display: block; font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.1; }
+    .stat .lbl { font-size: 11px; color: #94a3b8; font-weight: 500; margin-top: 2px; display: block; }
     .stat.disabled { opacity: 0.6; }
-    .stat .num { display: block; font-size: 24px; font-weight: 700; color: #1e293b; }
-    .stat .lbl { font-size: 12px; color: #64748b; }
     
     .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
     .toolbar input { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; }
