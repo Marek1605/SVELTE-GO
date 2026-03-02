@@ -627,4 +627,7 @@ function megaprice_track_conversion($order_id) {'{'}
     
     @media (max-width: 768px) {
         .conv-tabs { flex-direction: column; }
-        .conv-
+        .conv-credentials { grid-template-columns: 1fr; }
+        .mkma-stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+</style>
