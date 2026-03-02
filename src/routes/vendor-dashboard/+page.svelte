@@ -46,6 +46,12 @@
         }
     });
     
+    function sklonuj(n, one, few, many) {
+        if (n === 1) return one;
+        if (n >= 2 && n <= 4) return few;
+        return many;
+    }
+    
     function formatNumber(num, decimals = 0) {
         return (num || 0).toLocaleString('sk-SK', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
@@ -66,7 +72,7 @@
             </div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.clicks)}</p>
-                <h3>Preklikov (30 dní)</h3>
+                <h3>{sklonuj(stats.clicks, "Preklik (30 dní)", "Prekliky (30 dní)", "Preklikov (30 dní)")}</h3>
             </div>
         </div>
         
@@ -76,7 +82,7 @@
             </div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(shop?.total_offers || stats.totalProducts)}</p>
-                <h3>Produkty</h3>
+                <h3>{sklonuj(shop?.total_offers || stats.totalProducts, "Produkt", "Produkty", "Produktov")}</h3>
             </div>
         </div>
         
@@ -86,7 +92,7 @@
             </div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.conversions)}</p>
-                <h3>Konverzie</h3>
+                <h3>{sklonuj(stats.conversions, "Konverzia", "Konverzie", "Konverzií")}</h3>
             </div>
         </div>
         
