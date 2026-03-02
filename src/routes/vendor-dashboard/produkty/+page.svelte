@@ -90,7 +90,17 @@
                 products = data.data || [];
                 totalResults = data.meta?.total || products.length;
                 totalPages = data.meta?.pages || Math.ceil(totalResults / perPage);
-                if (stats.total === 0 && totalResults > 0) stats.total = totalResults;
+                // Use stats from products endpoint
+                if (data.stats) {
+                    stats = {
+                        total: data.stats.total || 0,
+                        paired: data.stats.paired || 0,
+                        unpaired: data.stats.unpaired || 0,
+                        withoutCategories: data.stats.without_category || 0,
+                        pendingApprovals: 0,
+                        pairingRate: data.stats.total > 0 ? Math.round((data.stats.paired / data.stats.total) * 100) : 0
+                    };
+                }
             }
         } catch (e) { 
             console.error(e);
