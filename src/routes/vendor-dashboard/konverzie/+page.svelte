@@ -90,28 +90,28 @@
     <!-- Stats Cards -->
     <div class="mkma-stats-grid">
         <div class="mkma-stat-card">
-            <div class="mkma-stat-icon s1"><span>✅</span></div>
+            <div class="mkma-stat-icon s1"><span class="material-icons-round">verified</span></div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.total_conversions)}</p>
                 <h3>Celkom konverzií</h3>
             </div>
         </div>
         <div class="mkma-stat-card">
-            <div class="mkma-stat-icon s2"><span>💰</span></div>
+            <div class="mkma-stat-icon s2"><span class="material-icons-round">paid</span></div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.total_revenue, 2)} €</p>
                 <h3>Celkové tržby</h3>
             </div>
         </div>
         <div class="mkma-stat-card">
-            <div class="mkma-stat-icon s3"><span>📊</span></div>
+            <div class="mkma-stat-icon s3"><span class="material-icons-round">percent</span></div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.conversion_rate, 1)}%</p>
                 <h3>Konverzný pomer</h3>
             </div>
         </div>
         <div class="mkma-stat-card">
-            <div class="mkma-stat-icon s4"><span>🛒</span></div>
+            <div class="mkma-stat-icon s4"><span class="material-icons-round">shopping_cart</span></div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.avg_order_value, 2)} €</p>
                 <h3>Priem. objednávka</h3>
@@ -183,7 +183,7 @@
     // ⚠️ DÔLEŽITÉ: Nahraďte tieto hodnoty skutočnými dátami z objednávky
     var orderData = {'{'}
         order_id: 'ORDER-12345',           // ID vašej objednávky
-        customer_email: 'zakaznik@email.sk',
+        customer_email: '<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b8c2d9d3d9c2d6d1d3f8ddd5d9d1d496cbd3">[email&#160;protected]</a>',
         customer_name: 'Ján Novák',
         order_value: 49.99                  // Celková suma objednávky v EUR
     {'}'};
@@ -446,9 +446,10 @@ function megaprice_track_conversion($order_id) {'{'}
     .mkma-stat-card:nth-child(2)::before { background: #f59e0b; }
     .mkma-stat-card:nth-child(3)::before { background: #6366f1; }
     .mkma-stat-card:nth-child(4)::before { background: #06b6d4; }
-    .mkma-stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
-    .mkma-stat-icon.s1 { background: #ecfdf5; } .mkma-stat-icon.s2 { background: #fffbeb; }
-    .mkma-stat-icon.s3 { background: #eef2ff; } .mkma-stat-icon.s4 { background: #ecfeff; }
+    .mkma-stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mkma-stat-icon .material-icons-round { font-size: 20px; }
+    .mkma-stat-icon.s1 { background: #ecfdf5; color: #10b981; } .mkma-stat-icon.s2 { background: #fffbeb; color: #f59e0b; }
+    .mkma-stat-icon.s3 { background: #eef2ff; color: #6366f1; } .mkma-stat-icon.s4 { background: #ecfeff; color: #06b6d4; }
     .mkma-stat-body { flex: 1; min-width: 0; }
     .mkma-stat-value { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.1; margin: 0; }
     .mkma-stat-card h3 { font-size: 11px; font-weight: 500; color: #94a3b8; margin: 2px 0 0 0; }
@@ -626,7 +627,4 @@ function megaprice_track_conversion($order_id) {'{'}
     
     @media (max-width: 768px) {
         .conv-tabs { flex-direction: column; }
-        .conv-credentials { grid-template-columns: 1fr; }
-        .mkma-stats-grid { grid-template-columns: 1fr 1fr; }
-    }
-</style>
+        .conv-

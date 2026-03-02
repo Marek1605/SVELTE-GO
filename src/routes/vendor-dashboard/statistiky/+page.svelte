@@ -75,28 +75,28 @@
     <!-- Overview Cards -->
     <div class="mkma-stats-grid">
         <div class="mkma-stat-card">
-            <div class="mkma-stat-icon clicks"><span>👆</span></div>
+            <div class="mkma-stat-icon clicks"><span class="material-icons-round">ads_click</span></div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.totalClicks)}</p>
                 <h3>Celkom preklikov</h3>
             </div>
         </div>
         <div class="mkma-stat-card">
-            <div class="mkma-stat-icon cost"><span>💸</span></div>
+            <div class="mkma-stat-icon cost"><span class="material-icons-round">payments</span></div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.totalCost, 2)} €</p>
                 <h3>Minutý kredit</h3>
             </div>
         </div>
         <div class="mkma-stat-card">
-            <div class="mkma-stat-icon cpc"><span>📊</span></div>
+            <div class="mkma-stat-icon cpc"><span class="material-icons-round">bar_chart</span></div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.avgCpc, 3)} €</p>
                 <h3>Priemerný CPC</h3>
             </div>
         </div>
         <div class="mkma-stat-card">
-            <div class="mkma-stat-icon conv"><span>🎯</span></div>
+            <div class="mkma-stat-icon conv"><span class="material-icons-round">track_changes</span></div>
             <div class="mkma-stat-body">
                 <p class="mkma-stat-value">{formatNumber(stats.conversionRate, 1)}%</p>
                 <h3>Konverzia</h3>
@@ -276,10 +276,11 @@
 .mkma-stat-card:nth-child(3)::before { background: #10b981; }
 .mkma-stat-card:nth-child(4)::before { background: #f59e0b; }
 .mkma-stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
-.mkma-stat-icon.clicks { background: #eef2ff; }
-.mkma-stat-icon.cost { background: #ecfeff; }
-.mkma-stat-icon.cpc { background: #ecfdf5; }
-.mkma-stat-icon.conv { background: #fffbeb; }
+.mkma-stat-icon .material-icons-round { font-size: 20px; }
+.mkma-stat-icon.clicks { background: #eef2ff; color: #6366f1; }
+.mkma-stat-icon.cost { background: #ecfeff; color: #06b6d4; }
+.mkma-stat-icon.cpc { background: #ecfdf5; color: #10b981; }
+.mkma-stat-icon.conv { background: #fffbeb; color: #f59e0b; }
 .mkma-stat-body { flex: 1; min-width: 0; }
 .mkma-stat-value { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.1; margin: 0; }
 .mkma-stat-card h3 { font-size: 11px; font-weight: 500; color: #94a3b8; margin: 2px 0 0 0; }

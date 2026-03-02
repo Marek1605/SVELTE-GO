@@ -121,21 +121,21 @@
         <!-- Summary Cards -->
         <div class="mkma-stats-grid three">
             <div class="mkma-stat-card">
-                <div class="mkma-stat-icon s1"><span>💵</span></div>
+                <div class="mkma-stat-icon s1"><span class="material-icons-round">account_balance_wallet</span></div>
                 <div class="mkma-stat-body">
                     <p class="mkma-stat-value">{formatNumber(summary.totalTopup, 2)} €</p>
                     <h3>Celkom dobitý kredit</h3>
                 </div>
             </div>
             <div class="mkma-stat-card">
-                <div class="mkma-stat-icon s2"><span>💸</span></div>
+                <div class="mkma-stat-icon s2"><span class="material-icons-round">payments</span></div>
                 <div class="mkma-stat-body">
                     <p class="mkma-stat-value">{formatNumber(summary.totalSpent, 2)} €</p>
                     <h3>Celkom minuté</h3>
                 </div>
             </div>
             <div class="mkma-stat-card">
-                <div class="mkma-stat-icon s3"><span>👆</span></div>
+                <div class="mkma-stat-icon s3"><span class="material-icons-round">ads_click</span></div>
                 <div class="mkma-stat-body">
                     <p class="mkma-stat-value">{formatNumber(summary.totalClicks)}</p>
                     <h3>Počet preklikov</h3>
@@ -290,8 +290,9 @@
 .mkma-stat-card:nth-child(1)::before { background: #10b981; }
 .mkma-stat-card:nth-child(2)::before { background: #ef4444; }
 .mkma-stat-card:nth-child(3)::before { background: #3b82f6; }
-.mkma-stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
-.mkma-stat-icon.s1 { background: #ecfdf5; } .mkma-stat-icon.s2 { background: #fef2f2; } .mkma-stat-icon.s3 { background: #eff6ff; }
+.mkma-stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mkma-stat-icon .material-icons-round { font-size: 20px; }
+.mkma-stat-icon.s1 { background: #ecfdf5; color: #10b981; } .mkma-stat-icon.s2 { background: #fef2f2; color: #ef4444; } .mkma-stat-icon.s3 { background: #eff6ff; color: #3b82f6; }
 .mkma-stat-body { flex: 1; min-width: 0; }
 .mkma-stat-value { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.1; margin: 0; }
 .mkma-stat-card h3 { font-size: 11px; font-weight: 500; color: #94a3b8; margin: 2px 0 0 0; }
