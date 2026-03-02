@@ -40,9 +40,37 @@
     let homeMsg = '';
 
     onMount(async () => {
-        await Promise.all([loadSystemInfo(), loadSiteSettings()]);
+        await Promise.all([loadSystemInfo(), loadSiteSettings(), loadPaymentSettings()]);
         loading = false;
     });
+
+    async function loadPaymentSettings() {
+        const res = await apiFetch('/admin/payment-settings');
+        if (res?.success && res.data) {
+            paymentIban = res.data.payment_iban || '';
+            paymentSwift = res.data.payment_swift || '';
+            paymentBankName = res.data.payment_bank_name || '';
+            paymentCardEnabled = res.data.payment_card_enabled === 'true';
+        }
+    }
+
+    async function savePaymentSettings() {
+        savingPayment = true; paymentMsg = '';
+        const res = await apiFetch('/admin/payment-settings', {
+            method: 'POST',
+            body: JSON.stringify({
+                payment_iban: paymentIban,
+                payment_swift: paymentSwift,
+                payment_bank_name: paymentBankName,
+                payment_card_enabled: paymentCardEnabled ? 'true' : 'false',
+                payment_stripe_key: '',
+                payment_variable_symbol: 'shop_id'
+            })
+        });
+        paymentMsg = res?.success ? '✅ Uložené' : '❌ ' + (res?.error || 'Chyba');
+        savingPayment = false;
+        setTimeout(() => paymentMsg = '', 3000);
+    }
 
     async function apiFetch(endpoint, opts = {}) {
         try {
@@ -209,6 +237,14 @@
         homeMsg = '✅ Uložené';
         setTimeout(() => homeMsg = '', 3000);
     }
+
+    // Payment settings
+    let paymentIban = '';
+    let paymentSwift = '';
+    let paymentBankName = '';
+    let paymentCardEnabled = false;
+    let savingPayment = false;
+    let paymentMsg = '';
 
     async function saveCatnavSettings() {
         savingCatnav = true; catnavMsg = '';
@@ -509,6 +545,50 @@
 
     <!-- SYSTEM INFO -->
     {#if systemInfo}
+    <!-- PAYMENT SETTINGS -->
+    <div class="section">
+        <h2>💳 Platobné nastavenia</h2>
+        <p class="desc">Nastavte IBAN a platobné metódy pre dobíjanie kreditu predajcami.</p>
+        
+        <div class="settings-left" style="max-width:600px">
+            <div class="form-row">
+                <label for="payment_iban">IBAN</label>
+                <input id="payment_iban" type="text" bind:value={paymentIban} placeholder="SK89 0200 0000 0000 1234 5678">
+            </div>
+            <div class="form-row">
+                <label for="payment_swift">SWIFT / BIC</label>
+                <input id="payment_swift" type="text" bind:value={paymentSwift} placeholder="SUBASKBX">
+            </div>
+            <div class="form-row">
+                <label for="payment_bank">Názov banky</label>
+                <input id="payment_bank" type="text" bind:value={paymentBankName} placeholder="Všeobecná úverová banka">
+            </div>
+            
+            <div class="ui-toggle-row" style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-top:8px">
+                <div class="ui-toggle-info">
+                    <span class="ui-toggle-icon">💳</span>
+                    <div>
+                        <span class="ui-toggle-name">Platba kartou (Stripe)</span>
+                        <span class="ui-toggle-desc">Povoliť platbu kartou pre predajcov. Vyžaduje Stripe integráciu.</span>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" bind:checked={paymentCardEnabled}>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">{paymentCardEnabled ? 'Zapnuté' : 'Vypnuté'}</span>
+                </label>
+            </div>
+            
+            <div class="actions">
+                <button class="btn blue" on:click={savePaymentSettings} disabled={savingPayment}>
+                    {savingPayment ? 'Ukladám...' : '💾 Uložiť platobné nastavenia'}
+                </button>
+                {#if paymentMsg}<span class="msg">{paymentMsg}</span>{/if}
+            </div>
+        </div>
+    </div>
+
+    <!-- SYSTEM STATUS -->
     <div class="section">
         <h2>🖥️ Stav systému</h2>
         <div class="stats-grid">

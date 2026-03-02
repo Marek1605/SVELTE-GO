@@ -16,6 +16,14 @@
     let paymentMethod = 'bank_transfer';
     let message = null;
     
+    // Payment settings from admin
+    let paymentSettings = {
+        payment_iban: '',
+        payment_swift: '',
+        payment_bank_name: '',
+        payment_card_enabled: 'false'
+    };
+    
     let stats = {
         totalClicks: 0,
         chargedClicks: 0,
@@ -32,6 +40,7 @@
     $: totalCreditUsed = stats.totalCost + currentCredit;
     $: spentPercent = totalCreditUsed > 0 ? Math.min((stats.totalCost / totalCreditUsed) * 100, 100) : 0;
     $: remainingPercent = 100 - spentPercent;
+    $: cardEnabled = paymentSettings.payment_card_enabled === 'true';
     
     const packages = [
         { id: 1, amount: 10, bonus: 0, popular: false },
@@ -43,9 +52,28 @@
     
     onMount(async () => {
         if (!browser) return;
-        await loadStats();
-        await loadTransactions();
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentSettings()]);
     });
+    
+    async function loadPaymentSettings() {
+        const token = localStorage.getItem('vendor_token');
+        if (!token) return;
+        try {
+            const res = await fetch(`${API_BASE}/vendor/payment-settings`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success && data.data) {
+                paymentSettings = { ...paymentSettings, ...data.data };
+                // If card is disabled and selected, switch to bank
+                if (!cardEnabled && paymentMethod === 'card') {
+                    paymentMethod = 'bank_transfer';
+                }
+            }
+        } catch (e) {
+            console.error('Error loading payment settings:', e);
+        }
+    }
     
     async function loadStats() {
         const token = localStorage.getItem('vendor_token');
@@ -259,7 +287,7 @@
                     <span class="ppc-cci-value" class:low={currentCredit < 5}>{formatNumber(currentCredit, 2)} €</span>
                 </div>
                 
-                <h3>Vyberte balík kreditu</h3>
+                <h3>Vyberte si balík kreditu</h3>
                 <div class="ppc-packages">
                     {#each packages as pkg}
                         <button 
@@ -288,11 +316,13 @@
                             <span class="ppc-payment-icon">🏦</span>
                             <span class="ppc-payment-label">Bankový prevod</span>
                         </label>
-                        <label class="ppc-payment-option" class:selected={paymentMethod === 'card'}>
-                            <input type="radio" bind:group={paymentMethod} value="card">
-                            <span class="ppc-payment-icon">💳</span>
-                            <span class="ppc-payment-label">Platobná karta</span>
-                        </label>
+                        {#if cardEnabled}
+                            <label class="ppc-payment-option" class:selected={paymentMethod === 'card'}>
+                                <input type="radio" bind:group={paymentMethod} value="card">
+                                <span class="ppc-payment-icon">💳</span>
+                                <span class="ppc-payment-label">Platobná karta</span>
+                            </label>
+                        {/if}
                     </div>
                 </div>
                 
@@ -300,12 +330,23 @@
                     {loading ? 'Spracovávam...' : 'Objednať kredit'}
                 </button>
                 
-                {#if paymentMethod === 'bank_transfer'}
+                {#if paymentMethod === 'bank_transfer' && paymentSettings.payment_iban}
                     <div class="ppc-bank-info">
                         <h4>Platobné údaje</h4>
-                        <p><strong>IBAN:</strong> SK12 3456 7890 1234 5678 9012</p>
-                        <p><strong>Variabilný symbol:</strong> {vendor?.id || '---'}</p>
+                        <p><strong>IBAN:</strong> {paymentSettings.payment_iban}</p>
+                        {#if paymentSettings.payment_swift}
+                            <p><strong>SWIFT:</strong> {paymentSettings.payment_swift}</p>
+                        {/if}
+                        {#if paymentSettings.payment_bank_name}
+                            <p><strong>Banka:</strong> {paymentSettings.payment_bank_name}</p>
+                        {/if}
+                        <p><strong>Variabilný symbol:</strong> {shop?.id || vendor?.id || '---'}</p>
                         <p class="ppc-note">Po prijatí platby bude kredit pripísaný do 24 hodín.</p>
+                    </div>
+                {:else if paymentMethod === 'bank_transfer' && !paymentSettings.payment_iban}
+                    <div class="ppc-bank-info">
+                        <h4>Platobné údaje</h4>
+                        <p class="ppc-note">Platobné údaje ešte neboli nastavené administrátorom. Kontaktujte nás.</p>
                     </div>
                 {/if}
             </div>
