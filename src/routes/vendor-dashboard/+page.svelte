@@ -58,12 +58,6 @@
 </script>
 
 <div class="mkma-dashboard">
-    <!-- Info bar -->
-    <div class="mkma-info-bar">
-        <span class="material-icons-round">info</span>
-        <span>Obchod <strong>{shop?.shop_name || '—'}</strong> — režim <strong>{displayMode === 'cpc' ? 'CPC' : displayMode === 'paid' ? 'PAID' : 'FREE'}</strong> — CPC sadzba <strong>{formatNumber(cpcRate, 3)} €</strong></span>
-    </div>
-
     <!-- Stats Grid -->
     <div class="mkma-stats-grid">
         <div class="mkma-stat-card">

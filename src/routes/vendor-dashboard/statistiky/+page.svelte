@@ -72,6 +72,38 @@
 </script>
 
 <div class="stats-container">
+    <!-- Overview Cards (always visible) -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👆</div>
+            <div class="stat-content">
+                <span class="stat-value">{formatNumber(stats.totalClicks)}</span>
+                <span class="stat-label">Celkom preklikov</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💸</div>
+            <div class="stat-content">
+                <span class="stat-value">{formatNumber(stats.totalCost, 2)} €</span>
+                <span class="stat-label">Minutý kredit</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <span class="stat-value">{formatNumber(stats.avgCpc, 3)} €</span>
+                <span class="stat-label">Priemerný CPC</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-content">
+                <span class="stat-value">{formatNumber(stats.conversionRate, 1)}%</span>
+                <span class="stat-label">Konverzia</span>
+            </div>
+        </div>
+    </div>
+    
     <div class="stats-header">
         <div class="period-selector">
             <button class:active={period === '7days'} on:click={() => changePeriod('7days')}>7 dní</button>
@@ -87,37 +119,6 @@
             <p>Načítavam štatistiky...</p>
         </div>
     {:else}
-        <!-- Overview Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">👆</div>
-                <div class="stat-content">
-                    <span class="stat-value">{formatNumber(stats.totalClicks)}</span>
-                    <span class="stat-label">Celkom preklikov</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💸</div>
-                <div class="stat-content">
-                    <span class="stat-value">{formatNumber(stats.totalCost, 2)} €</span>
-                    <span class="stat-label">Minutý kredit</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📊</div>
-                <div class="stat-content">
-                    <span class="stat-value">{formatNumber(stats.avgCpc, 3)} €</span>
-                    <span class="stat-label">Priemerný CPC</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-content">
-                    <span class="stat-value">{formatNumber(stats.conversionRate, 1)}%</span>
-                    <span class="stat-label">Konverzia</span>
-                </div>
-            </div>
-        </div>
         
         <!-- Clicks Chart -->
         <div class="chart-section">
