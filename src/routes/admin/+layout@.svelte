@@ -90,6 +90,7 @@
         ]},
         { key: 'system', label: 'Systém', items: [
             { href: '/admin/settings', label: 'Nastavenia', icon: '⚙️' },
+            { href: '/admin/pages', label: 'Stránky', icon: '📄' },
         ]},
         { key: 'analytics', label: 'Analytika', items: [
             { href: '/admin/top-produkty', label: 'Rebríčky (TOP)', icon: '🏆' },
