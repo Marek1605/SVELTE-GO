@@ -111,6 +111,7 @@
                 showWishlist = s?.show_wishlist !== 'false';
                 showCompare = s?.show_compare !== 'false';
                 if (s?.show_mobile_catnav !== undefined) showMobileCatnav = s.show_mobile_catnav === 'true';
+                if (s?.catnav_style) { catNavStyle = s.catnav_style; try { localStorage.setItem('mp_catnav_style', s.catnav_style); } catch(e) {} }
             })
             .catch(e => { console.warn('Settings load failed:', e); });
 
