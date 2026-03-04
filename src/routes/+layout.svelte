@@ -353,12 +353,12 @@
 
     <footer class="mp-footer">
         <div class="mp-footer__top"><div class="mp-footer__inner"><div class="mp-footer__grid">
-            <div class="mp-footer__col"><h4>O nás</h4><ul><li><a href="/o-nas">O MegaPrice</a></li><li><a href="/kontakt">Kontakt</a></li><li><a href="/kariera">Kariéra</a></li></ul></div>
-            <div class="mp-footer__col"><h4>Pre zákazníkov</h4><ul><li><a href="/ako-nakupovat">Ako nakupovať</a></li><li><a href="/obchodne-podmienky">Obchodné podmienky</a></li><li><a href="/ochrana-udajov">Ochrana údajov</a></li></ul></div>
-            <div class="mp-footer__col"><h4>Pre predajcov</h4><ul><li><a href="/prihlasenie-predajcu">Prihlásenie predajcu</a></li><li><a href="/registracia-predajcu">Registrácia predajcu</a></li><li><a href="/ako-to-funguje">Ako to funguje</a></li></ul></div>
-            <div class="mp-footer__col"><h4>Kontakt</h4><p><a href="mailto:info@megaprice.sk">info@megaprice.sk</a><br>+421 xxx xxx xxx</p></div>
+            <div class="mp-footer__col"><h4>O nás</h4><ul><li><a href="/impressum">Impressum</a></li><li><a href="/kontakt">Kontakt</a></li></ul></div>
+            <div class="mp-footer__col"><h4>Pre zákazníkov</h4><ul><li><a href="/podmienky-pouzivania">Podmienky používania</a></li><li><a href="/ochrana-osobnych-udajov">Ochrana osobných údajov</a></li><li><a href="/zasady-cookies">Zásady cookies</a></li></ul></div>
+            <div class="mp-footer__col"><h4>Pre predajcov</h4><ul><li><a href="/vseobecne-obchodne-podmienky">VOP pre inzerentov</a></li><li><a href="/prihlasenie-predajcu">Prihlásenie predajcu</a></li><li><a href="/registracia-predajcu">Registrácia predajcu</a></li></ul></div>
+            <div class="mp-footer__col"><h4>Kontakt</h4><p>Megabuy s.r.o.<br>IČO: 57211019<br><a href="mailto:info@megaprice.sk">info@megaprice.sk</a></p></div>
         </div></div></div>
-        <div class="mp-footer__bottom"><p>© 2026 MegaPrice. Všetky práva vyhradené.</p><div class="mp-footer__links"><a href="/obchodne-podmienky">Obchodné podmienky</a><a href="/ochrana-udajov">GDPR</a><a href="/cookies">Cookies</a></div></div>
+        <div class="mp-footer__bottom"><p>© 2026 Megabuy s.r.o. Všetky práva vyhradené.</p><div class="mp-footer__links"><a href="/vseobecne-obchodne-podmienky">VOP</a><a href="/podmienky-pouzivania">Podmienky</a><a href="/ochrana-osobnych-udajov">GDPR</a><a href="/zasady-cookies">Cookies</a><a href="/impressum">Impressum</a></div></div>
     </footer>
 
     <nav class="mp-bottom-nav">
