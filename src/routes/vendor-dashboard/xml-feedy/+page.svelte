@@ -151,6 +151,36 @@
     function editFeed(feed) {
         currentFeed = { ...feed };
         showEditFeedModal = true;
+        showUrlChange = false;
+        newFeedUrl = '';
+    }
+    
+    let showUrlChange = false;
+    let newFeedUrl = '';
+    
+    async function requestUrlChange() {
+        if (!currentFeed || !newFeedUrl) return;
+        
+        const token = localStorage.getItem('vendor_token');
+        try {
+            const res = await fetch(`${API_BASE}/vendor/feeds/${currentFeed.id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...currentFeed, feed_url: newFeedUrl })
+            });
+            const data = await res.json();
+            if (data.url_change_requested) {
+                message = { type: 'success', text: 'Žiadosť o zmenu URL bola odoslaná administrátorovi.' };
+                showUrlChange = false;
+                newFeedUrl = '';
+            } else if (data.success) {
+                message = { type: 'success', text: data.message };
+            } else {
+                message = { type: 'error', text: data.error || 'Chyba' };
+            }
+        } catch (e) {
+            message = { type: 'error', text: 'Chyba pri komunikácii' };
+        }
     }
     
     function formatDate(dateStr) {
@@ -244,9 +274,6 @@
                         <button class="btn-action btn-edit" on:click={() => editFeed(feed)}>
                             ✎ Upraviť
                         </button>
-                        <button class="btn-action btn-delete" on:click={() => deleteFeed(feed)}>
-                            🗑 Zmazať
-                        </button>
                     </div>
                 </div>
             {/each}
@@ -309,17 +336,28 @@
                     <input type="text" bind:value={currentFeed.name}>
                 </div>
                 <div class="form-group">
-                    <label>URL feedu</label>
-                    <input type="url" bind:value={currentFeed.feed_url}>
+                    <label>URL feedu <span class="locked-badge">🔒 Zamknuté</span></label>
+                    <input type="url" value={currentFeed.feed_url} disabled class="input-locked">
+                    <small class="hint">URL feedu je zamknuté. Pre zmenu použite formulár nižšie.</small>
                 </div>
-                <div class="form-group">
-                    <label>Typ feedu</label>
-                    <select bind:value={currentFeed.feed_type}>
-                        <option value="xml">XML (Heureka)</option>
-                        <option value="csv">CSV</option>
-                        <option value="json">JSON</option>
-                    </select>
+                
+                <div class="url-change-section">
+                    <button class="btn-link" on:click={() => showUrlChange = !showUrlChange}>
+                        {showUrlChange ? '▼' : '▶'} Požiadať o zmenu URL
+                    </button>
+                    {#if showUrlChange}
+                        <div class="url-change-form">
+                            <div class="form-group">
+                                <label>Nová URL adresa feedu</label>
+                                <input type="url" bind:value={newFeedUrl} placeholder="https://vas-eshop.sk/novy-feed.xml">
+                            </div>
+                            <button class="btn-request" on:click={requestUrlChange} disabled={!newFeedUrl || newFeedUrl === currentFeed.feed_url}>
+                                📩 Odoslať žiadosť o zmenu
+                            </button>
+                        </div>
+                    {/if}
                 </div>
+                
                 <div class="form-group">
                     <label>Stav</label>
                     <select bind:value={currentFeed.status}>
@@ -689,4 +727,14 @@
         flex-wrap: wrap;
     }
 }
+.input-locked { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+.locked-badge { font-size: 11px; color: #94a3b8; font-weight: 400; margin-left: 6px; }
+.hint { display: block; margin-top: 4px; font-size: 12px; color: #94a3b8; }
+.url-change-section { margin: 12px 0 16px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+.btn-link { background: none; border: none; color: #3b82f6; cursor: pointer; font-size: 13px; padding: 4px 0; font-weight: 500; }
+.btn-link:hover { text-decoration: underline; }
+.url-change-form { margin-top: 10px; padding: 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; }
+.btn-request { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; margin-top: 8px; }
+.btn-request:hover { background: #2563eb; }
+.btn-request:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
