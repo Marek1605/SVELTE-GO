@@ -66,7 +66,7 @@
 </script>
 
 <svelte:head>
-    <title>Registrácia predajcu | MegaPrice</title>
+    <title>Registrácia predajcu | MegaBuy</title>
 </svelte:head>
 
 <div class="auth-page">
@@ -74,7 +74,7 @@
         <div class="auth-card">
             <div class="auth-header">
                 <a href="/" class="logo">
-                    <span class="logo-text">megaprice</span>
+                    <span class="logo-text">megabuy</span>
                 </a>
                 <h1>Staňte sa predajcom</h1>
                 <p>Začnite predávať na našom marketplace už dnes</p>

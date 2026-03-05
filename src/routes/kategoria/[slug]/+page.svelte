@@ -179,7 +179,7 @@
 </script>
 
 <svelte:head>
-    <title>{category?.name || 'Kategória'} | MegaPrice.sk</title>
+    <title>{category?.name || 'Kategória'} | MegaBuy.sk</title>
     <meta name="description" content="Porovnajte ceny v kategórii {category?.name}. {totalProducts} produktov.">
 </svelte:head>
 
@@ -458,6 +458,12 @@
                                                 </div>
                                                 {#if product.description}
                                                     <p class="pl__desc">{decodeHtml(product.description).substring(0, 160)}{product.description.length > 160 ? '...' : ''}</p>
+                                                {:else if product.attributes && product.attributes.length > 0}
+                                                    <div class="pl__attrs">
+                                                        {#each product.attributes.slice(0, 5) as attr}
+                                                            <span class="pl__attr"><span class="pl__attr-n">{attr.n}:</span> {attr.v}</span>
+                                                        {/each}
+                                                    </div>
                                                 {/if}
                                                 {#if product.offer_count > 0}
                                                     <div class="pl__meta">
@@ -883,6 +889,9 @@
 .pl__title a { color: #1f2937; transition: color 0.15s; }
 .pl__title a:hover { color: #c4956a; }
 .pl__desc { font-size: 13px; color: #6b7280; line-height: 1.5; margin: 0 0 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pl__attrs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.pl__attr { font-size: 12px; color: #6b7280; background: #f3f4f6; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+.pl__attr-n { font-weight: 600; color: #4b5563; }
 .pl__meta { display: flex; align-items: center; gap: 12px; margin-top: auto; }
 .pl__offers-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: #6b7280; }
 .pl__offers-badge svg { color: #c4956a; }
@@ -978,6 +987,7 @@
     .pl__body { padding: 0 12px; }
     .pl__title { font-size: 14px; }
     .pl__desc { display: none; }
+    .pl__attrs { display: none; }
 }
 
 /* Star ratings */

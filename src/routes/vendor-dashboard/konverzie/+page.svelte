@@ -19,7 +19,7 @@
     let recentConversions = [];
     
     $: trackingCode = shop?.id ? `MKP-${shop.id.substring(0, 8).toUpperCase()}` : 'MKP-XXXXXXXX';
-    $: trackingUrl = API_BASE ? `${API_BASE}/track/conversion` : 'https://megaprice.sk/api/v1/track/conversion';
+    $: trackingUrl = API_BASE ? `${API_BASE}/track/conversion` : 'https://megabuy.sk/api/v1/track/conversion';
     
     onMount(async () => {
         if (!browser) return;
@@ -172,7 +172,7 @@
                         <span>Tracking skript pre Thank You stránku</span>
                         <button class="conv-copy-btn conv-copy-btn-light" on:click={() => copyCode('code-html')}>📋 Kopírovať kód</button>
                     </div>
-                    <pre id="code-html" class="conv-code">&lt;!-- MegaPrice.sk Conversion Tracking --&gt;
+                    <pre id="code-html" class="conv-code">&lt;!-- MegaBuy.sk Conversion Tracking --&gt;
 &lt;script&gt;
 (function() {'{'}
     var config = {'{'}
@@ -197,8 +197,8 @@
                 ...orderData
             {'}'})
         {'}'}).then(r => r.json())
-          .then(d => console.log('MegaPrice: Conversion tracked', d))
-          .catch(e => console.error('MegaPrice: Error', e));
+          .then(d => console.log('MegaBuy: Conversion tracked', d))
+          .catch(e => console.error('MegaBuy: Error', e));
     {'}'}
 {'}'})();
 &lt;/script&gt;</pre>
@@ -213,9 +213,9 @@
                         <button class="conv-copy-btn conv-copy-btn-light" on:click={() => copyCode('code-woo')}>📋 Kopírovať kód</button>
                     </div>
                     <pre id="code-woo" class="conv-code">&lt;?php
-// MegaPrice.sk Conversion Tracking pre WooCommerce
-add_action('woocommerce_thankyou', 'megaprice_track_conversion', 10, 1);
-function megaprice_track_conversion($order_id) {'{'}
+// MegaBuy.sk Conversion Tracking pre WooCommerce
+add_action('woocommerce_thankyou', 'megabuy_track_conversion', 10, 1);
+function megabuy_track_conversion($order_id) {'{'}
     if (!$order_id) return;
     
     $order = wc_get_order($order_id);
@@ -249,7 +249,7 @@ function megaprice_track_conversion($order_id) {'{'}
                         <span>Pre Shoptet - vložte do "Vlastný kód na ďakovnej stránke"</span>
                         <button class="conv-copy-btn conv-copy-btn-light" on:click={() => copyCode('code-shoptet')}>📋 Kopírovať kód</button>
                     </div>
-                    <pre id="code-shoptet" class="conv-code">&lt;!-- MegaPrice.sk Conversion Tracking pre Shoptet --&gt;
+                    <pre id="code-shoptet" class="conv-code">&lt;!-- MegaBuy.sk Conversion Tracking pre Shoptet --&gt;
 &lt;script&gt;
 (function() {'{'}
     var config = {'{'}
@@ -292,7 +292,7 @@ function megaprice_track_conversion($order_id) {'{'}
                         <button class="conv-copy-btn conv-copy-btn-light" on:click={() => copyCode('code-gtm')}>📋 Kopírovať kód</button>
                     </div>
                     <pre id="code-gtm" class="conv-code">&lt;script&gt;
-// MegaPrice.sk Conversion Tracking - GTM
+// MegaBuy.sk Conversion Tracking - GTM
 (function() {'{'}
     var config = {'{'}
         trackingCode: '{trackingCode}',
@@ -383,7 +383,7 @@ function megaprice_track_conversion($order_id) {'{'}
                     <div class="conv-step-num">1</div>
                     <div class="conv-step-content">
                         <h4>Zákazník klikne</h4>
-                        <p>Zákazník klikne na váš produkt na MegaPrice.sk a je presmerovaný na váš e-shop</p>
+                        <p>Zákazník klikne na váš produkt na MegaBuy.sk a je presmerovaný na váš e-shop</p>
                     </div>
                 </div>
                 <div class="conv-step">

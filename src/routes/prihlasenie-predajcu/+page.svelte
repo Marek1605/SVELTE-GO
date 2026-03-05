@@ -52,7 +52,7 @@
 </script>
 
 <svelte:head>
-    <title>Prihlásenie predajcu | MegaPrice</title>
+    <title>Prihlásenie predajcu | MegaBuy</title>
 </svelte:head>
 
 <div class="auth-page">
@@ -60,7 +60,7 @@
         <div class="auth-card">
             <div class="auth-header">
                 <a href="/" class="logo">
-                    <span class="logo-text">megaprice</span>
+                    <span class="logo-text">megabuy</span>
                 </a>
                 <h1>Prihlásenie predajcu</h1>
                 <p>Prihláste sa do svojho vendor účtu</p>
@@ -124,7 +124,7 @@
         </div>
 
         <div class="auth-info">
-            <h2>Prečo predávať na MegaPrice?</h2>
+            <h2>Prečo predávať na MegaBuy?</h2>
             <ul>
                 <li>✅ Tisíce zákazníkov denne</li>
                 <li>✅ Jednoduché pridávanie produktov</li>

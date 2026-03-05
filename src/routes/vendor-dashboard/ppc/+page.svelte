@@ -334,7 +334,7 @@
         {:else if activeTab === 'mode'}
             <div class="ppc-mode">
                 <h3>Režim zobrazovania ponúk</h3>
-                <p class="ppc-mode-desc">Vyberte, ako chcete zobrazovať vaše ponuky na MegaPrice.</p>
+                <p class="ppc-mode-desc">Vyberte, ako chcete zobrazovať vaše ponuky na MegaBuy.</p>
                 
                 <div class="ppc-mode-options">
                     <div class="ppc-mode-option" class:active={displayMode === 'free'}>

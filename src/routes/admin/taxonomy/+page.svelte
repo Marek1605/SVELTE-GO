@@ -141,7 +141,7 @@
         if (r.ok) {
             const blob = await r.blob();
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'megaprice-taxonomy.xls'; a.click();
+            const a = document.createElement('a'); a.href = url; a.download = 'megabuy-taxonomy.xls'; a.click();
             URL.revokeObjectURL(url);
         } else { alert('Chyba pri exporte'); }
     }

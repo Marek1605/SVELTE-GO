@@ -71,7 +71,7 @@
 </script>
 
 <svelte:head>
-    <title>{searchQuery ? 'Výsledky: ' + searchQuery : 'Vyhľadávanie'} | MegaPrice</title>
+    <title>{searchQuery ? 'Výsledky: ' + searchQuery : 'Vyhľadávanie'} | MegaBuy</title>
 </svelte:head>
 
 <div class="search-page">

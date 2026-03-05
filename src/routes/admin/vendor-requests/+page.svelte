@@ -18,7 +18,7 @@
     let selectedShop = '';
     
     function getAuth() {
-        const u = localStorage.getItem('admin_user') || 'megaprice';
+        const u = localStorage.getItem('admin_user') || 'megabuy';
         const p = localStorage.getItem('admin_pass') || 'MegaAdmin2026!';
         return 'Basic ' + btoa(u + ':' + p);
     }

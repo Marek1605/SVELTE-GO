@@ -25,7 +25,7 @@
 </script>
 
 <svelte:head>
-    <title>Dashboard | Admin | MegaPrice</title>
+    <title>Dashboard | Admin | MegaBuy</title>
 </svelte:head>
 
 <div class="admin-page">

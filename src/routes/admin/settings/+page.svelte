@@ -9,7 +9,7 @@
     let cleanupMsg = '';
 
     // Site settings
-    let siteName = 'MegaPrice';
+    let siteName = 'MegaBuy';
     let siteDescription = 'Porovnávač cien';
     let logoUrl = '';
     let logoFile = null;
@@ -90,7 +90,7 @@
     async function loadSiteSettings() {
         const res = await apiFetch('/admin/site-settings');
         if (res?.success && res.data) {
-            siteName = res.data.site_name || 'MegaPrice';
+            siteName = res.data.site_name || 'MegaBuy';
             siteDescription = res.data.site_description || '';
             logoUrl = res.data.logo_url || '';
             logoSize = parseInt(res.data.logo_size) || 40;
@@ -284,7 +284,7 @@
             <div class="settings-left">
                 <div class="form-row">
                     <label for="site_name">Názov webu</label>
-                    <input id="site_name" type="text" bind:value={siteName} placeholder="MegaPrice">
+                    <input id="site_name" type="text" bind:value={siteName} placeholder="MegaBuy">
                 </div>
                 <div class="form-row">
                     <label for="site_desc">Popis webu</label>

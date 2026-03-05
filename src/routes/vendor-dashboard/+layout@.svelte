@@ -154,7 +154,7 @@
                         <span class="material-icons-round">storefront</span>
                     </div>
                     <div class="vp-brand-text">
-                        <span class="vp-brand-name">MegaPrice</span>
+                        <span class="vp-brand-name">MegaBuy</span>
                         <span class="vp-brand-sub">Vendor Portal</span>
                     </div>
                 </a>
@@ -286,7 +286,7 @@
                                 </a>
                                 <a href="/" class="vp-profile-item" on:click={() => profileDropdownOpen = false}>
                                     <span class="material-icons-round">storefront</span>
-                                    Späť na MegaPrice
+                                    Späť na MegaBuy
                                 </a>
                                 <div class="vp-profile-divider"></div>
                                 <button class="vp-profile-item vp-profile-logout" on:click={logout}>
