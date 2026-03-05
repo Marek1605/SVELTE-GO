@@ -24,7 +24,7 @@
     let touchStartX = 0;
     let banners = [
         { badge: 'NOVÉ', title: 'Porovnajte si ceny z overených e-shopov', subtitle: '', color: '#c4956a', icon: '🔍' },
-        { badge: 'PRE E-SHOPY', title: 'Pridajte váš obchod na MegaPrice', subtitle: 'CPC od 0,05 € · Zadarmo', color: '#1e293b', icon: '🏪' },
+        { badge: 'PRE E-SHOPY', title: 'Pridajte váš obchod na MegaBuy', subtitle: 'CPC od 0,05 € · Zadarmo', color: '#1e293b', icon: '🏪' },
         { badge: 'TIP', title: 'Ušetrite aj 40% porovnaním cien', subtitle: 'Porovnajte ceny na jednom mieste', color: '#4f46e5', icon: '💰' },
     ];
     $: totalBanners = banners.length;
@@ -202,7 +202,7 @@
 </script>
 
 <svelte:head>
-    <title>MegaPrice.sk — Porovnávač cien | Najlepšie ponuky na jednom mieste</title>
+    <title>MegaBuy.sk — Porovnávač cien | Najlepšie ponuky na jednom mieste</title>
     <meta name="description" content="Porovnajte ceny z overených slovenských obchodov. Nájdite najlepšie ponuky na elektroniku, domácnosť a ďalšie.">
 </svelte:head>
 
@@ -408,7 +408,7 @@
     <!-- ===== HOW IT WORKS ===== -->
     {#if showHow}
     <section class="how">
-        <div class="how__hd"><h2 class="sec-t">Ako funguje MegaPrice?</h2><p class="sec-s">Tri jednoduché kroky k najlepšej cene</p></div>
+        <div class="how__hd"><h2 class="sec-t">Ako funguje MegaBuy?</h2><p class="sec-s">Tri jednoduché kroky k najlepšej cene</p></div>
         <div class="how__grid">
             <div class="how__step"><div class="how__nw how__nw--1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="how__c"><div class="how__sn">Krok 1</div><h3 class="how__st">Vyhľadajte</h3><p class="how__sx">Zadajte názov produktu alebo prechádzajte kategórie.</p></div></div>
             <div class="how__step"><div class="how__nw how__nw--2"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="1.8"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 14l-4 4 4 4"/><path d="M21 18H3"/></svg></div><div class="how__c"><div class="how__sn">Krok 2</div><h3 class="how__st">Porovnajte</h3><p class="how__sx">Porovnajte ceny od rôznych predajcov na jednom mieste.</p></div></div>
@@ -423,7 +423,7 @@
         <div class="vcta__inner">
             <span class="vcta__badge">PRE E-SHOPY</span>
             <h2 class="vcta__title">Získajte zákazníkov, ktorí chcú kupovať</h2>
-            <p class="vcta__text">Pridajte svoj e-shop na MegaPrice. Platíte len za kliknutia.</p>
+            <p class="vcta__text">Pridajte svoj e-shop na MegaBuy. Platíte len za kliknutia.</p>
             <div class="vcta__feats">
                 <div class="vcta__feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4956a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>CPC od 0,05 €</span></div>
                 <div class="vcta__feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4956a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>XML / CSV feed import</span></div>
@@ -459,7 +459,7 @@
 .srch__f button:hover{background:#b8855c}
 
 /* ====== BANNERS ====== */
-.banners{padding:12px 16px 0;position:relative;overflow:hidden}
+.banners{margin:12px 16px 0;position:relative;overflow:hidden}
 .banners__track{display:flex;transition:transform .4s cubic-bezier(.25,.46,.45,.94);width:100%}
 .banners__slide{min-width:100%;border-radius:14px;padding:22px 20px;position:relative;overflow:hidden;color:#fff;box-sizing:border-box}
 .banners__badge{display:inline-block;padding:3px 10px;background:rgba(255,255,255,.2);border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.5px;margin-bottom:8px}
@@ -701,7 +701,7 @@
 }
 @media(max-width:360px){
     .srch{padding:10px 12px 0}
-    .banners{padding:8px 12px 0}
+    .banners{margin:8px 12px 0}
     .banners__title{font-size:15px;max-width:85%}
     .banners__slide{padding:16px 14px}
 .trust__inner{border-radius:12px}
