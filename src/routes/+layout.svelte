@@ -655,7 +655,7 @@
 .mp-footer__inner { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
 .mp-footer__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
 .mp-footer__col h4 { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: #fff; }
-.mp-footer__col ul { list-style: none; }
+.mp-footer__col ul { list-style: none; padding: 0; margin: 0; }
 .mp-footer__col li { margin-bottom: 8px; }
 .mp-footer__col a { color: rgba(255,255,255,0.7); font-size: 14px; transition: color 0.2s; }
 .mp-footer__col a:hover { color: #fff; }
