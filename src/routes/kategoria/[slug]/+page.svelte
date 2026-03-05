@@ -6,7 +6,7 @@
     export let data;
 
     $: category = data.category;
-    $: { if (data.category) viewModeManual = false; } // reset on nav
+    $: { if (data.category) viewModeManual = false; }
     $: ancestors = data.ancestors || [];
     $: children = data.children || [];
     $: products = (data.products || []).map((p, i) => ({ ...p, rank: p.rank || (i + 1) }));
@@ -22,11 +22,53 @@
     let maxPrice = '';
     let selectedBrand = '';
     let selectedAttributes = {};
-    let sort = 'popular'; // 'popular' for leaf categories, shows rank badges
+    let sort = 'popular';
     let brandSearch = '';
     let mobileFilterOpen = false;
     let viewMode = 'grid';
-    let viewModeManual = false; // default list view // 'grid' or 'list'
+    let viewModeManual = false;
+
+    // Meilisearch facets
+    let facets = {};
+    let facetsLoaded = false;
+
+    async function loadFacets(slug) {
+        try {
+            const res = await fetch(`/api/v1/category-facets/${slug}`);
+            const json = await res.json();
+            if (json.success && json.facets) {
+                facets = json.facets;
+                facetsLoaded = true;
+                enrichAttributesWithFacets();
+            }
+        } catch(e) {}
+    }
+
+    function enrichAttributesWithFacets() {
+        for (const [key, values] of Object.entries(facets)) {
+            if (key === 'brand' || key === 'category_name') continue;
+            const attrName = key.replace('attrs.', '');
+            const existing = attributes.find(a => a.name === attrName);
+            if (!existing && values && Object.keys(values).length >= 2) {
+                const vals = Object.entries(values)
+                    .map(([v, count]) => ({ value: v, count }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 15);
+                attributes = [...attributes, { name: attrName, values: vals, fromMeili: true }];
+            } else if (existing) {
+                for (const val of existing.values || []) {
+                    if (facets[`attrs.${attrName}`]?.[val.value]) {
+                        val.count = facets[`attrs.${attrName}`][val.value];
+                    }
+                }
+            }
+        }
+        if (facets.brand) {
+            brands = brands.map(b => ({ ...b, count: facets.brand[b.name] || b.count || 0 }));
+        }
+    }
+
+    $: if (category?.slug) loadFacets(category.slug);
 
     // Leaf category = no subcategories → default to list view
     $: isLeaf = children.length === 0;
