@@ -2,16 +2,16 @@
 </script>
 
 <svelte:head>
-    <title>Impressum | MegaPrice.sk</title>
-    <meta name="description" content="Firemné údaje a kontaktné informácie prevádzkovateľa portálu MegaPrice.sk – Megabuy s.r.o.">
+    <title>Impressum | MegaBuy.sk</title>
+    <meta name="description" content="Firemné údaje a kontaktné informácie prevádzkovateľa portálu MegaBuy.sk – Megabuy s.r.o.">
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     {@html `<script type="application/ld+json">${JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "Megabuy s.r.o.",
-        "url": "https://www.megaprice.sk",
-        "logo": "https://www.megaprice.sk/logo.png",
-        "email": "info@megaprice.sk",
+        "url": "https://www.megabuy.sk",
+        "logo": "https://www.megabuy.sk/logo.png",
+        "email": "info@megabuy.sk",
         "telephone": "+421904558068",
         "address": { "@type": "PostalAddress", "streetAddress": "Necpaly 90", "postalCode": "038 12", "addressLocality": "Necpaly", "addressCountry": "SK" },
         "taxID": "57211019",
@@ -37,7 +37,7 @@
             <div class="legal-hero">
                 <span class="legal-badge">FIREMNÉ ÚDAJE</span>
                 <h1>Impressum</h1>
-                <p class="legal-sub">Informácie o prevádzkovateľovi portálu MegaPrice.sk</p>
+                <p class="legal-sub">Informácie o prevádzkovateľovi portálu MegaBuy.sk</p>
             </div>
 
             <div class="impressum-grid">
@@ -59,10 +59,10 @@
                     <div class="imp-icon">📧</div>
                     <h3>Kontakt</h3>
                     <div class="imp-rows">
-                        <div class="imp-row"><span>E-mail (všeobecný):</span><a href="mailto:info@megaprice.sk"><strong>info@megaprice.sk</strong></a></div>
-                        <div class="imp-row"><span>E-mail (GDPR):</span><a href="mailto:gdpr@megaprice.sk"><strong>gdpr@megaprice.sk</strong></a></div>
+                        <div class="imp-row"><span>E-mail (všeobecný):</span><a href="mailto:info@megabuy.sk"><strong>info@megabuy.sk</strong></a></div>
+                        <div class="imp-row"><span>E-mail (GDPR):</span><a href="mailto:gdpr@megabuy.sk"><strong>gdpr@megabuy.sk</strong></a></div>
                         <div class="imp-row"><span>Telefón:</span><a href="tel:+421904558068"><strong>+421 904 558 068</strong></a></div>
-                        <div class="imp-row"><span>Web:</span><a href="https://www.megaprice.sk"><strong>www.megaprice.sk</strong></a></div>
+                        <div class="imp-row"><span>Web:</span><a href="https://www.megabuy.sk"><strong>www.megabuy.sk</strong></a></div>
                     </div>
                 </div>
 
@@ -94,7 +94,7 @@
             </div>
 
             <div class="imp-note">
-                <p>Prevádzkovateľ portálu MegaPrice.sk nie je internetový obchod a neuzatvára kúpne zmluvy. MegaPrice.sk je nezávislý CPC porovnávač cien, ktorý zobrazuje ponuky externých obchodov. Za obsah ponúk zodpovedajú jednotliví inzerenti.</p>
+                <p>Prevádzkovateľ portálu MegaBuy.sk nie je internetový obchod a neuzatvára kúpne zmluvy. MegaBuy.sk je nezávislý CPC porovnávač cien, ktorý zobrazuje ponuky externých obchodov. Za obsah ponúk zodpovedajú jednotliví inzerenti.</p>
             </div>
         </main>
     </div>

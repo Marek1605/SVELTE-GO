@@ -42,8 +42,8 @@
 </script>
 
 <svelte:head>
-    <title>Všeobecné obchodné podmienky | MegaPrice.sk</title>
-    <meta name="description" content="Všeobecné obchodné podmienky pre inzerentov na CPC porovnávači cien MegaPrice.sk. Platné od 1. januára 2025.">
+    <title>Všeobecné obchodné podmienky | MegaBuy.sk</title>
+    <meta name="description" content="Všeobecné obchodné podmienky pre inzerentov na CPC porovnávači cien MegaBuy.sk. Platné od 1. januára 2025.">
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 </svelte:head>
 
@@ -87,7 +87,7 @@
             <div class="legal-hero">
                 <span class="legal-badge">PRÁVNY DOKUMENT</span>
                 <h1>Všeobecné obchodné podmienky</h1>
-                <p class="legal-sub">Pre inzerentov platformy MegaPrice.sk</p>
+                <p class="legal-sub">Pre inzerentov platformy MegaBuy.sk</p>
                 <div class="legal-meta">
                     <span>Platné od: <strong>1. januára 2025</strong></span>
                     <span class="meta-sep">·</span>
@@ -97,7 +97,7 @@
 
             <p class="legal-intro">
                 Tieto Všeobecné obchodné podmienky (ďalej len „VOP") upravujú zmluvný vzťah medzi prevádzkovateľom 
-                porovnávacieho portálu MegaPrice.sk a inzerentmi (obchodnými partnermi), ktorí využívajú služby CPC 
+                porovnávacieho portálu MegaBuy.sk a inzerentmi (obchodnými partnermi), ktorí využívajú služby CPC 
                 porovnávača cien na propagáciu svojich produktov.
             </p>
 
@@ -112,7 +112,7 @@
                     <div class="info-row"><span class="info-label">IČ DPH:</span> SK2122614351 <em style="font-size:12px; color:#94a3b8">(§7a – registrácia pre služby)</em></div>
                     <div class="info-row"><span class="info-label">Registrácia:</span> Obchodný register Okresného súdu Žilina</div>
                     <div class="info-row"><span class="info-label">E-mail:</span> <a href="/cdn-cgi/l/email-protection#761f181019361b13111706041f151358051d"><span class="__cf_email__" data-cfemail="e48d8a828ba48981838594968d8781ca978f">[email&#160;protected]</span></a></div>
-                    <div class="info-row"><span class="info-label">Web:</span> <a href="https://www.megaprice.sk">https://www.megaprice.sk</a></div>
+                    <div class="info-row"><span class="info-label">Web:</span> <a href="https://www.megabuy.sk">https://www.megabuy.sk</a></div>
                 </div>
                 <p>(ďalej len „Prevádzkovateľ")</p>
             </section>
@@ -122,7 +122,7 @@
                 <h2>Článok 2 – Vymedzenie pojmov</h2>
                 <dl class="def-list">
                     <dt>Portál</dt>
-                    <dd>Webová stránka dostupná na adrese www.megaprice.sk, ktorá umožňuje porovnávanie cien produktov rôznych internetových obchodov.</dd>
+                    <dd>Webová stránka dostupná na adrese www.megabuy.sk, ktorá umožňuje porovnávanie cien produktov rôznych internetových obchodov.</dd>
                     <dt>Inzerent</dt>
                     <dd>Fyzická alebo právnická osoba prevádzkujúca elektronický obchod, ktorá uzavrela s Prevádzkovateľom zmluvu o poskytovaní služieb a umiestňuje svoje ponuky na Portáli.</dd>
                     <dt>CPC (Cost Per Click)</dt>
@@ -130,7 +130,7 @@
                     <dt>Produktový feed / XML feed</dt>
                     <dd>Štruktúrovaný dátový súbor vo formáte XML obsahujúci informácie o produktoch Inzerenta.</dd>
                     <dt>Kredit</dt>
-                    <dd>Finančná záloha vložená Inzerentom na jeho účet v systéme MegaPrice.sk, z ktorej sa odpočítavajú poplatky za kliknutia.</dd>
+                    <dd>Finančná záloha vložená Inzerentom na jeho účet v systéme MegaBuy.sk, z ktorej sa odpočítavajú poplatky za kliknutia.</dd>
                     <dt>Kampaň</dt>
                     <dd>Súbor nastavení určujúcich, za akú CPC cenu a za akých podmienok sú produkty Inzerenta zobrazované na Portáli.</dd>
                 </dl>

@@ -22,8 +22,8 @@
 </script>
 
 <svelte:head>
-    <title>Podmienky používania | MegaPrice.sk</title>
-    <meta name="description" content="Podmienky používania portálu MegaPrice.sk pre návštevníkov. Pravidlá prístupu a využívania webovej stránky.">
+    <title>Podmienky používania | MegaBuy.sk</title>
+    <meta name="description" content="Podmienky používania portálu MegaBuy.sk pre návštevníkov. Pravidlá prístupu a využívania webovej stránky.">
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 </svelte:head>
 
@@ -58,7 +58,7 @@
             <div class="legal-hero">
                 <span class="legal-badge">PRÁVNY DOKUMENT</span>
                 <h1>Podmienky používania</h1>
-                <p class="legal-sub">Pre návštevníkov portálu MegaPrice.sk</p>
+                <p class="legal-sub">Pre návštevníkov portálu MegaBuy.sk</p>
                 <div class="legal-meta">
                     <span>Platné od: <strong>1. januára 2025</strong></span>
                     <span class="meta-sep">·</span>
@@ -66,20 +66,20 @@
                 </div>
             </div>
 
-            <p class="legal-intro">Tieto podmienky používania upravujú pravidlá prístupu a využívania webovej stránky MegaPrice.sk pre bežných návštevníkov a registrovaných používateľov.</p>
+            <p class="legal-intro">Tieto podmienky používania upravujú pravidlá prístupu a využívania webovej stránky MegaBuy.sk pre bežných návštevníkov a registrovaných používateľov.</p>
 
             <section id="cl1">
                 <h2>Článok 1 – Prevádzkovateľ</h2>
                 <div class="info-card">
                     <div class="info-row"><span class="info-label">Prevádzkovateľ:</span> Megabuy s.r.o., IČO: 57211019, DIČ: 2122614351</div>
                     <div class="info-row"><span class="info-label">Sídlo:</span> Necpaly 90, 038 12 Necpaly</div>
-                    <div class="info-row"><span class="info-label">Kontakt:</span> <a href="mailto:info@megaprice.sk">info@megaprice.sk</a></div>
+                    <div class="info-row"><span class="info-label">Kontakt:</span> <a href="mailto:info@megabuy.sk">info@megabuy.sk</a></div>
                 </div>
             </section>
 
             <section id="cl2">
                 <h2>Článok 2 – Charakter Portálu a poskytované informácie</h2>
-                <p>2.1 MegaPrice.sk je nezávislý porovnávač cien produktov. Portál zhromažďuje a zobrazuje informácie o produktoch a cenách z externých zdrojov (internetových obchodov) s cieľom uľahčiť spotrebiteľom porovnanie cien.</p>
+                <p>2.1 MegaBuy.sk je nezávislý porovnávač cien produktov. Portál zhromažďuje a zobrazuje informácie o produktoch a cenách z externých zdrojov (internetových obchodov) s cieľom uľahčiť spotrebiteľom porovnanie cien.</p>
                 <p>2.2 Informácie zobrazované na Portáli (vrátane cien, dostupnosti a popisov produktov) pochádzajú priamo od inzerentov a môžu obsahovať nepresnosti alebo oneskorené aktualizácie. Prevádzkovateľ vynaloží primerané úsilie na zabezpečenie aktuálnosti údajov.</p>
                 <div class="highlight-box">
                     <span class="material-icons-round" style="color:#3b82f6">info</span>
@@ -126,7 +126,7 @@
 
             <section id="cl7">
                 <h2>Článok 7 – Zmeny podmienok a záverečné ustanovenia</h2>
-                <p>7.1 Prevádzkovateľ si vyhradzuje právo kedykoľvek zmeniť tieto Podmienky. Aktuálna verzia je vždy dostupná na stránke <a href="/podmienky-pouzivania">megaprice.sk/podmienky-pouzivania</a>.</p>
+                <p>7.1 Prevádzkovateľ si vyhradzuje právo kedykoľvek zmeniť tieto Podmienky. Aktuálna verzia je vždy dostupná na stránke <a href="/podmienky-pouzivania">megabuy.sk/podmienky-pouzivania</a>.</p>
                 <p>7.2 Pokračovaním v používaní Portálu po zverejnení zmien návštevník vyjadruje súhlas s novými podmienkami.</p>
                 <p>7.3 Tieto podmienky sa riadia právom Slovenskej republiky.</p>
             </section>

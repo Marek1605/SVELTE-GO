@@ -19,8 +19,8 @@
 </script>
 
 <svelte:head>
-    <title>Kontakt | MegaPrice.sk</title>
-    <meta name="description" content="Kontaktné údaje prevádzkovateľa portálu MegaPrice.sk – Megabuy s.r.o.">
+    <title>Kontakt | MegaBuy.sk</title>
+    <meta name="description" content="Kontaktné údaje prevádzkovateľa portálu MegaBuy.sk – Megabuy s.r.o.">
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 </svelte:head>
 
@@ -53,7 +53,7 @@
 
         <div class="legal-header">
             <h1>Kontakt</h1>
-            <p class="legal-subtitle">Portál MegaPrice.sk – porovnávač cien</p>
+            <p class="legal-subtitle">Portál MegaBuy.sk – porovnávač cien</p>
         </div>
 
         <!-- SECTION: Dôležité upozornenie -->
@@ -62,7 +62,7 @@
                 <div class="warning-icon">⚠️</div>
                 <div>
                     <h3>Upozornenie – nie sme internetový obchod!</h3>
-                    <p>Webová stránka <strong>MegaPrice.sk</strong> funguje výhradne ako <strong>nezávislý porovnávač cien</strong>. Naším cieľom je pomôcť vám nájsť najvýhodnejšiu ponuku medzi registrovanými e-shopmi. Žiadny tovar priamo nepredávame, neskladujeme ani nedoručujeme.</p>
+                    <p>Webová stránka <strong>MegaBuy.sk</strong> funguje výhradne ako <strong>nezávislý porovnávač cien</strong>. Naším cieľom je pomôcť vám nájsť najvýhodnejšiu ponuku medzi registrovanými e-shopmi. Žiadny tovar priamo nepredávame, neskladujeme ani nedoručujeme.</p>
                     <p style="margin-top:10px">Pre uskutočnenie nákupu kliknite pri vybranej ponuke na tlačidlo <strong>„Do obchodu"</strong> — presmerujeme vás na web konkrétneho predajcu, kde transakciu realizujete podľa jeho vlastných obchodných podmienok.</p>
                 </div>
             </div>
@@ -93,7 +93,7 @@
                     <div class="card-rows">
                         <div class="card-row"><span>Register:</span><strong>Obchodný register Okresného súdu Žilina</strong></div>
                         <div class="card-row"><span>Oddiel:</span><strong>Sro</strong></div>
-                        <div class="card-row"><span>Web portálu:</span><strong><a href="https://www.megaprice.sk">www.megaprice.sk</a></strong></div>
+                        <div class="card-row"><span>Web portálu:</span><strong><a href="https://www.megabuy.sk">www.megabuy.sk</a></strong></div>
                     </div>
                 </div>
             </div>
@@ -107,7 +107,7 @@
                     <div class="contact-icon">📧</div>
                     <h4>E-mail</h4>
                     <p>Všeobecné otázky, spolupráca, podpora:</p>
-                    <a href="mailto:info@megaprice.sk" class="contact-link">info@megaprice.sk</a>
+                    <a href="mailto:info@megabuy.sk" class="contact-link">info@megabuy.sk</a>
                 </div>
                 <div class="contact-card">
                     <div class="contact-icon">📞</div>
@@ -119,7 +119,7 @@
                     <div class="contact-icon">🔒</div>
                     <h4>Ochrana osobných údajov</h4>
                     <p>GDPR, žiadosti o výmaz, práva dotknutých osôb:</p>
-                    <a href="mailto:gdpr@megaprice.sk" class="contact-link">gdpr@megaprice.sk</a>
+                    <a href="mailto:gdpr@megabuy.sk" class="contact-link">gdpr@megabuy.sk</a>
                 </div>
             </div>
             

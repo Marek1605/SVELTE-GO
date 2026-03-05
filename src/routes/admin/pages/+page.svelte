@@ -64,9 +64,9 @@
         name: 'Megabuy s.r.o.',
         ico: '57211019',
         city: 'Žilina',
-        email: 'info@megaprice.sk',
-        gdpr_email: 'gdpr@megaprice.sk',
-        web: 'https://www.megaprice.sk',
+        email: 'info@megabuy.sk',
+        gdpr_email: 'gdpr@megabuy.sk',
+        web: 'https://www.megabuy.sk',
         valid_from: '1. januára 2025',
         updated: '4. marca 2026',
     };

@@ -23,8 +23,8 @@
 </script>
 
 <svelte:head>
-    <title>Ochrana osobných údajov | MegaPrice.sk</title>
-    <meta name="description" content="Zásady ochrany osobných údajov portálu MegaPrice.sk v súlade s GDPR a zákonom č. 18/2018 Z. z.">
+    <title>Ochrana osobných údajov | MegaBuy.sk</title>
+    <meta name="description" content="Zásady ochrany osobných údajov portálu MegaBuy.sk v súlade s GDPR a zákonom č. 18/2018 Z. z.">
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 </svelte:head>
 
@@ -57,7 +57,7 @@
             <div class="legal-hero">
                 <span class="legal-badge">GDPR</span>
                 <h1>Zásady ochrany osobných údajov</h1>
-                <p class="legal-sub">Privacy Policy portálu MegaPrice.sk</p>
+                <p class="legal-sub">Privacy Policy portálu MegaBuy.sk</p>
                 <div class="legal-meta">
                     <span>Platné od: <strong>1. januára 2025</strong></span>
                     <span class="meta-sep">·</span>
@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <p class="legal-intro">Tieto Zásady vysvetľujú, ako Megabuy s.r.o. zhromažďuje, spracúva a chráni osobné údaje návštevníkov, registrovaných používateľov a inzerentov portálu MegaPrice.sk v súlade s nariadením GDPR a zákonom č. 18/2018 Z. z.</p>
+            <p class="legal-intro">Tieto Zásady vysvetľujú, ako Megabuy s.r.o. zhromažďuje, spracúva a chráni osobné údaje návštevníkov, registrovaných používateľov a inzerentov portálu MegaBuy.sk v súlade s nariadením GDPR a zákonom č. 18/2018 Z. z.</p>
 
             <section id="cl1">
                 <h2>Článok 1 – Prevádzkovateľ osobných údajov</h2>
@@ -74,7 +74,7 @@
                     <div class="info-row"><span class="info-label">IČO:</span> 57211019</div>
                     <div class="info-row"><span class="info-label">DIČ:</span> 2122614351</div>
                     <div class="info-row"><span class="info-label">Sídlo:</span> Necpaly 90, 038 12 Necpaly</div>
-                    <div class="info-row"><span class="info-label">GDPR kontakt:</span> <a href="mailto:gdpr@megaprice.sk">gdpr@megaprice.sk</a></div>
+                    <div class="info-row"><span class="info-label">GDPR kontakt:</span> <a href="mailto:gdpr@megabuy.sk">gdpr@megabuy.sk</a></div>
                 </div>
                 <p>Prevádzkovateľ nemá povinnosť menovať zodpovednú osobu (DPO), avšak otázky súvisiace s ochranou osobných údajov adresujte na vyššie uvedený e-mail.</p>
             </section>
@@ -174,7 +174,7 @@
                     <div class="right-item"><strong>Právo namietať</strong> <span class="right-ref">(čl. 21)</span><br>Namietať voči oprávnenému záujmu</div>
                 </div>
                 <div class="info-card">
-                    <p style="margin:0; font-size:14px; line-height:1.6;">Svoju žiadosť zasielajte na <a href="mailto:gdpr@megaprice.sk" style="color:#c4956a; font-weight:600;">gdpr@megaprice.sk</a>. Odpovieme do 30 dní. Máte tiež právo podať sťažnosť na <strong>Úrad na ochranu osobných údajov SR</strong>, Hraničná 12, 820 07 Bratislava.</p>
+                    <p style="margin:0; font-size:14px; line-height:1.6;">Svoju žiadosť zasielajte na <a href="mailto:gdpr@megabuy.sk" style="color:#c4956a; font-weight:600;">gdpr@megabuy.sk</a>. Odpovieme do 30 dní. Máte tiež právo podať sťažnosť na <strong>Úrad na ochranu osobných údajov SR</strong>, Hraničná 12, 820 07 Bratislava.</p>
                 </div>
             </section>
 

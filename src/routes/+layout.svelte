@@ -149,9 +149,9 @@
             </button>
             <a href="/" class="mp-header__logo">
                 {#if logoUrl}
-                    <img src={logoUrl} alt="MegaPrice" class="mp-header__logo-img" style="height:{logoSize}px" />
+                    <img src={logoUrl} alt="MegaBuy" class="mp-header__logo-img" style="height:{logoSize}px" />
                 {:else}
-                    <span class="mp-header__logo-text">MegaPrice</span>
+                    <span class="mp-header__logo-text">MegaBuy</span>
                 {/if}
             </a>
             <form class="mp-search" on:submit={handleSearch}>
@@ -356,7 +356,7 @@
             <div class="mp-footer__col"><h4>O nás</h4><ul><li><a href="/impressum">Impressum</a></li><li><a href="/kontakt">Kontakt</a></li></ul></div>
             <div class="mp-footer__col"><h4>Pre zákazníkov</h4><ul><li><a href="/podmienky-pouzivania">Podmienky používania</a></li><li><a href="/ochrana-osobnych-udajov">Ochrana osobných údajov</a></li><li><a href="/zasady-cookies">Zásady cookies</a></li></ul></div>
             <div class="mp-footer__col"><h4>Pre predajcov</h4><ul><li><a href="/vseobecne-obchodne-podmienky">VOP pre inzerentov</a></li><li><a href="/prihlasenie-predajcu">Prihlásenie predajcu</a></li><li><a href="/registracia-predajcu">Registrácia predajcu</a></li></ul></div>
-            <div class="mp-footer__col"><h4>Kontakt</h4><p>Megabuy s.r.o.<br>Necpaly 90, 038 12 Necpaly<br>IČO: 57211019 · DIČ: 2122614351<br><a href="mailto:info@megaprice.sk">info@megaprice.sk</a><br><a href="tel:+421904558068">+421 904 558 068</a></p></div>
+            <div class="mp-footer__col"><h4>Kontakt</h4><p>Megabuy s.r.o.<br>Necpaly 90, 038 12 Necpaly<br>IČO: 57211019 · DIČ: 2122614351<br><a href="mailto:info@megabuy.sk">info@megabuy.sk</a><br><a href="tel:+421904558068">+421 904 558 068</a></p></div>
         </div></div></div>
         <div class="mp-footer__bottom"><p>© 2026 Megabuy s.r.o. Všetky práva vyhradené.</p><div class="mp-footer__links"><a href="/vseobecne-obchodne-podmienky">VOP</a><a href="/podmienky-pouzivania">Podmienky</a><a href="/ochrana-osobnych-udajov">GDPR</a><a href="/zasady-cookies">Cookies</a><a href="/impressum">Impressum</a></div></div>
     </footer>

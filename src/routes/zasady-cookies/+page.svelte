@@ -21,8 +21,8 @@
 </script>
 
 <svelte:head>
-    <title>Zásady cookies | MegaPrice.sk</title>
-    <meta name="description" content="Zásady používania súborov cookie na portáli MegaPrice.sk.">
+    <title>Zásady cookies | MegaBuy.sk</title>
+    <meta name="description" content="Zásady používania súborov cookie na portáli MegaBuy.sk.">
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 </svelte:head>
 
@@ -55,7 +55,7 @@
             <div class="legal-hero">
                 <span class="legal-badge">ePRIVACY</span>
                 <h1>Zásady používania súborov cookie</h1>
-                <p class="legal-sub">Cookie Policy portálu MegaPrice.sk</p>
+                <p class="legal-sub">Cookie Policy portálu MegaBuy.sk</p>
                 <div class="legal-meta">
                     <span>Platné od: <strong>1. januára 2025</strong></span>
                     <span class="meta-sep">·</span>
@@ -63,7 +63,7 @@
                 </div>
             </div>
 
-            <p class="legal-intro">Tieto Zásady vysvetľujú, aké súbory cookie a podobné technológie používame na MegaPrice.sk, na aký účel a aké máte možnosti voľby. Súlad so zákonom č. 452/2021 Z. z. o elektronických komunikáciách a nariadením GDPR.</p>
+            <p class="legal-intro">Tieto Zásady vysvetľujú, aké súbory cookie a podobné technológie používame na MegaBuy.sk, na aký účel a aké máte možnosti voľby. Súlad so zákonom č. 452/2021 Z. z. o elektronických komunikáciách a nariadením GDPR.</p>
 
             <section id="cl1">
                 <h2>Článok 1 – Čo sú súbory cookie</h2>
@@ -88,7 +88,7 @@
                 <div class="cookie-table">
                     <div class="cookie-header"><span>Názov</span><span>Účel</span><span>Trvanie</span></div>
                     <div class="cookie-row"><span class="cookie-name">_ga, _gid</span><span>Google Analytics (anonymizovaná IP)</span><span>2 roky / 24 h</span></div>
-                    <div class="cookie-row"><span class="cookie-name">mp_pageview</span><span>Vlastná analytika MegaPrice.sk</span><span>90 dní</span></div>
+                    <div class="cookie-row"><span class="cookie-name">mp_pageview</span><span>Vlastná analytika MegaBuy.sk</span><span>90 dní</span></div>
                 </div>
 
                 <h3>⚙️ 2.3 Funkčné cookies <span class="consent-req">vyžadujú súhlas</span></h3>
@@ -136,7 +136,7 @@
 
             <section id="cl6">
                 <h2>Článok 6 – Kontakt a zmeny</h2>
-                <p>Otázky ohľadom cookies zasielajte na <a href="mailto:gdpr@megaprice.sk">gdpr@megaprice.sk</a>. Tieto Zásady môžeme aktualizovať. Každá zmena bude oznámená aktualizáciou dátumu v záhlaví dokumentu.</p>
+                <p>Otázky ohľadom cookies zasielajte na <a href="mailto:gdpr@megabuy.sk">gdpr@megabuy.sk</a>. Tieto Zásady môžeme aktualizovať. Každá zmena bude oznámená aktualizáciou dátumu v záhlaví dokumentu.</p>
             </section>
 
             <div class="legal-footer-nav">

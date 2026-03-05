@@ -110,7 +110,7 @@
 </script>
 
 <svelte:head>
-    <title>Admin | MegaPrice</title>
+    <title>Admin | MegaBuy</title>
     <meta name="robots" content="noindex">
 </svelte:head>
 
@@ -121,7 +121,7 @@
     <div class="login-wrap">
         <div class="login-box">
             <div class="login-logo"><span>M</span></div>
-            <h2>MegaPrice Admin</h2>
+            <h2>MegaBuy Admin</h2>
             <form on:submit|preventDefault={doLogin}>
                 <input type="text" placeholder="Meno" bind:value={loginUser} autocomplete="username">
                 <input type="password" placeholder="Heslo" bind:value={loginPass} autocomplete="current-password">
@@ -135,7 +135,7 @@
         <div class="sb__top">
             <a href="/admin" class="sb__logo">
                 <span class="sb__logo-icon">M</span>
-                {#if !sidebarCollapsed}<span class="sb__logo-text"><strong>MegaPrice</strong><small>Admin Panel</small></span>{/if}
+                {#if !sidebarCollapsed}<span class="sb__logo-text"><strong>MegaBuy</strong><small>Admin Panel</small></span>{/if}
             </a>
             <button class="sb__toggle" on:click={toggleSidebar} title={sidebarCollapsed ? 'Rozbaliť' : 'Zbaliť'}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
