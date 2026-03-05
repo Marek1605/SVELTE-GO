@@ -371,4 +371,8 @@
         .legal-hero h1 { font-size: 24px; }
         .legal-hero { padding: 20px 0 20px; }
         .info-row { flex-direction: column; gap: 2px; }
-        .info-label { min-
+        .info-label { min-width: auto; }
+        .def-grid { grid-template-columns: 1fr; }
+        .retention-table { font-size: 12px; }
+    }
+</style>
