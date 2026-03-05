@@ -358,7 +358,7 @@
             <div class="mp-footer__col"><h4>Pre predajcov</h4><ul><li><a href="/vseobecne-obchodne-podmienky">VOP pre inzerentov</a></li><li><a href="/prihlasenie-predajcu">Prihlásenie predajcu</a></li><li><a href="/registracia-predajcu">Registrácia predajcu</a></li></ul></div>
             <div class="mp-footer__col"><h4>Kontakt</h4><p>Megabuy s.r.o.<br>Necpaly 90, 038 12 Necpaly<br>IČO: 57211019 · DIČ: 2122614351<br><a href="mailto:info@megabuy.sk">info@megabuy.sk</a><br><a href="tel:+421904558068">+421 904 558 068</a></p></div>
         </div></div></div>
-        <div class="mp-footer__bottom"><p>© 2026 Megabuy s.r.o. Všetky práva vyhradené.</p><div class="mp-footer__links"><a href="/vseobecne-obchodne-podmienky">VOP</a><a href="/podmienky-pouzivania">Podmienky</a><a href="/ochrana-osobnych-udajov">GDPR</a><a href="/zasady-cookies">Cookies</a><a href="/impressum">Impressum</a></div></div>
+        <div class="mp-footer__bottom-wrap"><div class="mp-footer__bottom"><p>© 2026 Megabuy s.r.o. Všetky práva vyhradené.</p><div class="mp-footer__links"><a href="/vseobecne-obchodne-podmienky">VOP</a><a href="/podmienky-pouzivania">Podmienky</a><a href="/ochrana-osobnych-udajov">GDPR</a><a href="/zasady-cookies">Cookies</a><a href="/impressum">Impressum</a></div></div></div>
     </footer>
 
     <nav class="mp-bottom-nav">
@@ -652,7 +652,7 @@
 .mp-main { flex: 1; overflow-x: hidden; width: 100%; }
 .mp-footer { background: #1f2937; color: #fff; margin-top: auto; overflow-x: hidden; width: 100%; }
 .mp-footer__top { padding: 48px 20px; }
-.mp-footer__inner { padding: 0 32px; }
+.mp-footer__inner { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
 .mp-footer__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
 .mp-footer__col h4 { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: #fff; }
 .mp-footer__col ul { list-style: none; }
@@ -660,7 +660,8 @@
 .mp-footer__col a { color: rgba(255,255,255,0.7); font-size: 14px; transition: color 0.2s; }
 .mp-footer__col a:hover { color: #fff; }
 .mp-footer__col p { color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.8; }
-.mp-footer__bottom { background: rgba(0,0,0,0.2); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: rgba(255,255,255,0.6); }
+.mp-footer__bottom { background: rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: rgba(255,255,255,0.6); max-width: 1280px; margin: 0 auto; padding: 16px 32px; }
+.mp-footer__bottom-wrap { background: rgba(0,0,0,0.2); }
 .mp-footer__links { display: flex; gap: 20px; }
 .mp-footer__links a { color: rgba(255,255,255,0.6); }
 .mp-footer__links a:hover { color: #fff; }
