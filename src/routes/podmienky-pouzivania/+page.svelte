@@ -71,8 +71,8 @@
             <section id="cl1">
                 <h2>Článok 1 – Prevádzkovateľ</h2>
                 <div class="info-card">
-                    <div class="info-row"><span class="info-label">Prevádzkovateľ:</span> Megabuy s.r.o., IČO: 57211019</div>
-                    <div class="info-row"><span class="info-label">Sídlo:</span> Žilina, Slovenská republika</div>
+                    <div class="info-row"><span class="info-label">Prevádzkovateľ:</span> Megabuy s.r.o., IČO: 57211019, DIČ: 2122614351</div>
+                    <div class="info-row"><span class="info-label">Sídlo:</span> Necpaly 90, 038 12 Necpaly</div>
                     <div class="info-row"><span class="info-label">Kontakt:</span> <a href="mailto:info@megaprice.sk">info@megaprice.sk</a></div>
                 </div>
             </section>

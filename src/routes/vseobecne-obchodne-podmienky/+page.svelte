@@ -106,10 +106,12 @@
                 <h2>Článok 1 – Prevádzkovateľ a identifikácia</h2>
                 <div class="info-card">
                     <div class="info-row"><span class="info-label">Obchodné meno:</span> Megabuy s.r.o.</div>
-                    <div class="info-row"><span class="info-label">Sídlo:</span> Žilina, Slovenská republika</div>
+                    <div class="info-row"><span class="info-label">Sídlo:</span> Necpaly 90, 038 12 Necpaly</div>
                     <div class="info-row"><span class="info-label">IČO:</span> 57211019</div>
+                    <div class="info-row"><span class="info-label">DIČ:</span> 2122614351</div>
+                    <div class="info-row"><span class="info-label">IČ DPH:</span> SK2122614351 <em style="font-size:12px; color:#94a3b8">(§7a – registrácia pre služby)</em></div>
                     <div class="info-row"><span class="info-label">Registrácia:</span> Obchodný register Okresného súdu Žilina</div>
-                    <div class="info-row"><span class="info-label">E-mail:</span> <a href="mailto:info@megaprice.sk">info@megaprice.sk</a></div>
+                    <div class="info-row"><span class="info-label">E-mail:</span> <a href="/cdn-cgi/l/email-protection#761f181019361b13111706041f151358051d"><span class="__cf_email__" data-cfemail="e48d8a828ba48981838594968d8781ca978f">[email&#160;protected]</span></a></div>
                     <div class="info-row"><span class="info-label">Web:</span> <a href="https://www.megaprice.sk">https://www.megaprice.sk</a></div>
                 </div>
                 <p>(ďalej len „Prevádzkovateľ")</p>
@@ -160,7 +162,7 @@
             <!-- Článok 5 -->
             <section id="cl5">
                 <h2>Článok 5 – XML feed a technická integrácia</h2>
-                <p>5.1 Inzerent je povinný dodávať produktový XML feed v štandardizovanom formáte kompatibilnom s Heureka.sk XML štandardom. Prevádzkovateľ zverejní technickú špecifikáciu feedu na Portáli.</p>
+                <p>5.1 Inzerent je povinný dodávať produktový XML feed v štandardizovanom formáte podľa špecifikácie zverejnenej Prevádzkovateľom na Portáli. Odporúčaný formát vychádza z bežne používaného XML štandardu pre slovenské porovnávače cien.</p>
                 <p>5.2 Inzerent zodpovedá za správnosť, aktuálnosť a úplnosť dát v XML feede. Feed musí obsahovať najmä: názov produktu, URL adresu produktu na webe Inzerenta, cenu, EAN kód (ak je dostupný), dostupnosť a kategóriu.</p>
                 <p>5.3 Inzerent súhlasí s tým, že Prevádzkovateľ môže automaticky importovať a spracovávať obsah feedu, vrátane kategorizácie produktov pomocou automatizovaných nástrojov (AI kategorizácia).</p>
                 <div class="highlight-box">
@@ -177,7 +179,7 @@
             <section id="cl6">
                 <h2>Článok 6 – CPC ceny a kredit</h2>
                 <p>6.1 Inzerent hradí Prevádzkovateľovi odplatu za každé kliknutie (CPC) na odkaz vedúci na web Inzerenta. Aktuálny cenník minimálnych CPC cien je dostupný v partnerskom rozhraní.</p>
-                <p>6.2 Ceny sú uvádzané bez DPH. K cenám bude pripočítaná DPH v zákonom stanovenej výške, ak je Inzerent platiteľom DPH alebo ak to vyžaduje platná legislatíva.</p>
+                <p>6.2 Prevádzkovateľ nie je platiteľom DPH podľa § 4 zákona č. 222/2004 Z. z. (je registrovaný podľa § 7a pre prijímanie služieb zo zahraničia). Ceny za CPC kliknutia sú preto uvádzané ako konečné, bez DPH.</p>
                 <p>6.3 Systém funguje na princípe predplateného kreditu. Inzerent vloží kredit na svoj účet vopred. Kliknutia sú odpočítavané v reálnom čase. Ak kredit klesne na nulu, zobrazovanie produktov Inzerenta bude pozastavené.</p>
                 <div class="info-card compact">
                     <div class="info-row"><span class="info-label">Minimálne dobíjanie:</span> 10 EUR</div>
@@ -185,7 +187,7 @@
                     <div class="info-row"><span class="info-label">Vrátenie pri ukončení:</span> Do 30 dní, zníž. o 20 % admin. poplatok</div>
                 </div>
                 <p>6.5 Inzerent môže nastaviť denný alebo mesačný limit výdavkov v partnerskom rozhraní. Prevádzkovateľ negarantuje presné dodržanie limitu z technických dôvodov (oneskorenie spracovania).</p>
-                <p>6.6 Prevádzkovateľ vystaví daňový doklad (faktúru) za každé dobíjanie kreditu v súlade so zákonom č. 222/2004 Z. z. o dani z pridanej hodnoty. Faktúra bude dostupná v elektronickej forme v partnerskom rozhraní.</p>
+                <p>6.6 Prevádzkovateľ vystaví účtovný doklad (faktúru) za každé dobíjanie kreditu. Faktúra nebude obsahovať DPH, keďže Prevádzkovateľ nie je platiteľom DPH podľa § 4. Faktúra bude dostupná v elektronickej forme v partnerskom rozhraní.</p>
             </section>
 
             <!-- Článok 7 -->
@@ -271,7 +273,7 @@
                 <p>12.1 Zmluvné strany sa zaväzujú riešiť spory prednostne mimosúdnou cestou.</p>
                 <p>12.2 Inzerent – spotrebiteľ – má právo obrátiť sa na Slovenskú obchodnú inšpekciu (SOI), Prievozská 32, 827 99 Bratislava 27, alebo na platformu riešenia sporov online: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">https://ec.europa.eu/consumers/odr</a></p>
                 <p>12.3 Pre obchodné spory medzi podnikateľmi je príslušný Okresný súd v Žiline podľa sídla Prevádzkovateľa.</p>
-                <p>12.4 Tieto VOP sa riadia právnym poriadkom Slovenskej republiky, konkrétne Obchodným zákonníkom (zákon č. 513/1991 Zb.) a súvisiacimi predpismi.</p>
+                <p>12.4 Tieto VOP sa riadia právnym poriadkom Slovenskej republiky, konkrétne Obchodným zákonníkom (zákon č. 513/1991 Zb. v znení neskorších predpisov) a súvisiacimi právnymi predpismi SR.</p>
             </section>
 
             <!-- Článok 13 -->
@@ -369,8 +371,4 @@
         .legal-hero h1 { font-size: 24px; }
         .legal-hero { padding: 20px 0 20px; }
         .info-row { flex-direction: column; gap: 2px; }
-        .info-label { min-width: auto; }
-        section h2 { font-size: 19px; }
-        .highlight-box { flex-direction: column; gap: 8px; }
-    }
-</style>
+        .info-label { min-

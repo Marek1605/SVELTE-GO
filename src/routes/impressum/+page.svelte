@@ -12,8 +12,10 @@
         "url": "https://www.megaprice.sk",
         "logo": "https://www.megaprice.sk/logo.png",
         "email": "info@megaprice.sk",
-        "address": { "@type": "PostalAddress", "addressLocality": "Žilina", "addressCountry": "SK" },
-        "taxID": "57211019"
+        "telephone": "+421904558068",
+        "address": { "@type": "PostalAddress", "streetAddress": "Necpaly 90", "postalCode": "038 12", "addressLocality": "Necpaly", "addressCountry": "SK" },
+        "taxID": "57211019",
+        "vatID": "SK2122614351"
     })}</script>`}
 </svelte:head>
 
@@ -45,8 +47,10 @@
                     <div class="imp-rows">
                         <div class="imp-row"><span>Obchodné meno:</span><strong>Megabuy s.r.o.</strong></div>
                         <div class="imp-row"><span>Právna forma:</span><strong>Spoločnosť s ručením obmedzeným</strong></div>
-                        <div class="imp-row"><span>Sídlo:</span><strong>Žilina, Slovenská republika</strong></div>
+                        <div class="imp-row"><span>Sídlo:</span><strong>Necpaly 90, 038 12 Necpaly</strong></div>
                         <div class="imp-row"><span>IČO:</span><strong>57211019</strong></div>
+                        <div class="imp-row"><span>DIČ:</span><strong>2122614351</strong></div>
+                        <div class="imp-row"><span>IČ DPH:</span><strong>SK2122614351 (§7a)</strong></div>
                         <div class="imp-row"><span>Registrácia:</span><strong>Obchodný register OS Žilina</strong></div>
                     </div>
                 </div>
@@ -57,6 +61,7 @@
                     <div class="imp-rows">
                         <div class="imp-row"><span>E-mail (všeobecný):</span><a href="mailto:info@megaprice.sk"><strong>info@megaprice.sk</strong></a></div>
                         <div class="imp-row"><span>E-mail (GDPR):</span><a href="mailto:gdpr@megaprice.sk"><strong>gdpr@megaprice.sk</strong></a></div>
+                        <div class="imp-row"><span>Telefón:</span><a href="tel:+421904558068"><strong>+421 904 558 068</strong></a></div>
                         <div class="imp-row"><span>Web:</span><a href="https://www.megaprice.sk"><strong>www.megaprice.sk</strong></a></div>
                     </div>
                 </div>
@@ -65,8 +70,11 @@
                     <div class="imp-icon">⚖️</div>
                     <h3>Dozorné orgány</h3>
                     <div class="imp-rows">
-                        <div class="imp-row"><span>Obchodný dozor:</span><strong>Slovenská obchodná inšpekcia</strong></div>
-                        <div class="imp-row"><span>Adresa SOI:</span><strong>Prievozská 32, 827 99 Bratislava</strong></div>
+                        <div class="imp-row"><span>Obchodný dozor:</span><strong>Slovenská obchodná inšpekcia (SOI)</strong></div>
+                        <div class="imp-row"><span>Inšpektorát:</span><strong>SOI pre Žilinský kraj</strong></div>
+                        <div class="imp-row"><span>Adresa SOI:</span><strong>Predmestská 71, P.O. Box B-89, 011 79 Žilina 1</strong></div>
+                        <div class="imp-row"><span>Tel.:</span><strong>041/763 21 30</strong></div>
+                        <div class="imp-row"><span>E-mail:</span><a href="mailto:za@soi.sk"><strong>za@soi.sk</strong></a></div>
                         <div class="imp-row"><span>Ochrana údajov:</span><strong>Úrad na ochranu osobných údajov SR</strong></div>
                         <div class="imp-row"><span>Adresa ÚOOÚ:</span><strong>Hraničná 12, 820 07 Bratislava</strong></div>
                         <div class="imp-row"><span>Online spory:</span><a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener"><strong>ec.europa.eu/consumers/odr</strong></a></div>

@@ -72,7 +72,8 @@
                 <div class="info-card">
                     <div class="info-row"><span class="info-label">Obchodné meno:</span> Megabuy s.r.o.</div>
                     <div class="info-row"><span class="info-label">IČO:</span> 57211019</div>
-                    <div class="info-row"><span class="info-label">Sídlo:</span> Žilina, Slovenská republika</div>
+                    <div class="info-row"><span class="info-label">DIČ:</span> 2122614351</div>
+                    <div class="info-row"><span class="info-label">Sídlo:</span> Necpaly 90, 038 12 Necpaly</div>
                     <div class="info-row"><span class="info-label">GDPR kontakt:</span> <a href="mailto:gdpr@megaprice.sk">gdpr@megaprice.sk</a></div>
                 </div>
                 <p>Prevádzkovateľ nemá povinnosť menovať zodpovednú osobu (DPO), avšak otázky súvisiace s ochranou osobných údajov adresujte na vyššie uvedený e-mail.</p>

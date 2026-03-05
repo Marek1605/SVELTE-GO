@@ -49,6 +49,15 @@
             status: 'active',
             sections: 4,
         },
+        { 
+            id: 'kontakt', 
+            title: 'Kontakt',
+            subtitle: 'Kontaktné údaje + "nie sme obchod"',
+            route: '/kontakt',
+            icon: '📞',
+            status: 'active',
+            sections: 5,
+        },
     ];
     
     let companyInfo = {
