@@ -31,6 +31,9 @@
     // Meilisearch facets
     let facets = {};
     let facetsLoaded = false;
+    
+    // Mobile category accordion
+    let mobileExpandedCats = {};
 
     async function loadFacets(slug) {
         try {
@@ -630,6 +633,38 @@
             </button>
         </div>
         <div class="mob-drawer__body">
+            <!-- Categories navigation -->
+            {#if children.length > 0 || ancestors.length > 0}
+                <div class="fl__sec mob-cats">
+                    <div class="fl__sec-head"><span>Kategórie</span></div>
+                    <div class="fl__body">
+                        {#if ancestors.length > 0}
+                            <a href="/kategoria/{ancestors[ancestors.length - 1].slug}" class="mob-cat mob-cat--back">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                                {ancestors[ancestors.length - 1].name}
+                            </a>
+                        {/if}
+                        <div class="mob-cat mob-cat--current">{category?.name}</div>
+                        <div class="mob-cats__grid">
+                            {#each children as child}
+                                <a href="/kategoria/{child.slug}" class="mob-cat__item">
+                                    <div class="mob-cat__img">
+                                        {#if child.image_url}
+                                            <img src={child.image_url} alt={child.name} loading="lazy">
+                                        {:else}
+                                            <span>{child.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                                        {/if}
+                                    </div>
+                                    <span class="mob-cat__name">{child.name}</span>
+                                    {#if child.product_count > 0}
+                                        <span class="mob-cat__count">{child.product_count}</span>
+                                    {/if}
+                                </a>
+                            {/each}
+                        </div>
+                    </div>
+                </div>
+            {/if}
             <!-- Price -->
             <div class="fl__sec">
                 <div class="fl__sec-head"><span>Cena</span></div>
@@ -1003,6 +1038,17 @@
 .mob-drawer__foot { padding: 12px 16px; border-top: 1px solid #f3f4f6; }
 .mob-drawer__apply { width: 100%; padding: 14px; background: #c4956a; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
 
+/* Mobile categories in drawer */
+.mob-cats__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.mob-cat--back { display: flex; align-items: center; gap: 6px; padding: 8px 10px; color: #c4956a; font-size: 13px; font-weight: 600; text-decoration: none; margin-bottom: 4px; }
+.mob-cat--current { font-size: 15px; font-weight: 700; color: #1f2937; padding: 6px 10px; margin-bottom: 6px; border-left: 3px solid #c4956a; }
+.mob-cat__item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f8f9fb; border: 1px solid #eef0f4; border-radius: 8px; text-decoration: none; color: #374151; font-size: 12px; transition: all 0.15s; min-height: 40px; }
+.mob-cat__item:hover, .mob-cat__item:active { border-color: #c4956a; background: #faf6f2; }
+.mob-cat__img { width: 24px; height: 24px; background: #fff; border-radius: 5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; font-size: 11px; color: #94a3b8; }
+.mob-cat__img img { width: 100%; height: 100%; object-fit: contain; }
+.mob-cat__name { flex: 1; line-height: 1.3; font-weight: 500; }
+.mob-cat__count { font-size: 10px; color: #94a3b8; flex-shrink: 0; }
+
 /* === RESPONSIVE === */
 @media (max-width: 900px) {
     .cat-layout { grid-template-columns: 1fr; gap: 0; }
@@ -1020,7 +1066,10 @@
 }
 @media (max-width: 600px) {
     .cat-title { font-size: 22px; }
-    .subcats { grid-template-columns: 1fr; gap: 6px; }
+    .subcats { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .subcat { padding: 6px 8px; gap: 6px; }
+    .subcat__img { width: 24px; height: 24px; }
+    .subcat__name { font-size: 12px; line-height: 1.3; white-space: normal; }
     .prods__grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .pc__body { padding: 10px; }
     .pc__price-val { font-size: 17px; }
