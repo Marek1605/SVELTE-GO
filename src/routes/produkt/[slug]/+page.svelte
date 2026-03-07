@@ -692,7 +692,7 @@
 .mp-info__action.active { border-color: #c4956a; color: #c4956a; background: #fdf8f5; }
 
 /* AI Assistant — expandable */
-.mp-ai-box { margin-top: 8px; }
+.mp-ai-box { margin-top: 8px; max-width: 50%; }
 .mp-ai-toggle {
     width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 16px;
     background: linear-gradient(135deg, #1e293b, #334155); color: #fff;
@@ -1288,6 +1288,7 @@
     .mp-offers__delivery { grid-column: 1; grid-row: 2; margin-left: auto; font-size: 11px; display: flex; }
     .mp-offers__cta-col { grid-column: 2; grid-row: 2; }
     .mp-offers__cta { padding: 8px 14px; border-radius: 50px; font-size: 12px; }
+    .mp-ai-box { max-width: 100%; }
     .mp-offers__header { flex-wrap: wrap; }
     .mp-offers__right { width: 100%; justify-content: space-between; margin-top: 4px; }
     .mp-offers__info-banner { margin: 12px 12px 0; padding: 12px; }
