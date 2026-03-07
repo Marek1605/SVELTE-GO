@@ -1273,8 +1273,8 @@
         border-top: 2px solid rgba(217,119,6,0.2);
     }
     .mp-buybox__badge, .mp-buybox__header, .mp-buybox__meta, .mp-buybox__more, .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
-    .mp-buybox__mobile-rec { display: block; margin-bottom: 4px; }
-    .mp-buybox__price-row { margin-bottom: 12px; }
+    .mp-buybox__mobile-rec { display: inline; margin-right: 6px; font-size: 9px; }
+    .mp-buybox__price-row { margin-bottom: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .mp-buybox__cta { border-radius: 50px; }
     .mp-product { padding-bottom: 140px; }
     
