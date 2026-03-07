@@ -1289,6 +1289,7 @@
     .mp-offers__cta-col { grid-column: 2; grid-row: 2; }
     .mp-offers__cta { padding: 8px 14px; border-radius: 50px; font-size: 12px; }
     .mp-ai-box { max-width: 100%; }
+    .mp-ai-box { max-width: 100%; }
     .mp-offers__header { flex-wrap: wrap; }
     .mp-offers__right { width: 100%; justify-content: space-between; margin-top: 4px; }
     .mp-offers__info-banner { margin: 12px 12px 0; padding: 12px; }
