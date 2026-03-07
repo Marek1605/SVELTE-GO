@@ -187,6 +187,12 @@
                     </button>
                     {#if aiOpen}
                     <div class="mp-ai-panel">
+                        <div class="mp-ai-actions">
+                            <button class="mp-ai-action">💬 Opýtať sa</button>
+                            <button class="mp-ai-action">🔄 Alternatívy</button>
+                            <button class="mp-ai-action">📊 Cenový vývoj</button>
+                            <button class="mp-ai-action">⭐ Recenzie</button>
+                        </div>
                         <div class="mp-ai-input">
                             <input type="text" placeholder="Napíšte otázku o produkte...">
                             <button class="mp-ai-send">→</button>
@@ -400,7 +406,6 @@
                     {/if}
                 </div>
                 
-                <p class="mp-offers__note">💡 Kliknutím na „Do obchodu" budete presmerovaný priamo k predajcovi.</p>
             </section>
             {/if}
             
@@ -522,15 +527,6 @@
             </section>
             {/if}
             
-        </div>
-        
-        <!-- Odporúčaná ponuka info — bottom -->
-        <div class="mp-rec-info">
-            <span class="mp-rec-info__icon">⭐</span>
-            <div>
-                <strong>Čo znamená „Odporúčaná ponuka"?</strong>
-                <p>Status odporúčanej ponuky získavajú overení predajcovia s najvyšším hodnotením zákazníkov. Hodnotíme kvalitu doručenia, zákaznícky servis a celkovú spokojnosť kupujúcich. Najpoctivejší predajcovia získavajú tento status automaticky.</p>
-            </div>
         </div>
         
         {:else}
