@@ -19,6 +19,26 @@
         description: '',
         logo_url: '',
         email: '',
+    let logoUploading = false;
+    async function handleLogoUpload(e) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) { alert("Max 2 MB"); return; }
+        logoUploading = true;
+        try {
+            const fd = new FormData();
+            fd.append("logo", file);
+            const res = await fetch("/api/vendor/upload-logo", {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + localStorage.getItem("vendor_token") },
+                body: fd
+            });
+            const json = await res.json();
+            if (json.success) { shopData.logo_url = json.url; }
+            else { alert(json.error || "Chyba"); }
+        } catch(err) { alert("Chyba pri nahrávaní"); }
+        logoUploading = false;
+    }
         phone: ''
     };
     
@@ -324,15 +344,25 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="logo_url">URL loga</label>
-                            <div class="logo-input">
-                                <input type="url" id="logo_url" bind:value={shopData.logo_url} placeholder="https://...">
-                                {#if shopData.logo_url}
-                                    <div class="logo-preview">
-                                        <img src={shopData.logo_url} alt="Logo" on:error={(e) => e.target.style.display = 'none'}>
-                                    </div>
-                                {/if}
+                            <label for="logo_url">Logo obchodu</label>
+                            <div class="logo-upload-area">
+                                <input type="file" id="logo_file" accept=".png,.jpg,.jpeg,.svg,.webp" style="display:none" on:change={handleLogoUpload}>
+                                <button type="button" class="logo-upload-btn" on:click={() => document.getElementById("logo_file").click()}>
+                                    {#if logoUploading}
+                                        <span class="spinner-sm"></span> Nahrávam...
+                                    {:else}
+                                        📁 Nahrať logo z PC
+                                    {/if}
+                                </button>
+                                <span class="logo-or">alebo</span>
+                                <input type="url" id="logo_url" bind:value={shopData.logo_url} placeholder="https://... URL loga" class="logo-url-input">
                             </div>
+                            {#if shopData.logo_url}
+                                <div class="logo-preview-box">
+                                    <img src={shopData.logo_url} alt="Logo" on:error={(e) => e.target.style.display = "none"}>
+                                    <button type="button" class="logo-remove" on:click={() => shopData.logo_url = ""}>✕</button>
+                                </div>
+                            {/if}
                         </div>
                     </div>
                     
@@ -995,4 +1025,14 @@
     @keyframes spin {
         to { transform: rotate(360deg); }
     }
+    .logo-upload-area { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .logo-upload-btn { padding: 10px 18px; background: linear-gradient(135deg, \#1e293b, \#334155); color: \#fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .logo-upload-btn:hover { background: \#1e293b; }
+    .logo-or { font-size: 12px; color: \#94a3b8; }
+    .logo-url-input { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid \#ddd; border-radius: 8px; font-size: 14px; }
+    .logo-preview-box { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px; background: \#f8f9fa; border-radius: 10px; border: 1px solid \#eee; }
+    .logo-preview-box img { width: 50px; height: 50px; object-fit: contain; border-radius: 6px; }
+    .logo-remove { width: 24px; height: 24px; border-radius: 50%; border: none; background: \#ef4444; color: \#fff; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .spinner-sm { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: \#fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 </style>

@@ -211,8 +211,8 @@
                 {#if bestOffer}
                 <div class="mp-buybox__header">
                     <div class="mp-buybox__logo">
-                        {#if bestOffer.logo_url}
-                            <img src={bestOffer.logo_url} alt={bestOffer.shop_name} class="mp-buybox__logo-img">
+                        {#if bestOffer.shop_logo}
+                            <img src={bestOffer.shop_logo} alt={bestOffer.shop_name} class="mp-buybox__logo-img">
                         {:else}
                             {bestOffer.initials?.toUpperCase() || 'MP'}
                         {/if}
@@ -340,8 +340,8 @@
                         <div class="mp-offers__row" class:cheapest={i === 0} class:rec-row={offer.id === bestOffer?.id}>
                             <div class="mp-offers__vendor">
                                 <div class="mp-offers__logo" class:cheapest-logo={i === 0} class:rec-logo={offer.id === bestOffer?.id && i !== 0}>
-                                    {#if offer.logo_url}
-                                        <img src={offer.logo_url} alt={offer.shop_name} class="mp-offers__logo-img">
+                                    {#if offer.shop_logo}
+                                        <img src={offer.shop_logo} alt={offer.shop_name} class="mp-offers__logo-img">
                                     {:else}
                                         {offer.initials?.toUpperCase() || offer.shop_name?.slice(0,2).toUpperCase() || 'XX'}
                                     {/if}
