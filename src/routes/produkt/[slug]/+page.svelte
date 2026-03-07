@@ -159,8 +159,8 @@
                 
                 {#if product.description}
                     <p class="mp-info__desc">
-                        {product.description.replace(/<[^>]*>/g, '').slice(0, 200)}...
-                        <a href="#popis" class="mp-info__more">Zobraziť viac →</a>
+                        {product.description.replace(/<[^>]*>/g, '').slice(0, 150)}
+                        <a href="#popis" class="mp-info__more" on:click|preventDefault={() => activeTab = 'desc'}>Ďalšie informácie →</a>
                     </p>
                 {/if}
                 
@@ -182,19 +182,13 @@
                 <div class="mp-ai-box">
                     <button class="mp-ai-toggle" class:open={aiOpen} on:click={() => aiOpen = !aiOpen}>
                         <span class="mp-ai-toggle__icon">✨</span>
-                        <div class="mp-ai-toggle__text"><strong>AI Asistent</strong><span>Opýtaj sa na produkt</span></div>
+                        <div class="mp-ai-toggle__text"><strong>AI Asistent</strong><span>Opýtajte sa na produkt</span></div>
                         <svg class="mp-ai-toggle__arrow" class:open={aiOpen} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                     {#if aiOpen}
                     <div class="mp-ai-panel">
-                        <div class="mp-ai-actions">
-                            <button class="mp-ai-action">💬 Opýtať sa</button>
-                            <button class="mp-ai-action">🔄 Alternatívy</button>
-                            <button class="mp-ai-action">📊 Cenový vývoj</button>
-                            <button class="mp-ai-action">⭐ Recenzie</button>
-                        </div>
                         <div class="mp-ai-input">
-                            <input type="text" placeholder="Napíš otázku...">
+                            <input type="text" placeholder="Napíšte otázku o produkte...">
                             <button class="mp-ai-send">→</button>
                         </div>
                     </div>
@@ -206,20 +200,17 @@
             <div class="mp-buybox">
                 <div class="mp-buybox__badge">
                     <span>⭐</span> Odporúčaná ponuka
-                    <button class="mp-buybox__info-btn" on:click={() => infoOpen = !infoOpen} title="Čo je odporúčaná ponuka?">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </button>
                 </div>
-                {#if infoOpen}
-                <div class="mp-buybox__info-tooltip">
-                    <strong>Čo je odporúčaná ponuka?</strong>
-                    Status získavajú overení predajcovia s najlepším hodnotením, spoľahlivým doručením a transparentnými podmienkami.
-                </div>
-                {/if}
                 
                 {#if bestOffer}
                 <div class="mp-buybox__header">
-                    <div class="mp-buybox__logo">{bestOffer.initials?.toUpperCase() || 'MP'}</div>
+                    <div class="mp-buybox__logo">
+                        {#if bestOffer.logo_url}
+                            <img src={bestOffer.logo_url} alt={bestOffer.shop_name} class="mp-buybox__logo-img">
+                        {:else}
+                            {bestOffer.initials?.toUpperCase() || 'MP'}
+                        {/if}
+                    </div>
                     <div class="mp-buybox__vendor">
                         <div class="mp-buybox__name">{bestOffer.shop_name || 'Obchod'}</div>
                         <div class="mp-buybox__rating">
@@ -251,10 +242,6 @@
                     <span class="mp-buybox__shipping" class:free={bestOffer.shipping === 0 || freeShipping}>
                         {bestOffer.shipping === 0 || freeShipping ? '✓ Doprava zdarma' : `+ ${formatPrice(bestOffer.shipping || 2.99)} doprava`}
                     </span>
-                </div>
-                
-                <div class="mp-buybox__trust">
-                    <span>🛡️</span> Overený obchod · {bestOffer.review_count || 0}+ spokojných zákazníkov
                 </div>
                 
                 {#if bestOffer.is_master || bestOffer.display_mode === 'master'}
@@ -346,12 +333,18 @@
                     {#each filteredOffers as offer, i}
                         <div class="mp-offers__row" class:cheapest={i === 0} class:rec-row={offer.id === bestOffer?.id}>
                             <div class="mp-offers__vendor">
-                                <div class="mp-offers__logo" class:cheapest-logo={i === 0} class:rec-logo={offer.id === bestOffer?.id && i !== 0}>{offer.initials?.toUpperCase() || offer.shop_name?.slice(0,2).toUpperCase() || 'XX'}</div>
+                                <div class="mp-offers__logo" class:cheapest-logo={i === 0} class:rec-logo={offer.id === bestOffer?.id && i !== 0}>
+                                    {#if offer.logo_url}
+                                        <img src={offer.logo_url} alt={offer.shop_name} class="mp-offers__logo-img">
+                                    {:else}
+                                        {offer.initials?.toUpperCase() || offer.shop_name?.slice(0,2).toUpperCase() || 'XX'}
+                                    {/if}
+                                </div>
                                 <div class="mp-offers__vendor-info">
                                     <div class="mp-offers__vendor-name">
                                         {offer.shop_name || 'Obchod'}
                                         {#if i === 0}
-                                            <span class="mp-offers__cheap-badge">💚 Najlacnejšia</span>
+                                            <span class="mp-offers__cheap-badge">💚 Najlacnejšie</span>
                                         {/if}
                                         {#if offer.id === bestOffer?.id}
                                             <span class="mp-offers__rec-badge">⭐ Odporúčaná</span>
@@ -377,7 +370,7 @@
                             </div>
                             
                             <div class="mp-offers__price-col">
-                                <div class="mp-offers__price" class:cheapest-price={i === 0}>{formatPrice(offer.price)}</div>
+                                <div class="mp-offers__price" >{formatPrice(offer.price)}</div>
                                 <div class="mp-offers__shipping">{offer.shipping === 0 ? 'Doprava zdarma' : `+ ${formatPrice(offer.shipping || 0)} doprava`}</div>
                                 {#if offer.price > (offers[0]?.price || 0) + 0.01}
                                     <div class="mp-offers__diff">+{formatPrice(offer.price - (offers[0]?.price || 0))}</div>
@@ -407,14 +400,6 @@
                     {/if}
                 </div>
                 
-                <!-- Info banner -->
-                <div class="mp-offers__info-banner">
-                    <span class="mp-offers__info-icon">⭐</span>
-                    <div>
-                        <strong>Čo znamená „Odporúčaná ponuka"?</strong>
-                        <p>Status odporúčanej ponuky získavajú overení predajcovia s najvyšším hodnotením zákazníkov. Hodnotíme kvalitu doručenia, zákaznícky servis a celkovú spokojnosť.</p>
-                    </div>
-                </div>
                 <p class="mp-offers__note">💡 Kliknutím na „Do obchodu" budete presmerovaný priamo k predajcovi.</p>
             </section>
             {/if}
@@ -537,6 +522,15 @@
             </section>
             {/if}
             
+        </div>
+        
+        <!-- Odporúčaná ponuka info — bottom -->
+        <div class="mp-rec-info">
+            <span class="mp-rec-info__icon">⭐</span>
+            <div>
+                <strong>Čo znamená „Odporúčaná ponuka"?</strong>
+                <p>Status odporúčanej ponuky získavajú overení predajcovia s najvyšším hodnotením zákazníkov. Hodnotíme kvalitu doručenia, zákaznícky servis a celkovú spokojnosť kupujúcich. Najpoctivejší predajcovia získavajú tento status automaticky.</p>
+            </div>
         </div>
         
         {:else}
@@ -1096,6 +1090,16 @@
 .mp-offers__info-banner strong { font-size: 13px; color: #1f2937; display: block; margin-bottom: 4px; }
 .mp-offers__info-banner p { margin: 0; font-size: 12px; color: #64748b; line-height: 1.6; }
 .mp-offers__note { text-align: center; font-size: 11px; color: #94a3b8; margin: 12px 16px 0; }
+
+/* Bottom recommendation info */
+.mp-rec-info { display: flex; gap: 14px; align-items: flex-start; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 14px; padding: 18px; margin: 24px 0 0; }
+.mp-rec-info__icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+.mp-rec-info strong { font-size: 14px; color: #92400e; display: block; margin-bottom: 6px; }
+.mp-rec-info p { margin: 0; font-size: 13px; color: #78716c; line-height: 1.6; }
+
+/* Logo images */
+.mp-buybox__logo-img { width: 100%; height: 100%; object-fit: contain; padding: 3px; border-radius: 6px; }
+.mp-offers__logo-img { width: 100%; height: 100%; object-fit: contain; padding: 3px; border-radius: 6px; }
 
 /* Cheapest offer — green glow */
 .mp-offers__row.cheapest { border: 1.5px solid rgba(34,197,94,0.3); box-shadow: 0 0 20px rgba(34,197,94,0.1), 0 2px 8px rgba(34,197,94,0.06); }
