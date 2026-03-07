@@ -19,29 +19,42 @@
         description: '',
         logo_url: '',
         email: '',
+        phone: ''
+    };
+
+    let logoUploading = false;
 
     async function handleLogoUpload(e) {
         const file = e.target.files?.[0];
         if (!file) return;
         if (file.size > 2 * 1024 * 1024) { alert("Max 2 MB"); return; }
+
         logoUploading = true;
         try {
             const fd = new FormData();
             fd.append("logo", file);
+
             const res = await fetch("/api/vendor/upload-logo", {
                 method: "POST",
-                headers: { "Authorization": "Bearer " + localStorage.getItem("vendor_token") },
+                headers: {
+                    "Authorization": "Bearer " + localStorage.getItem("vendor_token")
+                },
                 body: fd
             });
+
             const json = await res.json();
-            if (json.success) { shopData.logo_url = json.url; }
-            else { alert(json.error || "Chyba"); }
-        } catch(err) { alert("Chyba pri nahrávaní"); }
-        logoUploading = false;
+            if (json.success) {
+                shopData.logo_url = json.url;
+            } else {
+                alert(json.error || "Chyba");
+            }
+        } catch (err) {
+            alert("Chyba pri nahrávaní");
+        } finally {
+            logoUploading = false;
+        }
     }
-        phone: ''
-    };
-    
+
     // Delivery settings
     let deliveryData = {
         delivery_days: 3,
