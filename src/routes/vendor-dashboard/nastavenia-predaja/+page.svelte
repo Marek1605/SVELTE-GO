@@ -55,6 +55,14 @@
         }
     }
 
+    function getLogoFullUrl(logo) {
+        if (!logo) return '';
+        if (logo.startsWith('http')) return logo;
+        // Relative path like /api/v1/logos/... needs backend base
+        const backendBase = API_BASE.replace('/api/v1', '');
+        return backendBase + logo;
+    }
+
     // Delivery settings
     let deliveryData = {
         delivery_days: 3,
@@ -357,24 +365,31 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="logo_url">Logo obchodu</label>
-                            <div class="logo-upload-area">
-                                <input type="file" id="logo_file" accept=".png,.jpg,.jpeg,.svg,.webp" style="display:none" on:change={handleLogoUpload}>
+                            <label>Logo obchodu</label>
+                            <input type="file" id="logo_file" accept=".png,.jpg,.jpeg,.svg,.webp" style="display:none" on:change={handleLogoUpload}>
+                            {#if shopData.shop_logo}
+                                <div class="logo-preview-box">
+                                    <img src={getLogoFullUrl(shopData.shop_logo)} alt="Logo" on:error={(e) => e.target.style.display = "none"}>
+                                    <div class="logo-preview-actions">
+                                        <button type="button" class="logo-change-btn" on:click={() => document.getElementById("logo_file").click()}>
+                                            {#if logoUploading}
+                                                <span class="spinner-sm"></span> Nahrávam...
+                                            {:else}
+                                                Zmeniť logo
+                                            {/if}
+                                        </button>
+                                        <button type="button" class="logo-remove" on:click={() => shopData.shop_logo = ""}>✕</button>
+                                    </div>
+                                </div>
+                            {:else}
                                 <button type="button" class="logo-upload-btn" on:click={() => document.getElementById("logo_file").click()}>
                                     {#if logoUploading}
                                         <span class="spinner-sm"></span> Nahrávam...
                                     {:else}
-                                        📁 Nahrať logo z PC
+                                        📁 Nahrať logo
                                     {/if}
                                 </button>
-                                <span class="logo-or">alebo</span>
-                                <input type="url" id="logo_url" bind:value={shopData.shop_logo} placeholder="https://... URL loga" class="logo-url-input">
-                            </div>
-                            {#if shopData.shop_logo}
-                                <div class="logo-preview-box">
-                                    <img src={shopData.shop_logo} alt="Logo" on:error={(e) => e.target.style.display = "none"}>
-                                    <button type="button" class="logo-remove" on:click={() => shopData.shop_logo = ""}>✕</button>
-                                </div>
+                                <span class="logo-hint">PNG, JPG, SVG alebo WebP. Max 2 MB.</span>
                             {/if}
                         </div>
                     </div>
@@ -403,7 +418,7 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                                 </svg>
-                                Uložiť informácie
+                                Uložiť
                             {/if}
                         </button>
                     </div>
@@ -1038,14 +1053,16 @@
     @keyframes spin {
         to { transform: rotate(360deg); }
     }
-    .logo-upload-area { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .logo-upload-btn { padding: 10px 18px; background: linear-gradient(135deg, \#1e293b, \#334155); color: \#fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-    .logo-upload-btn:hover { background: \#1e293b; }
-    .logo-or { font-size: 12px; color: \#94a3b8; }
-    .logo-url-input { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid \#ddd; border-radius: 8px; font-size: 14px; }
-    .logo-preview-box { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px; background: \#f8f9fa; border-radius: 10px; border: 1px solid \#eee; }
-    .logo-preview-box img { width: 50px; height: 50px; object-fit: contain; border-radius: 6px; }
-    .logo-remove { width: 24px; height: 24px; border-radius: 50%; border: none; background: \#ef4444; color: \#fff; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .spinner-sm { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: \#fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+    .logo-upload-btn { padding: 12px 24px; background: linear-gradient(135deg, #1e293b, #334155); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+    .logo-upload-btn:hover { background: #0f172a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .logo-hint { display: block; margin-top: 8px; font-size: 12px; color: #94a3b8; }
+    .logo-preview-box { display: flex; align-items: center; gap: 14px; margin-top: 8px; padding: 12px 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .logo-preview-box img { width: 56px; height: 56px; object-fit: contain; border-radius: 8px; background: #fff; border: 1px solid #e2e8f0; padding: 4px; }
+    .logo-preview-actions { display: flex; align-items: center; gap: 8px; }
+    .logo-change-btn { padding: 8px 16px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .logo-change-btn:hover { background: #e2e8f0; }
+    .logo-remove { width: 28px; height: 28px; border-radius: 50%; border: none; background: #fee2e2; color: #ef4444; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .logo-remove:hover { background: #ef4444; color: #fff; }
+    .spinner-sm { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 </style>
