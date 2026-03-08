@@ -30,7 +30,7 @@
 
     onMount(async () => {
         try {
-            const res = await adminFetch('/admin/settings');
+            const res = await adminFetch('/admin/site-settings');
             if (res.success && res.data) {
                 currentStyle = res.data.offers_style || 'cards';
             }
@@ -43,7 +43,7 @@
         message = '';
         currentStyle = id;
         try {
-            const res = await adminFetch('/admin/setting', {
+            const res = await adminFetch('/admin/toggle-ui-setting', {
                 method: 'POST',
                 body: JSON.stringify({ key: 'offers_style', value: id })
             });
