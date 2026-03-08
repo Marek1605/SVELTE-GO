@@ -211,7 +211,7 @@
             <!-- Buy Box -->
             <div class="mp-buybox">
                 <div class="mp-buybox__badge">
-                    <span>⭐</span> Odporúčaná ponuka
+                    <svg viewBox="0 0 24 24" fill="#b45309" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5"/></svg> Odporúčaná ponuka
                 </div>
                 
                 {#if bestOffer}
@@ -358,16 +358,17 @@
                                 <div class="mp-offers__vendor-info">
                                     <div class="mp-offers__vendor-name">
                                         {offer.shop_name || 'Obchod'}
-                                        {#if i === 0}
-                                            <span class="mp-offers__cheap-badge">💚 Najlacnejšie</span>
-                                        {/if}
-                                        {#if offer.id === bestOffer?.id}
-                                            <span class="mp-offers__rec-badge">⭐ Odporúčaná</span>
-                                        {/if}
                                     </div>
                                     <div class="mp-offers__vendor-rating">
                                         <svg viewBox="0 0 24 24" fill="#fbbf24" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                                         {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
+                                        {#if i === 0}
+                                            <span class="mp-offers__cheap-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5" width="10" height="10" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> Najlepšia cena</span>
+                                        {/if}
+                                        {#if offer.id === bestOffer?.id}
+                                            <span class="mp-offers__rec-badge"><svg viewBox="0 0 24 24" fill="#b45309" width="10" height="10"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5"/></svg> Odporúčaná ponuka</span>
+                                        {/if}
+                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -1084,8 +1085,8 @@
 }
 
 /* New offer elements */
-.mp-offers__rec-badge { font-size: 9px; font-weight: 700; color: #d97706; background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 2px 8px; border-radius: 8px; margin-left: 6px; vertical-align: middle; box-shadow: 0 1px 4px rgba(217,119,6,0.15); }
-.mp-offers__cheap-badge { font-size: 9px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #16a34a, #22c55e); padding: 2px 8px; border-radius: 8px; margin-left: 6px; vertical-align: middle; box-shadow: 0 1px 4px rgba(34,197,94,0.3); }
+.mp-offers__rec-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; color: #b45309; background: #fffbeb; padding: 2px 7px; border-radius: 4px; margin-left: 5px; vertical-align: middle; border: 1px solid #fde68a; }
+.mp-offers__cheap-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; color: #047857; background: #ecfdf5; padding: 2px 7px; border-radius: 4px; margin-left: 5px; vertical-align: middle; border: 1px solid rgba(5,150,105,0.2); }
 .mp-offers__diff { font-size: 10px; color: #ef4444; margin-top: 2px; }
 .mp-offers__save { background: #f0fdf4; color: #16a34a; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
 .mp-offers__subtitle { font-size: 11px; color: #94a3b8; padding: 0 16px 8px; }
