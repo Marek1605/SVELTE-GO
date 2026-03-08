@@ -45,6 +45,7 @@
             const json = await res.json();
             if (json.success) {
                 shopData.shop_logo = json.url;
+                shopStore.update(s => ({ ...s, shop_logo: json.url }));
             } else {
                 alert(json.error || "Chyba");
             }
@@ -163,7 +164,7 @@
             const data = await res.json();
             
             if (data.success) {
-                message = { type: 'success', text: 'Informácie o obchode boli uložené' };
+                message = { type: 'success', text: 'Uložené' };
                 shopStore.update(s => ({ ...s, ...shopData }));
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri ukladaní' };
