@@ -352,16 +352,16 @@
                                 <div class="mp-offers__vendor-info">
                                     <div class="mp-offers__vendor-name">
                                         {offer.shop_name || 'Obchod'}
-                                    </div>
-                                    <div class="mp-offers__vendor-rating">
-                                        <svg viewBox="0 0 24 24" fill="#fbbf24" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                        {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
                                         {#if i === 0}
                                             <span class="mp-offers__cheap-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5" width="11" height="11" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> Najlepšia cena</span>
                                         {/if}
                                         {#if offer.id === bestOffer?.id}
                                             <span class="mp-offers__rec-badge"><svg viewBox="0 0 24 24" fill="#b45309" width="10" height="10"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5"/></svg> Odporúčaná ponuka</span>
                                         {/if}
+                                    </div>
+                                    <div class="mp-offers__vendor-rating">
+                                        <svg viewBox="0 0 24 24" fill="#fbbf24" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                        {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
                                     </div>
                                 </div>
                             </div>
