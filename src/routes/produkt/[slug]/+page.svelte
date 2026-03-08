@@ -210,7 +210,7 @@
             <!-- Buy Box -->
             <div class="mp-buybox">
                 <div class="mp-buybox__badge">
-                    <span>⭐</span> Odporúčaná ponuka
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" width="13" height="13"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Odporúčaná ponuka
                 </div>
                 
                 {#if bestOffer}
@@ -1082,8 +1082,8 @@
 }
 
 /* New offer elements */
-.mp-offers__rec-badge { font-size: 10px; font-weight: 600; color: #b45309; background: linear-gradient(135deg, #fffbeb, #fef3c7); padding: 2px 8px; border-radius: 6px; margin-left: 6px; vertical-align: middle; border: 1px solid #fde68a; }
-.mp-offers__cheap-badge { font-size: 10px; font-weight: 600; color: #047857; background: #d1fae5; padding: 2px 8px; border-radius: 6px; margin-left: 6px; vertical-align: middle; border: 1px solid rgba(5,150,105,0.15); }
+.mp-offers__rec-badge { font-size: 9px; font-weight: 600; color: #b45309; background: #fffbeb; padding: 2px 7px; border-radius: 4px; margin-left: 5px; vertical-align: middle; border: 1px solid #fde68a; letter-spacing: 0.02em; }
+.mp-offers__cheap-badge { font-size: 9px; font-weight: 600; color: #047857; background: #ecfdf5; padding: 2px 7px; border-radius: 4px; margin-left: 5px; vertical-align: middle; border: 1px solid rgba(5,150,105,0.2); letter-spacing: 0.02em; }
 .mp-offers__diff { font-size: 10px; color: #ef4444; margin-top: 2px; }
 .mp-offers__save { background: #f0fdf4; color: #16a34a; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
 .mp-offers__subtitle { font-size: 11px; color: #94a3b8; padding: 0 16px 8px; }
