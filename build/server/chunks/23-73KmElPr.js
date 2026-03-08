@@ -1,0 +1,9 @@
+const index = 23;
+let component_cache;
+const component = async () => component_cache ??= (await import('./_page.svelte-BUE2pxv6.js')).default;
+const imports = ["_app/immutable/nodes/23.BD8zNF8t.js","_app/immutable/chunks/DGgboO4P.js","_app/immutable/chunks/CbG7B7V5.js"];
+const stylesheets = ["_app/immutable/assets/23.C3TbydkH.css"];
+const fonts = [];
+
+export { component, fonts, imports, index, stylesheets };
+//# sourceMappingURL=23-73KmElPr.js.map

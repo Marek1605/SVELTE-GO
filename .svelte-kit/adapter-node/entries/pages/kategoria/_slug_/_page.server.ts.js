@@ -4,7 +4,7 @@ async function load({ params, url }) {
   const { slug } = params;
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = parseInt(url.searchParams.get("limit") || "24");
-  const sort = url.searchParams.get("sort") || "newest";
+  const sort = url.searchParams.get("sort") || "popular";
   const minPrice = url.searchParams.get("min_price") || "";
   const maxPrice = url.searchParams.get("max_price") || "";
   const brand = url.searchParams.get("brand") || "";

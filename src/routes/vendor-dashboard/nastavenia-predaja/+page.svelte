@@ -34,7 +34,7 @@
             const fd = new FormData();
             fd.append("logo", file);
 
-            const res = await fetch("/api/vendor/upload-logo", {
+            const res = await fetch("/api/v1/vendor/upload-logo", {
                 method: "POST",
                 headers: {
                     "Authorization": "Bearer " + localStorage.getItem("vendor_token")

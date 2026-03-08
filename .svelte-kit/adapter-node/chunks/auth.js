@@ -1,6 +1,5 @@
 import { w as writable } from "./index.js";
-import { B as BROWSER } from "./false.js";
-const browser = BROWSER;
+import { b as browser } from "./index2.js";
 const initialState = {
   isLoggedIn: false,
   token: null,

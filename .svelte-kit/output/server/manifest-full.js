@@ -10,7 +10,7 @@ return {
 	assets: new Set([]),
 	mimeTypes: {},
 	_: {
-		client: {start:"_app/immutable/entry/start.D4ifvXMH.js",app:"_app/immutable/entry/app.HQxVgQdw.js",imports:["_app/immutable/entry/start.D4ifvXMH.js","_app/immutable/chunks/BBG6Qqdj.js","_app/immutable/chunks/DegHwCHz.js","_app/immutable/chunks/DESAkHRw.js","_app/immutable/entry/app.HQxVgQdw.js","_app/immutable/chunks/DegHwCHz.js","_app/immutable/chunks/DwtPztOd.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
+		client: {start:"_app/immutable/entry/start.Bufd-QzZ.js",app:"_app/immutable/entry/app.CHR7if0h.js",imports:["_app/immutable/entry/start.Bufd-QzZ.js","_app/immutable/chunks/B7V5RW9k.js","_app/immutable/chunks/DGgboO4P.js","_app/immutable/chunks/BhXPZtR1.js","_app/immutable/entry/app.CHR7if0h.js","_app/immutable/chunks/DGgboO4P.js","_app/immutable/chunks/CbG7B7V5.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
 		nodes: [
 			__memo(() => import('./nodes/0.js')),
 			__memo(() => import('./nodes/1.js')),
@@ -42,7 +42,19 @@ return {
 			__memo(() => import('./nodes/27.js')),
 			__memo(() => import('./nodes/28.js')),
 			__memo(() => import('./nodes/29.js')),
-			__memo(() => import('./nodes/30.js'))
+			__memo(() => import('./nodes/30.js')),
+			__memo(() => import('./nodes/31.js')),
+			__memo(() => import('./nodes/32.js')),
+			__memo(() => import('./nodes/33.js')),
+			__memo(() => import('./nodes/34.js')),
+			__memo(() => import('./nodes/35.js')),
+			__memo(() => import('./nodes/36.js')),
+			__memo(() => import('./nodes/37.js')),
+			__memo(() => import('./nodes/38.js')),
+			__memo(() => import('./nodes/39.js')),
+			__memo(() => import('./nodes/40.js')),
+			__memo(() => import('./nodes/41.js')),
+			__memo(() => import('./nodes/42.js'))
 		],
 		remotes: {
 			
@@ -105,136 +117,220 @@ return {
 				endpoint: null
 			},
 			{
+				id: "/admin/pages",
+				pattern: /^\/admin\/pages\/?$/,
+				params: [],
+				page: { layouts: [0,2,], errors: [1,,], leaf: 12 },
+				endpoint: null
+			},
+			{
 				id: "/admin/pending-shops",
 				pattern: /^\/admin\/pending-shops\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 12 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 13 },
+				endpoint: null
+			},
+			{
+				id: "/admin/product-stats",
+				pattern: /^\/admin\/product-stats\/?$/,
+				params: [],
+				page: { layouts: [0,2,], errors: [1,,], leaf: 14 },
 				endpoint: null
 			},
 			{
 				id: "/admin/products",
 				pattern: /^\/admin\/products\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 13 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 15 },
+				endpoint: null
+			},
+			{
+				id: "/admin/settings",
+				pattern: /^\/admin\/settings\/?$/,
+				params: [],
+				page: { layouts: [0,2,], errors: [1,,], leaf: 16 },
+				endpoint: null
+			},
+			{
+				id: "/admin/taxonomy",
+				pattern: /^\/admin\/taxonomy\/?$/,
+				params: [],
+				page: { layouts: [0,2,], errors: [1,,], leaf: 17 },
+				endpoint: null
+			},
+			{
+				id: "/admin/top-produkty",
+				pattern: /^\/admin\/top-produkty\/?$/,
+				params: [],
+				page: { layouts: [0,2,], errors: [1,,], leaf: 18 },
 				endpoint: null
 			},
 			{
 				id: "/admin/vendor-offers",
 				pattern: /^\/admin\/vendor-offers\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 14 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 19 },
+				endpoint: null
+			},
+			{
+				id: "/admin/vendor-requests",
+				pattern: /^\/admin\/vendor-requests\/?$/,
+				params: [],
+				page: { layouts: [0,2,], errors: [1,,], leaf: 20 },
 				endpoint: null
 			},
 			{
 				id: "/admin/vendors",
 				pattern: /^\/admin\/vendors\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 15 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 21 },
 				endpoint: null
 			},
 			{
 				id: "/hladat",
 				pattern: /^\/hladat\/?$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 16 },
+				page: { layouts: [0,], errors: [1,], leaf: 22 },
+				endpoint: null
+			},
+			{
+				id: "/impressum",
+				pattern: /^\/impressum\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 23 },
 				endpoint: null
 			},
 			{
 				id: "/kategoria/[slug]",
 				pattern: /^\/kategoria\/([^/]+?)\/?$/,
 				params: [{"name":"slug","optional":false,"rest":false,"chained":false}],
-				page: { layouts: [0,], errors: [1,], leaf: 17 },
+				page: { layouts: [0,], errors: [1,], leaf: 24 },
+				endpoint: null
+			},
+			{
+				id: "/kontakt",
+				pattern: /^\/kontakt\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 25 },
+				endpoint: null
+			},
+			{
+				id: "/ochrana-osobnych-udajov",
+				pattern: /^\/ochrana-osobnych-udajov\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 26 },
+				endpoint: null
+			},
+			{
+				id: "/podmienky-pouzivania",
+				pattern: /^\/podmienky-pouzivania\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 27 },
 				endpoint: null
 			},
 			{
 				id: "/prihlasenie-predajcu",
 				pattern: /^\/prihlasenie-predajcu\/?$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 18 },
+				page: { layouts: [0,], errors: [1,], leaf: 28 },
 				endpoint: null
 			},
 			{
 				id: "/produkt/[slug]",
 				pattern: /^\/produkt\/([^/]+?)\/?$/,
 				params: [{"name":"slug","optional":false,"rest":false,"chained":false}],
-				page: { layouts: [0,], errors: [1,], leaf: 19 },
+				page: { layouts: [0,], errors: [1,], leaf: 29 },
 				endpoint: null
 			},
 			{
 				id: "/registracia-predajcu",
 				pattern: /^\/registracia-predajcu\/?$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 20 },
+				page: { layouts: [0,], errors: [1,], leaf: 30 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard",
 				pattern: /^\/vendor-dashboard\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 21 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 31 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard/konverzie",
 				pattern: /^\/vendor-dashboard\/konverzie\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 22 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 32 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard/moj-ucet",
 				pattern: /^\/vendor-dashboard\/moj-ucet\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 23 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 33 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard/nastavenia-predaja",
 				pattern: /^\/vendor-dashboard\/nastavenia-predaja\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 24 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 34 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard/ppc",
 				pattern: /^\/vendor-dashboard\/ppc\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 25 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 35 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard/pridat-obchod",
 				pattern: /^\/vendor-dashboard\/pridat-obchod\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 26 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 36 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard/produkty",
 				pattern: /^\/vendor-dashboard\/produkty\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 27 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 37 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard/reporty",
 				pattern: /^\/vendor-dashboard\/reporty\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 28 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 38 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard/statistiky",
 				pattern: /^\/vendor-dashboard\/statistiky\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 29 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 39 },
 				endpoint: null
 			},
 			{
 				id: "/vendor-dashboard/xml-feedy",
 				pattern: /^\/vendor-dashboard\/xml-feedy\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 30 },
+				page: { layouts: [0,3,], errors: [1,,], leaf: 40 },
+				endpoint: null
+			},
+			{
+				id: "/vseobecne-obchodne-podmienky",
+				pattern: /^\/vseobecne-obchodne-podmienky\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 41 },
+				endpoint: null
+			},
+			{
+				id: "/zasady-cookies",
+				pattern: /^\/zasady-cookies\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 42 },
 				endpoint: null
 			}
 		],

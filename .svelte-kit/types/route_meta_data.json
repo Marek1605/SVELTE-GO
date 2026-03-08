@@ -1,5 +1,6 @@
 {
 	"/": [
+		"src/routes/+page.ts",
 		"src/routes/+page.server.ts",
 		"src/routes/+layout.server.ts",
 		"src/routes/+layout.server.ts"
@@ -26,13 +27,31 @@
 	"/admin/offers": [
 		"src/routes/+layout.server.ts"
 	],
+	"/admin/pages": [
+		"src/routes/+layout.server.ts"
+	],
 	"/admin/pending-shops": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/product-stats": [
 		"src/routes/+layout.server.ts"
 	],
 	"/admin/products": [
 		"src/routes/+layout.server.ts"
 	],
+	"/admin/settings": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/taxonomy": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/top-produkty": [
+		"src/routes/+layout.server.ts"
+	],
 	"/admin/vendor-offers": [
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/vendor-requests": [
 		"src/routes/+layout.server.ts"
 	],
 	"/admin/vendors": [
@@ -41,8 +60,20 @@
 	"/hladat": [
 		"src/routes/+layout.server.ts"
 	],
+	"/impressum": [
+		"src/routes/+layout.server.ts"
+	],
 	"/kategoria/[slug]": [
 		"src/routes/kategoria/[slug]/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/kontakt": [
+		"src/routes/+layout.server.ts"
+	],
+	"/ochrana-osobnych-udajov": [
+		"src/routes/+layout.server.ts"
+	],
+	"/podmienky-pouzivania": [
 		"src/routes/+layout.server.ts"
 	],
 	"/prihlasenie-predajcu": [
@@ -84,6 +115,12 @@
 		"src/routes/+layout.server.ts"
 	],
 	"/vendor-dashboard/xml-feedy": [
+		"src/routes/+layout.server.ts"
+	],
+	"/vseobecne-obchodne-podmienky": [
+		"src/routes/+layout.server.ts"
+	],
+	"/zasady-cookies": [
 		"src/routes/+layout.server.ts"
 	]
 }

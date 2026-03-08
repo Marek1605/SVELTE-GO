@@ -11,14 +11,17 @@
   },
   "_api.js": {
     "file": "chunks/api.js",
-    "name": "api"
+    "name": "api",
+    "imports": [
+      "_index2.js"
+    ]
   },
   "_auth.js": {
     "file": "chunks/auth.js",
     "name": "auth",
     "imports": [
       "_index.js",
-      "_false.js"
+      "_index2.js"
     ]
   },
   "_environment.js": {
@@ -38,6 +41,13 @@
     "name": "index",
     "imports": [
       "_ssr.js"
+    ]
+  },
+  "_index2.js": {
+    "file": "chunks/index2.js",
+    "name": "index",
+    "imports": [
+      "_false.js"
     ]
   },
   "_internal.js": {
@@ -149,7 +159,7 @@
       "_stores.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.CvSIrtCU.css"
+      "_app/immutable/assets/_layout.B-DvsPBV.css"
     ]
   },
   "src/routes/+page.server.ts": {
@@ -167,11 +177,18 @@
     "src": "src/routes/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_ssr.js"
+      "_ssr.js",
+      "_api.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.Rl2obC3M.css"
+      "_app/immutable/assets/_page.6KCLbEqT.css"
     ]
+  },
+  "src/routes/+page.ts": {
+    "file": "entries/pages/_page.ts.js",
+    "name": "entries/pages/_page.ts",
+    "src": "src/routes/+page.ts",
+    "isEntry": true
   },
   "src/routes/admin/+layout@.svelte": {
     "file": "entries/pages/admin/_layout@.svelte.js",
@@ -183,7 +200,7 @@
       "_stores.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout@.Cneqzm5s.css"
+      "_app/immutable/assets/_layout@.CAFCKZRS.css"
     ]
   },
   "src/routes/admin/+page.svelte": {
@@ -208,7 +225,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CAGurfmA.css"
+      "_app/immutable/assets/_page.DHIasB6p.css"
     ]
   },
   "src/routes/admin/categories/+page.svelte": {
@@ -220,7 +237,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.o6TPKdkQ.css"
+      "_app/immutable/assets/_page.BgVyx6pa.css"
     ]
   },
   "src/routes/admin/feeds/+page.svelte": {
@@ -273,6 +290,18 @@
       "_app/immutable/assets/_page.CDoNzwEs.css"
     ]
   },
+  "src/routes/admin/pages/+page.svelte": {
+    "file": "entries/pages/admin/pages/_page.svelte.js",
+    "name": "entries/pages/admin/pages/_page.svelte",
+    "src": "src/routes/admin/pages/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.DJTdwL1b.css"
+    ]
+  },
   "src/routes/admin/pending-shops/+page.svelte": {
     "file": "entries/pages/admin/pending-shops/_page.svelte.js",
     "name": "entries/pages/admin/pending-shops/_page.svelte",
@@ -285,6 +314,18 @@
       "_app/immutable/assets/_page.BcqpuVHc.css"
     ]
   },
+  "src/routes/admin/product-stats/+page.svelte": {
+    "file": "entries/pages/admin/product-stats/_page.svelte.js",
+    "name": "entries/pages/admin/product-stats/_page.svelte",
+    "src": "src/routes/admin/product-stats/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.3HX_nYsA.css"
+    ]
+  },
   "src/routes/admin/products/+page.svelte": {
     "file": "entries/pages/admin/products/_page.svelte.js",
     "name": "entries/pages/admin/products/_page.svelte",
@@ -294,7 +335,43 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.IkCPRnDG.css"
+      "_app/immutable/assets/_page.DRM01ex5.css"
+    ]
+  },
+  "src/routes/admin/settings/+page.svelte": {
+    "file": "entries/pages/admin/settings/_page.svelte.js",
+    "name": "entries/pages/admin/settings/_page.svelte",
+    "src": "src/routes/admin/settings/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.Ba5q4nM-.css"
+    ]
+  },
+  "src/routes/admin/taxonomy/+page.svelte": {
+    "file": "entries/pages/admin/taxonomy/_page.svelte.js",
+    "name": "entries/pages/admin/taxonomy/_page.svelte",
+    "src": "src/routes/admin/taxonomy/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.CcjTmhXF.css"
+    ]
+  },
+  "src/routes/admin/top-produkty/+page.svelte": {
+    "file": "entries/pages/admin/top-produkty/_page.svelte.js",
+    "name": "entries/pages/admin/top-produkty/_page.svelte",
+    "src": "src/routes/admin/top-produkty/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.DjyHqoe_.css"
     ]
   },
   "src/routes/admin/vendor-offers/+page.svelte": {
@@ -306,7 +383,19 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.BrZruWvD.css"
+      "_app/immutable/assets/_page.C-vmcuHO.css"
+    ]
+  },
+  "src/routes/admin/vendor-requests/+page.svelte": {
+    "file": "entries/pages/admin/vendor-requests/_page.svelte.js",
+    "name": "entries/pages/admin/vendor-requests/_page.svelte",
+    "src": "src/routes/admin/vendor-requests/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.C2H3f1P_.css"
     ]
   },
   "src/routes/admin/vendors/+page.svelte": {
@@ -318,7 +407,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.D-llFPSM.css"
+      "_app/immutable/assets/_page.D5Iur98j.css"
     ]
   },
   "src/routes/hladat/+page.svelte": {
@@ -332,6 +421,18 @@
     ],
     "css": [
       "_app/immutable/assets/_page.Bm7MED_r.css"
+    ]
+  },
+  "src/routes/impressum/+page.svelte": {
+    "file": "entries/pages/impressum/_page.svelte.js",
+    "name": "entries/pages/impressum/_page.svelte",
+    "src": "src/routes/impressum/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.C3TbydkH.css"
     ]
   },
   "src/routes/kategoria/[slug]/+page.server.ts": {
@@ -357,7 +458,43 @@
       "_stores.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CKqPgc5v.css"
+      "_app/immutable/assets/_page.CUMk98sl.css"
+    ]
+  },
+  "src/routes/kontakt/+page.svelte": {
+    "file": "entries/pages/kontakt/_page.svelte.js",
+    "name": "entries/pages/kontakt/_page.svelte",
+    "src": "src/routes/kontakt/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.DrIJ7YhB.css"
+    ]
+  },
+  "src/routes/ochrana-osobnych-udajov/+page.svelte": {
+    "file": "entries/pages/ochrana-osobnych-udajov/_page.svelte.js",
+    "name": "entries/pages/ochrana-osobnych-udajov/_page.svelte",
+    "src": "src/routes/ochrana-osobnych-udajov/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.BYQsrh61.css"
+    ]
+  },
+  "src/routes/podmienky-pouzivania/+page.svelte": {
+    "file": "entries/pages/podmienky-pouzivania/_page.svelte.js",
+    "name": "entries/pages/podmienky-pouzivania/_page.svelte",
+    "src": "src/routes/podmienky-pouzivania/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.epXpT0zi.css"
     ]
   },
   "src/routes/prihlasenie-predajcu/+page.svelte": {
@@ -395,7 +532,7 @@
       "_api.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.Dwwz5vUC.css"
+      "_app/immutable/assets/_page.DMlsgOhu.css"
     ]
   },
   "src/routes/registracia-predajcu/+page.svelte": {
@@ -428,7 +565,7 @@
       "_state.svelte.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout@.BQkyf-eN.css"
+      "_app/immutable/assets/_layout@.DiPRxLZw.css"
     ]
   },
   "src/routes/vendor-dashboard/+page.svelte": {
@@ -440,7 +577,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.B_EsPlkX.css"
+      "_app/immutable/assets/_page.DuWRXMb6.css"
     ]
   },
   "src/routes/vendor-dashboard/konverzie/+page.svelte": {
@@ -452,7 +589,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CSmPO_Pf.css"
+      "_app/immutable/assets/_page.DTJEXtdg.css"
     ]
   },
   "src/routes/vendor-dashboard/moj-ucet/+page.svelte": {
@@ -476,7 +613,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.zXIjoNF3.css"
+      "_app/immutable/assets/_page.ByoFKMNZ.css"
     ]
   },
   "src/routes/vendor-dashboard/ppc/+page.svelte": {
@@ -488,7 +625,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.DVUl78rT.css"
+      "_app/immutable/assets/_page.CEBR0Xnu.css"
     ]
   },
   "src/routes/vendor-dashboard/pridat-obchod/+page.svelte": {
@@ -515,7 +652,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CPMR2XYt.css"
+      "_app/immutable/assets/_page.DFGjiF6l.css"
     ]
   },
   "src/routes/vendor-dashboard/reporty/+page.svelte": {
@@ -527,7 +664,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.DpzoBcDN.css"
+      "_app/immutable/assets/_page.CQMyOzfV.css"
     ]
   },
   "src/routes/vendor-dashboard/statistiky/+page.svelte": {
@@ -539,7 +676,7 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.Cwk5O_0_.css"
+      "_app/immutable/assets/_page.BQmwCUf4.css"
     ]
   },
   "src/routes/vendor-dashboard/xml-feedy/+page.svelte": {
@@ -551,7 +688,31 @@
       "_ssr.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.BFpNtFKD.css"
+      "_app/immutable/assets/_page.BDWhVfl0.css"
+    ]
+  },
+  "src/routes/vseobecne-obchodne-podmienky/+page.svelte": {
+    "file": "entries/pages/vseobecne-obchodne-podmienky/_page.svelte.js",
+    "name": "entries/pages/vseobecne-obchodne-podmienky/_page.svelte",
+    "src": "src/routes/vseobecne-obchodne-podmienky/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.D4sfEJpi.css"
+    ]
+  },
+  "src/routes/zasady-cookies/+page.svelte": {
+    "file": "entries/pages/zasady-cookies/_page.svelte.js",
+    "name": "entries/pages/zasady-cookies/_page.svelte",
+    "src": "src/routes/zasady-cookies/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.DAX18drc.css"
     ]
   }
 }

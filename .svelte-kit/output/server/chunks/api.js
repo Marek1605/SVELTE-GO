@@ -1,10 +1,13 @@
+import { b as browser } from "./index2.js";
 const PUBLIC_API_URL = "http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1";
 const API_URL = PUBLIC_API_URL;
 async function fetchApi(endpoint, options = {}) {
   const url = API_URL + endpoint;
   try {
+    const headers = { "Content-Type": "application/json", ...options.headers };
+    if (browser && endpoint.startsWith("/admin")) ;
     const response = await fetch(url, {
-      headers: { "Content-Type": "application/json", ...options.headers },
+      headers,
       ...options
     });
     const data = await response.json().catch(() => null);

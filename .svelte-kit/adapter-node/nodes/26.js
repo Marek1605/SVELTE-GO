@@ -2,7 +2,7 @@
 
 export const index = 26;
 let component_cache;
-export const component = async () => component_cache ??= (await import('../entries/pages/vendor-dashboard/pridat-obchod/_page.svelte.js')).default;
-export const imports = ["_app/immutable/nodes/26.DhlyZDlO.js","_app/immutable/chunks/DegHwCHz.js","_app/immutable/chunks/DwtPztOd.js","_app/immutable/chunks/DESAkHRw.js"];
-export const stylesheets = ["_app/immutable/assets/26.BKmhE3pd.css"];
+export const component = async () => component_cache ??= (await import('../entries/pages/ochrana-osobnych-udajov/_page.svelte.js')).default;
+export const imports = ["_app/immutable/nodes/26.YDqqYZ6o.js","_app/immutable/chunks/DGgboO4P.js","_app/immutable/chunks/D0QH3NT1.js","_app/immutable/chunks/C_DwOGRg.js","_app/immutable/chunks/CbG7B7V5.js"];
+export const stylesheets = ["_app/immutable/assets/26.BYQsrh61.css"];
 export const fonts = [];
