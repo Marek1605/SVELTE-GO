@@ -14,10 +14,10 @@
     
     // Shop info
     let shopData = {
-        name: '',
-        url: '',
-        description: '',
-        logo_url: '',
+        shop_name: '',
+        shop_url: '',
+        shop_description: '',
+        shop_logo: '',
         email: '',
         phone: ''
     };
@@ -34,7 +34,7 @@
             const fd = new FormData();
             fd.append("logo", file);
 
-            const res = await fetch("/api/v1/vendor/upload-logo", {
+            const res = await fetch(`${API_BASE}/vendor/upload-logo`, {
                 method: "POST",
                 headers: {
                     "Authorization": "Bearer " + localStorage.getItem("vendor_token")
@@ -44,7 +44,7 @@
 
             const json = await res.json();
             if (json.success) {
-                shopData.logo_url = json.url;
+                shopData.shop_logo = json.url;
             } else {
                 alert(json.error || "Chyba");
             }
@@ -99,10 +99,10 @@
     onMount(() => {
         if (shop) {
             shopData = {
-                name: shop.name || '',
-                url: shop.url || '',
-                description: shop.description || '',
-                logo_url: shop.logo_url || '',
+                shop_name: shop.shop_name || '',
+                shop_url: shop.shop_url || '',
+                shop_description: shop.shop_description || '',
+                shop_logo: shop.shop_logo || '',
                 email: shop.email || '',
                 phone: shop.phone || ''
             };
@@ -128,10 +128,10 @@
     
     $: if (shop) {
         shopData = {
-            name: shop.name || '',
-            url: shop.url || '',
-            description: shop.description || '',
-            logo_url: shop.logo_url || '',
+            shop_name: shop.shop_name || '',
+            shop_url: shop.shop_url || '',
+            shop_description: shop.shop_description || '',
+            shop_logo: shop.shop_logo || '',
             email: shop.email || '',
             phone: shop.phone || ''
         };
@@ -340,19 +340,19 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="shop_name">Názov obchodu *</label>
-                                <input type="text" id="shop_name" bind:value={shopData.name} placeholder="Názov vášho e-shopu" required>
+                                <input type="text" id="shop_name" bind:value={shopData.shop_name} placeholder="Názov vášho e-shopu" required>
                                 <span class="form-hint">Tento názov sa zobrazí zákazníkom</span>
                             </div>
                             
                             <div class="form-group">
                                 <label for="shop_url">URL obchodu *</label>
-                                <input type="url" id="shop_url" bind:value={shopData.url} placeholder="https://www.vas-eshop.sk" required>
+                                <input type="url" id="shop_url" bind:value={shopData.shop_url} placeholder="https://www.vas-eshop.sk" required>
                             </div>
                         </div>
                         
                         <div class="form-group">
                             <label for="shop_description">Popis obchodu</label>
-                            <textarea id="shop_description" bind:value={shopData.description} placeholder="Krátky popis vášho obchodu pre zákazníkov..." rows="3"></textarea>
+                            <textarea id="shop_description" bind:value={shopData.shop_description} placeholder="Krátky popis vášho obchodu pre zákazníkov..." rows="3"></textarea>
                             <span class="form-hint">Max. 500 znakov</span>
                         </div>
                         
@@ -368,12 +368,12 @@
                                     {/if}
                                 </button>
                                 <span class="logo-or">alebo</span>
-                                <input type="url" id="logo_url" bind:value={shopData.logo_url} placeholder="https://... URL loga" class="logo-url-input">
+                                <input type="url" id="logo_url" bind:value={shopData.shop_logo} placeholder="https://... URL loga" class="logo-url-input">
                             </div>
-                            {#if shopData.logo_url}
+                            {#if shopData.shop_logo}
                                 <div class="logo-preview-box">
-                                    <img src={shopData.logo_url} alt="Logo" on:error={(e) => e.target.style.display = "none"}>
-                                    <button type="button" class="logo-remove" on:click={() => shopData.logo_url = ""}>✕</button>
+                                    <img src={shopData.shop_logo} alt="Logo" on:error={(e) => e.target.style.display = "none"}>
+                                    <button type="button" class="logo-remove" on:click={() => shopData.shop_logo = ""}>✕</button>
                                 </div>
                             {/if}
                         </div>
