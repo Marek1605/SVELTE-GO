@@ -478,16 +478,23 @@
                             <td><img src={p.image_url || p.master_image || placeholder} alt="" class="thumb" on:error={(e) => e.target.src = placeholder}></td>
                             <td class="name"><strong class="clickable" on:click={() => openEditModal(p)}>{p.title || p.master_title || p.name || '-'}</strong></td>
                             <td><code class="ean">{p.ean || '—'}</code></td>
-                            <td class="price">{formatPrice(p.price)}</td>
+                            <td class="price">
+                                {formatPrice(p.price)}
+                                {#if p.min_price || p.max_price}
+                                    <div class="price-range">{p.min_price ? formatPrice(p.min_price) : '—'} – {p.max_price ? formatPrice(p.max_price) : '—'}</div>
+                                {/if}
+                            </td>
                             <td>{#if p.stock_status === 'instock'}<span class="stock in">✓ Skladom</span>{:else}<span class="stock out">✗ Vypredané</span>{/if}</td>
                             <td class="center">{p.vendors_count || 1}</td>
                             <td>{#if p.category}<span class="cat">{p.category}</span>{:else}<span class="nocat">—</span>{/if}</td>
                             <td class="actions">
                                 <button on:click={() => openEditModal(p)}>✏️ Upraviť</button>
                                 {#if p.product_id && p.master_slug}
-                                    <a href="/produkt/{p.master_slug}" target="_blank" class="action-link">↗ Ponuka</a>
+                                    <a href="/produkt/{p.master_slug}" target="_blank" class="action-link">Ponuka ↗</a>
                                 {:else if p.product_id}
-                                    <a href="/produkt/{p.product_id}" target="_blank" class="action-link">↗ Ponuka</a>
+                                    <a href="/produkt/{p.product_id}" target="_blank" class="action-link">Ponuka ↗</a>
+                                {:else}
+                                    <a href="/hladat?q={encodeURIComponent(p.title || p.name || '')}" target="_blank" class="action-link unmatched">Ponuka ↗</a>
                                 {/if}
                                 <button class="red" on:click={() => disconnectProduct(p.id)}>🔌 Odpojiť</button>
                             </td>
@@ -813,6 +820,9 @@
     .actions .action-link { color: #3b82f6; }
     .actions button.red { color: #94a3b8; border-color: #f1f5f9; }
     .actions button.red:hover { background: #fef2f2; border-color: #ef4444; color: #dc2626; }
+    .actions .action-link.unmatched { color: #94a3b8; border-style: dashed; }
+    .actions .action-link.unmatched:hover { color: #3b82f6; border-color: #3b82f6; border-style: solid; }
+    .price-range { font-size: 10px; color: #94a3b8; margin-top: 2px; font-weight: 400; }
     
     .pagination { display: flex; gap: 4px; justify-content: center; align-items: center; padding: 16px; flex-wrap: wrap; }
     .pagination button { padding: 8px 12px; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; cursor: pointer; }
