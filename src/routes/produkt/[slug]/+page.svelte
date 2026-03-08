@@ -13,6 +13,8 @@
     let isWishlisted = false;
     let isCompared = false;
     let activeTab = 'offers';
+    let descExpanded = false;
+    const DESC_MAX_LINES = 60;
     let reviewData = { reviews: [], total: 0, avg_rating: 0, distribution: [] };
     let reviewLoading = false;
     let showReviewForm = false;
@@ -69,6 +71,9 @@
     $: filteredOffers = offersFilter === 'instock' 
         ? offers.filter(o => o.stock_status === 'instock') 
         : offers;
+    
+    // Auto-load reviews since all sections are visible
+    onMount(() => { loadReviews(); });
     
     function selectImage(i) { currentImageIndex = i; }
     function openLightbox() { lightboxOpen = true; document.body.style.overflow = 'hidden'; }
@@ -301,21 +306,20 @@
             </div>
         </div>
         
-        <!-- Tabs Navigation -->
+        <!-- Section Navigation -->
         <div class="mp-tabs">
-            <button class="mp-tabs__btn" class:active={activeTab === 'offers'} on:click={() => activeTab = 'offers'}>Kde kúpiť</button>
-                <button class="mp-tabs__btn" class:active={activeTab === 'reviews'} on:click={() => { activeTab = 'reviews'; loadReviews(); }}>
-                    Recenzie {#if reviewData.total > 0}<span class="mp-tabs__count">({reviewData.total})</span>{/if}
-                </button>
-            <button class="mp-tabs__btn" class:active={activeTab === 'desc'} on:click={() => activeTab = 'desc'}>Popis</button>
-            <button class="mp-tabs__btn" class:active={activeTab === 'params'} on:click={() => activeTab = 'params'}>Parametre</button>
+            <a href="#ponuky" class="mp-tabs__btn active">Kde kúpiť</a>
+            <a href="#popis" class="mp-tabs__btn">Popis</a>
+            <a href="#parametre" class="mp-tabs__btn">Parametre</a>
+            <a href="#recenzie" class="mp-tabs__btn">
+                Recenzie {#if reviewData.total > 0}<span class="mp-tabs__count">({reviewData.total})</span>{/if}
+            </a>
         </div>
         
-        <!-- Tab Content -->
-        <div class="mp-tab-content">
+        <!-- All sections visible, stacked -->
+        <div class="mp-sections">
             
             <!-- Offers Section -->
-            {#if activeTab === 'offers'}
             <section id="ponuky" class="mp-offers">
                 <div class="mp-offers__header">
                     <div class="mp-offers__title">
@@ -403,12 +407,43 @@
                 </div>
                 
             </section>
-            {/if}
             
             <!-- Description -->
+            <section id="popis" class="mp-desc">
+                <h2>Popis produktu</h2>
+                {#if product.description}
+                    <div class="mp-desc__content" class:mp-desc--truncated={!descExpanded}>
+                        {@html product.description}
+                    </div>
+                    {#if !descExpanded}
+                        <button class="mp-desc__expand" on:click={() => descExpanded = true}>
+                            Zobraziť celý popis ↓
+                        </button>
+                    {/if}
+                {:else}
+                    <p class="mp-desc__empty">Popis nie je k dispozícii.</p>
+                {/if}
+            </section>
             
-            {#if activeTab === 'reviews'}
-            <section class="mp-reviews">
+            <!-- Parameters -->
+            <section id="parametre" class="mp-params">
+                <h2>Parametre</h2>
+                {#if attributes.length > 0}
+                    <div class="mp-params__grid">
+                        {#each attributes as attr}
+                            <div class="mp-params__row">
+                                <span class="mp-params__name">{attr.name}</span>
+                                <span class="mp-params__value">{attr.value}</span>
+                            </div>
+                        {/each}
+                    </div>
+                {:else}
+                    <p class="mp-params__empty">Parametre nie sú k dispozícii.</p>
+                {/if}
+            </section>
+
+            <!-- Reviews -->
+            <section id="recenzie" class="mp-reviews">
                 <!-- Rating summary -->
                 <div class="rv-summary">
                     <div class="rv-summary__big">
@@ -491,37 +526,6 @@
                     </div>
                 {/if}
             </section>
-            {/if}
-
-            {#if activeTab === 'desc'}
-            <section id="popis" class="mp-desc">
-                <h2>Popis produktu</h2>
-                {#if product.description}
-                    <div class="mp-desc__content">{@html product.description}</div>
-                {:else}
-                    <p class="mp-desc__empty">Popis nie je k dispozícii.</p>
-                {/if}
-            </section>
-            {/if}
-            
-            <!-- Parameters -->
-            {#if activeTab === 'params'}
-            <section id="parametre" class="mp-params">
-                <h2>Parametre</h2>
-                {#if attributes.length > 0}
-                    <div class="mp-params__grid">
-                        {#each attributes as attr}
-                            <div class="mp-params__row">
-                                <span class="mp-params__name">{attr.name}</span>
-                                <span class="mp-params__value">{attr.value}</span>
-                            </div>
-                        {/each}
-                    </div>
-                {:else}
-                    <p class="mp-params__empty">Parametre nie sú k dispozícii.</p>
-                {/if}
-            </section>
-            {/if}
             
         </div>
         
@@ -555,6 +559,7 @@
 .mp-product {
     background: #fff;
     padding: 20px 0 60px;
+    scroll-behavior: smooth;
 }
 
 .mp-product__container {
@@ -864,6 +869,10 @@
     gap: 0;
     border-bottom: 1px solid #f0f0f0;
     margin-bottom: 24px;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
 }
 
 .mp-tabs__btn {
@@ -877,6 +886,7 @@
     margin-bottom: -1px;
     cursor: pointer;
     transition: all 0.2s;
+    text-decoration: none;
 }
 .mp-tabs__btn:hover { color: #1f2937; }
 .mp-tabs__btn.active {
@@ -893,6 +903,7 @@
     border-radius: 16px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 10px 24px rgba(0,0,0,0.08);
     overflow: hidden;
+    scroll-margin-top: 80px;
 }
 
 .mp-offers__header {
@@ -1110,13 +1121,23 @@
 .mp-offers__row.cheapest.rec-row { box-shadow: 0 0 20px rgba(34,197,94,0.1), 0 0 16px rgba(217,119,6,0.06); }
 
 /* =============================================
+   SECTIONS (all visible, stacked)
+   ============================================= */
+.mp-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* =============================================
    DESCRIPTION & PARAMETERS
    ============================================= */
-.mp-desc, .mp-params {
+.mp-desc, .mp-params, .mp-reviews {
     background: #fff;
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    scroll-margin-top: 80px;
 }
 
 .mp-desc h2, .mp-params h2 {
@@ -1130,6 +1151,40 @@
     font-size: 15px;
     line-height: 1.8;
     color: #4b5563;
+}
+
+.mp-desc--truncated {
+    max-height: calc(1.8em * 60);
+    overflow: hidden;
+    position: relative;
+}
+.mp-desc--truncated::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(transparent, #fff);
+    pointer-events: none;
+}
+
+.mp-desc__expand {
+    display: block;
+    margin: 12px auto 0;
+    padding: 10px 24px;
+    background: #f8f9fb;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.mp-desc__expand:hover {
+    background: #eef0f4;
+    color: #374151;
 }
 
 .mp-params__grid {
