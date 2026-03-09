@@ -5,7 +5,7 @@
  * Without this, SvelteKit returns 404 for these paths.
  */
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://megabuy-api:8080';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io';
 
 export async function handle({ event, resolve }) {
     // Proxy /api/ requests to Go backend
