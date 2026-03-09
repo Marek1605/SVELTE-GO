@@ -1301,34 +1301,45 @@
     .mp-sticky-bar__price { font-size: 20px; font-weight: 800; color: #111; }
     .mp-sticky-bar__shipping { font-size: 11px; color: #16a34a; }
     .mp-sticky-bar__cta { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; background: linear-gradient(135deg, #c4956a, #b8875c); color: #fff; box-shadow: 0 4px 14px rgba(196,149,106,0.35); white-space: nowrap; text-decoration: none; }
-    /* Offers — mobile grid: 2 columns */
+    /* Offers — mobile: simple stacked rows */
+    .mp-offers { border-radius: 12px; margin: 0 -2px; }
+    .mp-offers__list { padding: 8px; gap: 8px; }
     .mp-offers__row {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 6px 12px;
-        padding: 12px;
+        display: grid !important;
+        grid-template-columns: auto 1fr auto;
+        grid-template-rows: auto auto auto;
+        gap: 4px 8px;
+        padding: 10px;
+        align-items: center;
     }
-    .mp-offers__vendor { grid-column: 1; grid-row: 1; gap: 8px; }
-    .mp-offers__logo { width: 70px; height: 30px; border-radius: 6px; font-size: 9px; }
-    .mp-offers__badges { gap: 3px; }
-    .mp-offers__cheap-badge { font-size: 8px; padding: 2px 5px; border-radius: 4px; }
-    .mp-offers__rec-badge { font-size: 8px; padding: 2px 5px; border-radius: 4px; }
-    .mp-offers__vendor-rating { font-size: 11px; }
-    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; align-self: center; }
-    .mp-offers__price { font-size: 16px; }
-    .mp-offers__stock { grid-column: 1; grid-row: 2; font-size: 11px; }
-    .mp-offers__delivery { grid-column: 1; grid-row: 2; font-size: 11px; margin-left: 8px; }
-    .mp-offers__cta-col { grid-column: 2; grid-row: 2; align-self: center; }
-    .mp-offers__cta { padding: 8px 14px; font-size: 12px; }
-    /* Stock + delivery same row */
-    .mp-offers__stock, .mp-offers__delivery { display: inline-flex; }
-    /* Ranking mobile */
-    .style-ranking .mp-offers__row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .style-ranking .mp-offers__rank { width: 26px; height: 26px; font-size: 12px; }
-    .style-ranking .mp-offers__vendor { flex: 1; min-width: 50%; }
-    .style-ranking .mp-offers__price-col { text-align: right; }
+    /* Row 1: logo | badges | price */
+    .mp-offers__vendor { grid-column: 1 / 3; grid-row: 1; display: flex; align-items: center; gap: 8px; }
+    .mp-offers__logo { width: 60px; height: 28px; border-radius: 6px; font-size: 9px; flex-shrink: 0; }
+    .mp-offers__vendor-info { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; flex: 1; min-width: 0; }
+    .mp-offers__badges { display: inline-flex; gap: 3px; }
+    .mp-offers__cheap-badge { font-size: 7px; padding: 1px 4px; border-radius: 3px; gap: 2px; }
+    .mp-offers__cheap-badge svg { width: 8px; height: 8px; }
+    .mp-offers__rec-badge { font-size: 7px; padding: 1px 4px; border-radius: 3px; gap: 2px; }
+    .mp-offers__rec-badge svg { width: 8px; height: 8px; }
+    .mp-offers__vendor-rating { font-size: 10px; width: 100%; margin-top: 1px; }
+    .mp-offers__price-col { grid-column: 3; grid-row: 1; text-align: right; }
+    .mp-offers__price { font-size: 15px; }
+    .mp-offers__shipping { font-size: 9px; }
+    .mp-offers__diff { font-size: 9px; }
+    /* Row 2: stock + delivery */
+    .mp-offers__stock { grid-column: 1 / 3; grid-row: 2; font-size: 11px; display: inline-flex; }
+    .mp-offers__delivery { grid-column: 3; grid-row: 2; font-size: 11px; justify-self: end; }
+    /* Row 3: CTA full width */
+    .mp-offers__cta-col { grid-column: 1 / -1; grid-row: 3; }
+    .mp-offers__cta { width: 100%; justify-content: center; padding: 10px; font-size: 13px; }
+    /* Ranking mobile override */
+    .style-ranking .mp-offers__row { display: grid !important; }
+    .style-ranking .mp-offers__rank { grid-column: 1; grid-row: 1; width: 24px; height: 24px; font-size: 11px; align-self: center; }
+    .style-ranking .mp-offers__vendor { grid-column: 2; grid-row: 1; }
+    .style-ranking .mp-offers__price-col { grid-column: 3; grid-row: 1; }
     .mp-ai-box { max-width: 100%; }
-    .mp-offers__header { flex-wrap: wrap; }
+    .mp-offers__header { flex-wrap: wrap; padding: 12px 10px 0; }
+    .mp-offers__title { font-size: 14px; }
     .mp-offers__right { width: 100%; justify-content: space-between; margin-top: 4px; }
 }
 
