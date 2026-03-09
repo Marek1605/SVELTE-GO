@@ -1293,19 +1293,21 @@
     .mp-buybox__name { display: none; }
     .mp-buybox__cta { border-radius: 10px; }
     .mp-product { padding-bottom: 80px; }
-    /* Sticky bar */
+    /* Sticky bar — compact, above bottom nav */
     .mp-sticky-bar {
-        position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
-        background: #fff; border-radius: 14px 14px 0 0;
-        box-shadow: 0 -4px 24px rgba(0,0,0,0.12); border-top: 2px solid rgba(196,149,106,0.3);
-        padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+        position: fixed; bottom: 56px; left: 0; right: 0; z-index: 1050;
+        background: #fff;
+        box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+        border-top: 1px solid #f0f0f0;
+        padding: 8px 12px;
+        display: flex; align-items: center; gap: 10px;
         transform: translateY(100%); transition: transform 0.3s ease;
     }
     .mp-sticky-bar__info { flex: 1; min-width: 0; }
-    .mp-sticky-bar__shop { font-size: 10px; font-weight: 600; color: #92400e; }
-    .mp-sticky-bar__price { font-size: 20px; font-weight: 800; color: #111; }
-    .mp-sticky-bar__shipping { font-size: 11px; color: #16a34a; }
-    .mp-sticky-bar__cta { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; background: linear-gradient(135deg, #c4956a, #b8875c); color: #fff; box-shadow: 0 4px 14px rgba(196,149,106,0.35); white-space: nowrap; text-decoration: none; }
+    .mp-sticky-bar__shop { font-size: 9px; font-weight: 600; color: #92400e; }
+    .mp-sticky-bar__price { font-size: 16px; font-weight: 800; color: #111; }
+    .mp-sticky-bar__shipping { font-size: 9px; color: #16a34a; }
+    .mp-sticky-bar__cta { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; background: #c4956a; color: #fff; white-space: nowrap; text-decoration: none; }
     /* Offers — mobile: simple stacked rows */
     .mp-offers { border-radius: 12px; margin: 0 -2px; }
     .mp-offers__list { padding: 8px; gap: 8px; }
