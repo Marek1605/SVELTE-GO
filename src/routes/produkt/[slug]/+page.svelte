@@ -1296,10 +1296,11 @@
     .mp-product__container { padding: 0 10px; }
     .mp-product__top {
         grid-template-columns: 1fr;
-        grid-template-areas: "gallery" "info" "buybox";
-        gap: 12px;
+        grid-template-areas: "info" "gallery" "buybox";
+        gap: 4px;
     }
     .mp-gallery__main { width: 100%; max-width: 400px; }
+    .mp-breadcrumb { font-size: 11px; margin-bottom: 8px; flex-wrap: wrap; }
     /* Hide desktop-only stuff on mobile */
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
@@ -1319,19 +1320,21 @@
         grid-template-columns: 1fr auto;
         gap: 4px 12px;
         padding: 14px;
+        position: relative;
     }
-    /* Col 1 rows: badges, logo+name, rating, stock+delivery */
+    /* Col 1 rows: logo+name, rating, stock+delivery */
     .mp-offers__vendor { grid-column: 1; grid-row: 1; display: block; }
     .mp-offers__logo { width: 70px; height: 30px; border-radius: 6px; font-size: 9px; display: inline-flex; vertical-align: middle; margin-right: 6px; }
     .mp-offers__vendor-info { display: inline-block; vertical-align: middle; }
-    .mp-offers__badges { display: flex; gap: 4px; margin-bottom: 4px; }
+    /* Badges top-right absolute */
+    .mp-offers__badges { position: absolute; top: 10px; right: 14px; display: flex; gap: 4px; margin: 0; }
     .mp-offers__cheap-badge { font-size: 9px; padding: 2px 6px; }
     .mp-offers__rec-badge { font-size: 9px; padding: 2px 6px; }
     .mp-offers__vendor-rating { font-size: 12px; margin-top: 2px; }
     .mp-offers__stock { grid-column: 1; grid-row: 2; font-size: 12px; }
     .mp-offers__delivery { grid-column: 1; grid-row: 2; font-size: 12px; margin-left: 90px; }
-    /* Col 2: price top, CTA bottom */
-    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; }
+    /* Col 2: price below badges area, CTA bottom */
+    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 22px; }
     .mp-offers__price { font-size: 18px; }
     .mp-offers__shipping { font-size: 11px; }
     .mp-offers__diff { font-size: 10px; }
@@ -1343,7 +1346,7 @@
     .mp-offers__header { flex-wrap: wrap; padding: 12px 10px 0; }
     .mp-offers__title { font-size: 14px; }
     .mp-offers__right { width: 100%; justify-content: space-between; margin-top: 4px; }
-    .mp-info__title { font-size: 18px; margin-bottom: 8px; }
+    .mp-info__title { font-size: 22px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
     .mp-info { padding: 0; }
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
