@@ -1278,9 +1278,14 @@
     .mp-product__container { padding: 0 10px; }
     .mp-product__top {
         grid-template-columns: 1fr;
-        grid-template-areas: "gallery" "buybox" "info";
+        grid-template-areas: "gallery" "info" "buybox";
+        gap: 12px;
     }
     .mp-gallery__main { width: 100%; max-width: 400px; }
+    /* Hide desktop-only stuff on mobile */
+    .mp-info__actions { display: none; }
+    .mp-info__desc { display: none; }
+    .mp-ai-box { display: none; }
     /* Buybox full width */
     .mp-buybox { position: static; border-radius: 0; box-shadow: none; border: none; border-bottom: 1px solid #f0f0f0; padding: 16px 0; }
     .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
@@ -1341,6 +1346,12 @@
     .mp-offers__header { flex-wrap: wrap; padding: 12px 10px 0; }
     .mp-offers__title { font-size: 14px; }
     .mp-offers__right { width: 100%; justify-content: space-between; margin-top: 4px; }
+    /* Mobile title */
+    .mp-info__title { font-size: 17px; margin-bottom: 8px; }
+    .mp-info { padding: 0; }
+    /* Prevent text overlap */
+    .mp-offers__logo-text { font-size: 8px; }
+    .mp-offers__vendor-name { font-size: 12px; }
 }
 
 @media (max-width: 600px) {
