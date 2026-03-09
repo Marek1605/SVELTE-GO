@@ -164,7 +164,7 @@
             
             if (data.success) {
                 shopStore.update(s => ({ ...s, display_mode: mode }));
-                message = { type: 'success', text: `Režim bol zmenený na ${mode.toUpperCase()}` };
+                message = { type: 'success', text: `Režim bol zmenený na ${mode === 'free' ? 'Zadarmo' : 'Platený PPC'}` };
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri zmene režimu' };
             }
@@ -340,11 +340,12 @@
                     <div class="ppc-mode-option" class:active={displayMode === 'free'}>
                         <div class="ppc-mode-header">
                             <span class="ppc-mode-icon">🆓</span>
-                            <h4>FREE režim</h4>
+                            <h4>Zadarmo</h4>
                         </div>
                         <ul class="ppc-mode-features">
-                            <li>✓ Zobrazenie na konci zoznamu</li>
-                            <li>✓ Bez poplatkov</li>
+                            <li>✓ Zobrazenie iba vo fulltextovom vyhľadávaní</li>
+                            <li>✓ Nezaradené v kategóriách</li>
+                            <li>✓ Bez poplatkov za prekliky</li>
                             <li>✓ Základná viditeľnosť</li>
                         </ul>
                         <button class="ppc-mode-btn" class:selected={displayMode === 'free'}
@@ -356,13 +357,13 @@
                     <div class="ppc-mode-option" class:active={displayMode === 'cpc'}>
                         <div class="ppc-mode-header">
                             <span class="ppc-mode-icon">💰</span>
-                            <h4>PAID režim</h4>
+                            <h4>Platený PPC</h4>
                         </div>
                         <ul class="ppc-mode-features">
-                            <li>✓ Prednostné zobrazenie</li>
-                            <li>✓ Platba za preklik (CPC)</li>
-                            <li>✓ Vyššia viditeľnosť</li>
-                            <li>✓ Detailné štatistiky</li>
+                            <li>✓ Zobrazenie v kategóriách aj vo vyhľadávaní</li>
+                            <li>✓ Prednostné pozície v porovnaní ponúk</li>
+                            <li>✓ Platba za preklik (PPC) podľa cenníka</li>
+                            <li>✓ Detailné štatistiky a reporty</li>
                         </ul>
                         {#if currentCredit > 0}
                             <button class="ppc-mode-btn" class:selected={displayMode === 'cpc'}
@@ -370,18 +371,43 @@
                                 {displayMode === 'cpc' ? '✓ Aktívny' : 'Aktivovať'}
                             </button>
                         {:else}
-                            <p class="ppc-mode-note">Pre aktiváciu PAID režimu najskôr <a href="#topup" on:click={() => activeTab = 'topup'}>dobite kredit</a>.</p>
+                            <p class="ppc-mode-note">Pre aktiváciu plateného režimu najskôr <a href="#topup" on:click={() => activeTab = 'topup'}>dobite kredit</a>.</p>
                         {/if}
                     </div>
                 </div>
                 
+                <!-- Cenník preklikov -->
+                <div class="ppc-pricing">
+                    <h4>💰 Cenník preklikov (PPC)</h4>
+                    <p class="ppc-pricing-desc">Cena za preklik závisí od ceny produktu. Účtuje sa iba v platenom režime.</p>
+                    <table class="ppc-pricing-table">
+                        <thead>
+                            <tr>
+                                <th>Cena produktu</th>
+                                <th>Cena za preklik</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>do 10 €</td><td><strong>0,01 €</strong></td></tr>
+                            <tr><td>10 – 50 €</td><td><strong>0,02 €</strong></td></tr>
+                            <tr><td>50 – 100 €</td><td><strong>0,03 €</strong></td></tr>
+                            <tr><td>100 – 500 €</td><td><strong>0,05 €</strong></td></tr>
+                            <tr><td>nad 500 €</td><td><strong>0,10 €</strong></td></tr>
+                        </tbody>
+                    </table>
+                    <p class="ppc-pricing-note">
+                        <a href="/cennik-preklikov" target="_blank">Stiahnuť kompletný cenník preklikov (PDF) →</a>
+                    </p>
+                </div>
+                
                 <div class="ppc-mode-info">
-                    <h4>ℹ️ Ako funguje PAID režim?</h4>
-                    <p>V PAID režime sa za každý preklik na váš produkt automaticky strhne čiastka z vášho kreditu.</p>
+                    <h4>ℹ️ Ako funguje platený PPC režim?</h4>
+                    <p>V platenom režime sa za každý preklik na váš produkt automaticky strhne čiastka z vášho kreditu podľa cenníka vyššie.</p>
                     <ul>
-                        <li>Vaše ponuky budú zobrazené na popredných pozíciách</li>
-                        <li>Pri vyčerpaní kreditu sa automaticky prepne na FREE režim</li>
-                        <li>Môžete kedykoľvek manuálne prepnúť späť na FREE</li>
+                        <li>Vaše ponuky budú zobrazené v kategóriách a na popredných pozíciách</li>
+                        <li>Vo voľnom režime sa ponuky zobrazujú iba vo fulltextovom vyhľadávaní</li>
+                        <li>Pri vyčerpaní kreditu sa automaticky prepne na režim Zadarmo</li>
+                        <li>Môžete kedykoľvek manuálne prepnúť medzi režimami</li>
                     </ul>
                 </div>
             </div>
@@ -625,6 +651,19 @@
     .ppc-mode-info h4 { margin-bottom: 12px; }
     .ppc-mode-info ul { margin: 12px 0 0 20px; color: #374151; }
     .ppc-mode-info li { margin: 6px 0; }
+    
+    /* Pricing */
+    .ppc-pricing { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin-top: 20px; }
+    .ppc-pricing h4 { margin: 0 0 8px; font-size: 16px; }
+    .ppc-pricing-desc { font-size: 13px; color: #6b7280; margin: 0 0 16px; }
+    .ppc-pricing-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+    .ppc-pricing-table th { padding: 10px 14px; text-align: left; background: #f8fafc; border-bottom: 2px solid #e5e7eb; font-size: 13px; font-weight: 600; color: #374151; }
+    .ppc-pricing-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 14px; color: #475569; }
+    .ppc-pricing-table td strong { color: #059669; font-weight: 700; }
+    .ppc-pricing-table tbody tr:hover { background: #f8fffe; }
+    .ppc-pricing-note { font-size: 12px; color: #94a3b8; margin: 0; }
+    .ppc-pricing-note a { color: #6366f1; text-decoration: none; }
+    .ppc-pricing-note a:hover { text-decoration: underline; }
     
     /* Transactions */
     .ppc-empty { text-align: center; padding: 60px 20px; color: #6b7280; }

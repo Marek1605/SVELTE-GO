@@ -27,6 +27,33 @@
     $: displayMode = shop?.display_mode || 'free';
     $: cpcRate = shop?.cpc_rate || 0.05;
     
+    let modeInfoOpen = false;
+    let modeLoading = false;
+    let modeMessage = null;
+    
+    async function toggleMode(mode) {
+        modeLoading = true;
+        const token = localStorage.getItem('vendor_token');
+        try {
+            const res = await fetch(`${API_BASE}/vendor/display-mode`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ display_mode: mode })
+            });
+            const data = await res.json();
+            if (data.success) {
+                shopStore.update(s => ({ ...s, display_mode: mode }));
+                modeMessage = { type: 'success', text: `Režim zmenený na ${mode === 'free' ? 'Zadarmo' : 'Platený PPC'}` };
+            } else {
+                modeMessage = { type: 'error', text: data.error || 'Chyba pri zmene režimu' };
+            }
+        } catch (e) {
+            modeMessage = { type: 'error', text: 'Chyba pri komunikácii so serverom' };
+        }
+        modeLoading = false;
+        setTimeout(() => modeMessage = null, 4000);
+    }
+    
     onMount(async () => {
         if (!browser) return;
         
@@ -115,6 +142,56 @@
             <span><span class="mkma-dot green"></span> Zostatok: {formatNumber(currentCredit, 2)} €</span>
         </div>
         <p class="mkma-credit-footnote">Pri priemernom CPC {formatNumber(avgCpc, 3)} € vám zostáva ~{formatNumber(remainingClicks)} klikov</p>
+    </div>
+
+    <!-- Režim zobrazovania -->
+    <div class="mkma-mode-section">
+        <div class="mkma-mode-header">
+            <span class="mkma-section-title" style="margin-bottom:0">Režim zobrazovania</span>
+            <button class="mkma-info-icon" on:click={() => modeInfoOpen = !modeInfoOpen} title="Čo je to?">
+                <span class="material-icons-round">info_outline</span>
+            </button>
+        </div>
+        
+        {#if modeInfoOpen}
+        <div class="mkma-mode-tooltip">
+            <p><strong>Zadarmo (FREE)</strong> — Vaše ponuky sa zobrazujú iba vo fulltextovom vyhľadávaní, nezaradené v kategóriách. Prekliky sa neúčtujú.</p>
+            <p><strong>Platený (PPC)</strong> — Vaše ponuky sa zobrazujú aj v kategóriách a na popredných pozíciách. Za každý preklik sa účtuje poplatok podľa <a href="/vendor-dashboard/ppc">cenníka preklikov</a>.</p>
+        </div>
+        {/if}
+
+        {#if modeMessage}
+        <div class="mkma-mode-msg {modeMessage.type}">{modeMessage.text}</div>
+        {/if}
+        
+        <div class="mkma-mode-cards">
+            <div class="mkma-mode-card" class:active={displayMode === 'free'}>
+                <div class="mkma-mode-card-top">
+                    <span class="mkma-mode-card-icon">🆓</span>
+                    <strong>Zadarmo</strong>
+                </div>
+                <p>Zobrazenie vo vyhľadávaní, bez poplatkov</p>
+                <button class="mkma-mode-card-btn" class:active={displayMode === 'free'}
+                    on:click={() => toggleMode('free')} disabled={modeLoading || displayMode === 'free'}>
+                    {displayMode === 'free' ? '✓ Aktívny' : 'Aktivovať'}
+                </button>
+            </div>
+            <div class="mkma-mode-card" class:active={displayMode === 'cpc'}>
+                <div class="mkma-mode-card-top">
+                    <span class="mkma-mode-card-icon">💰</span>
+                    <strong>Platený PPC</strong>
+                </div>
+                <p>Zobrazenie v kategóriách, platba za preklik</p>
+                {#if currentCredit > 0}
+                <button class="mkma-mode-card-btn paid" class:active={displayMode === 'cpc'}
+                    on:click={() => toggleMode('cpc')} disabled={modeLoading || displayMode === 'cpc'}>
+                    {displayMode === 'cpc' ? '✓ Aktívny' : 'Aktivovať'}
+                </button>
+                {:else}
+                <p class="mkma-mode-card-note">Najskôr <a href="/vendor-dashboard/ppc">dobite kredit</a></p>
+                {/if}
+            </div>
+        </div>
     </div>
 
     <!-- Settings -->
@@ -380,6 +457,33 @@
     }
     .mkma-action-btn:hover .material-icons-round { color: #6366f1; }
 
+    /* Mode Section */
+    .mkma-mode-section { background: #fff; border: 1px solid #e8ebef; border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+    .mkma-mode-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .mkma-info-icon { background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8; display: flex; }
+    .mkma-info-icon:hover { color: #6366f1; }
+    .mkma-info-icon .material-icons-round { font-size: 18px; }
+    .mkma-mode-tooltip { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 14px; font-size: 13px; color: #475569; line-height: 1.6; }
+    .mkma-mode-tooltip p { margin: 0 0 8px; }
+    .mkma-mode-tooltip p:last-child { margin: 0; }
+    .mkma-mode-tooltip a { color: #6366f1; text-decoration: underline; }
+    .mkma-mode-msg { padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+    .mkma-mode-msg.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .mkma-mode-msg.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .mkma-mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mkma-mode-card { border: 2px solid #e8ebef; border-radius: 10px; padding: 16px; transition: all 0.2s; }
+    .mkma-mode-card.active { border-color: #6366f1; background: #fafaff; }
+    .mkma-mode-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .mkma-mode-card-top strong { font-size: 15px; color: #1e293b; }
+    .mkma-mode-card-icon { font-size: 20px; }
+    .mkma-mode-card p { font-size: 12px; color: #64748b; margin: 0 0 12px; line-height: 1.4; }
+    .mkma-mode-card-btn { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.15s; }
+    .mkma-mode-card-btn:hover:not(:disabled) { border-color: #6366f1; color: #6366f1; }
+    .mkma-mode-card-btn.active { background: #6366f1; color: #fff; border-color: #6366f1; cursor: default; }
+    .mkma-mode-card-btn.paid:not(.active):hover:not(:disabled) { border-color: #f59e0b; color: #d97706; }
+    .mkma-mode-card-note { font-size: 11px; color: #94a3b8; }
+    .mkma-mode-card-note a { color: #6366f1; }
+
     /* Responsive */
     @media (max-width: 1200px) {
         .mkma-stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -390,5 +494,6 @@
         .mkma-stats-grid { grid-template-columns: 1fr; }
         .mkma-settings-grid { grid-template-columns: 1fr; }
         .mkma-actions-grid { grid-template-columns: repeat(2, 1fr); }
+        .mkma-mode-cards { grid-template-columns: 1fr; }
     }
 </style>

@@ -215,7 +215,7 @@
                         {#if shopStatus === 'active'}Aktívny{:else if shopStatus === 'pending'}Čaká{:else}Zamietnutý{/if}
                     </span>
                     <span class="vp-mode-badge {displayMode}">
-                        {displayMode === 'cpc' ? 'CPC' : displayMode === 'paid' ? 'PAID' : 'FREE'}
+                        {displayMode === 'cpc' ? 'PPC' : displayMode === 'paid' ? 'Platený' : 'Zadarmo'}
                     </span>
                     
                     <!-- Credit -->
