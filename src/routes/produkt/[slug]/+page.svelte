@@ -1311,19 +1311,18 @@
     .mp-sticky-bar__price { font-size: 16px; font-weight: 800; color: #111; }
     .mp-sticky-bar__shipping { font-size: 9px; color: #16a34a; }
     .mp-sticky-bar__cta { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; background: #c4956a; color: #fff; white-space: nowrap; text-decoration: none; }
-    /* Offers — mobile: simple stacked rows */
+    /* Offers — mobile flex layout */
     .mp-offers { border-radius: 12px; margin: 0 -2px; }
     .mp-offers__list { padding: 8px; gap: 8px; }
     .mp-offers__row {
-        display: grid !important;
-        grid-template-columns: auto 1fr auto;
-        grid-template-rows: auto auto auto;
-        gap: 4px 8px;
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 6px;
         padding: 10px;
         align-items: center;
     }
-    /* Row 1: logo | badges | price */
-    .mp-offers__vendor { grid-column: 1 / 3; grid-row: 1; display: flex; align-items: center; gap: 8px; }
+    /* Line 1: vendor (logo+badges+rating) + price right */
+    .mp-offers__vendor { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
     .mp-offers__logo { width: 60px; height: 28px; border-radius: 6px; font-size: 9px; flex-shrink: 0; }
     .mp-offers__vendor-info { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; flex: 1; min-width: 0; }
     .mp-offers__badges { display: inline-flex; gap: 3px; }
@@ -1331,22 +1330,20 @@
     .mp-offers__cheap-badge svg { width: 8px; height: 8px; }
     .mp-offers__rec-badge { font-size: 7px; padding: 1px 4px; border-radius: 3px; gap: 2px; }
     .mp-offers__rec-badge svg { width: 8px; height: 8px; }
-    .mp-offers__vendor-rating { font-size: 10px; width: 100%; margin-top: 1px; }
-    .mp-offers__price-col { grid-column: 3; grid-row: 1; text-align: right; }
+    .mp-offers__vendor-rating { font-size: 10px; }
+    .mp-offers__price-col { text-align: right; flex-shrink: 0; }
     .mp-offers__price { font-size: 15px; }
     .mp-offers__shipping { font-size: 9px; }
     .mp-offers__diff { font-size: 9px; }
-    /* Row 2: stock + delivery */
-    .mp-offers__stock { grid-column: 1 / 3; grid-row: 2; font-size: 11px; display: inline-flex; }
-    .mp-offers__delivery { grid-column: 3; grid-row: 2; font-size: 11px; justify-self: end; }
-    /* Row 3: CTA right aligned, not full width */
-    .mp-offers__cta-col { grid-column: 1 / -1; grid-row: 3; display: flex; justify-content: flex-end; }
-    .mp-offers__cta { width: auto; padding: 8px 16px; font-size: 12px; }
-    /* Ranking mobile override */
-    .style-ranking .mp-offers__row { display: grid !important; }
-    .style-ranking .mp-offers__rank { grid-column: 1; grid-row: 1; width: 24px; height: 24px; font-size: 11px; align-self: center; }
-    .style-ranking .mp-offers__vendor { grid-column: 2; grid-row: 1; }
-    .style-ranking .mp-offers__price-col { grid-column: 3; grid-row: 1; }
+    /* Line 2: stock + delivery left, CTA right — all on same flex row */
+    .mp-offers__stock { font-size: 11px; }
+    .mp-offers__delivery { font-size: 11px; }
+    .mp-offers__cta-col { margin-left: auto; }
+    .mp-offers__cta { padding: 8px 16px; font-size: 12px; }
+    /* Ranking mobile */
+    .style-ranking .mp-offers__row { display: flex !important; }
+    .style-ranking .mp-offers__rank { width: 24px; height: 24px; font-size: 11px; }
+    .style-ranking .mp-offers__vendor { flex: 1; min-width: 50%; }
     .mp-ai-box { max-width: 100%; }
     .mp-offers__header { flex-wrap: wrap; padding: 12px 10px 0; }
     .mp-offers__title { font-size: 14px; }
