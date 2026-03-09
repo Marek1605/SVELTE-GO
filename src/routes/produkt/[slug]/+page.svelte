@@ -287,7 +287,7 @@
                     {/if}
                 </div>
                 
-                <a href="#ponuky" class="mp-buybox__more">Zobraziť všetky ponuky →</a>
+                <a href="#ponuky" class="mp-buybox__more">Zobraziť všetky ponuky ↓</a>
                 {:else}
                 <div class="mp-buybox__header">
                     <div class="mp-buybox__logo">MP</div>
@@ -324,7 +324,6 @@
                 </button>
                 {/if}
                 
-                <a href="#ponuky" class="mp-buybox__more">Zobraziť všetky ponuky →</a>
             </div>
         </div>
         
@@ -1324,12 +1323,12 @@
     .mp-offers__logo { width: 90px; height: 36px; border-radius: 6px; font-size: 10px; margin-bottom: 4px; }
     .mp-offers__vendor-info { display: block; }
     .mp-offers__vendor-rating { font-size: 12px; margin-top: 4px; }
-    /* Badges top-right */
-    .mp-offers__badges { position: absolute; top: 12px; right: 14px; display: flex; gap: 4px; margin: 0; }
+    /* Badges top-right, stacked vertically */
+    .mp-offers__badges { position: absolute; top: 12px; right: 14px; display: flex; flex-direction: column; gap: 4px; margin: 0; align-items: flex-end; }
     .mp-offers__cheap-badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; }
     .mp-offers__rec-badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; }
-    /* R1C2: Price — big, right-aligned */
-    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 18px; align-self: center; }
+    /* R1C2: Price — big, right-aligned, below stacked badges */
+    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 38px; align-self: start; }
     .mp-offers__price { font-size: 22px; font-weight: 800; }
     .mp-offers__shipping { display: none; }
     .mp-offers__diff { font-size: 10px; }
