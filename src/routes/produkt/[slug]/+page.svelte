@@ -108,9 +108,9 @@
                 observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (!entry.isIntersecting) {
-                            stickyEl.classList.add('visible');
+                            stickyEl.style.transform = 'translateY(0)';
                         } else {
-                            stickyEl.classList.remove('visible');
+                            stickyEl.style.transform = 'translateY(100%)';
                         }
                     });
                 }, { threshold: 0 });
@@ -1129,7 +1129,6 @@
 
 /* Sticky bar — hidden on desktop */
 .mp-sticky-bar { display: none; }
-.mp-sticky-bar.visible { display: none; }
 .mp-offers__right { display: flex; align-items: center; gap: 8px; }
 .mp-offers__info-banner { display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 1px solid #eef0f4; border-radius: 14px; padding: 16px; margin: 16px 16px 0; }
 .mp-offers__info-icon { width: 36px; height: 36px; border-radius: 10px; background: #fef3c7; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
@@ -1349,7 +1348,7 @@
     .mp-buybox__cta { border-radius: 10px; }
     .mp-product { padding-bottom: 80px; }
     
-    /* Sticky bar — hidden by default, slide up on scroll */
+    /* Sticky bar — slide up/down via JS inline style */
     .mp-sticky-bar {
         position: fixed;
         bottom: 0;
@@ -1361,13 +1360,12 @@
         box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
         border-top: 2px solid rgba(196,149,106,0.3);
         padding: 10px 16px;
-        display: flex !important;
+        display: flex;
         align-items: center;
         gap: 12px;
         transform: translateY(100%);
         transition: transform 0.3s ease;
     }
-    .mp-sticky-bar.visible { display: flex !important; transform: translateY(0); }
     .mp-sticky-bar__info { flex: 1; min-width: 0; }
     .mp-sticky-bar__shop { font-size: 10px; font-weight: 600; color: #92400e; }
     .mp-sticky-bar__price { font-size: 20px; font-weight: 800; color: #111; }
