@@ -346,7 +346,7 @@
                                     {#if offer.shop_logo}
                                         <img src={offer.shop_logo} alt={offer.shop_name} class="mp-offers__logo-img">
                                     {:else}
-                                        {offer.initials?.toUpperCase() || offer.shop_name?.slice(0,2).toUpperCase() || 'XX'}
+                                        <span class="mp-offers__logo-text">{offer.shop_name?.toLowerCase() || 'shop'}</span>
                                     {/if}
                                 </div>
                                 <div class="mp-offers__vendor-info">
@@ -360,9 +360,6 @@
                                         {/if}
                                     </div>
                                     {/if}
-                                    <div class="mp-offers__vendor-name">
-                                        {offer.shop_name || 'Obchod'}
-                                    </div>
                                     <div class="mp-offers__vendor-rating">
                                         <svg viewBox="0 0 24 24" fill="#fbbf24" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                                         {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
@@ -979,11 +976,11 @@
 }
 
 .mp-offers__logo {
-    width: 56px;
-    height: 36px;
+    width: 100px;
+    height: 40px;
     border-radius: 8px;
     background: #f3f4f6;
-    border: 1px solid #f0f0f0;
+    border: 1px solid #e5e7eb;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -993,6 +990,7 @@
     flex-shrink: 0;
     overflow: hidden;
 }
+.mp-offers__logo-text { font-size: 11px; font-weight: 700; color: inherit; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 6px; }
 
 .mp-offers__vendor-name {
     font-size: 14px;
@@ -1306,7 +1304,7 @@
         gap: 8px;
     }
     .mp-offers__vendor { width: 100%; display: flex; align-items: center; gap: 10px; }
-    .mp-offers__logo { width: 48px; height: 32px; border-radius: 6px; font-size: 11px; }
+    .mp-offers__logo { width: 80px; height: 34px; border-radius: 6px; font-size: 10px; }
     .mp-offers__vendor-info { flex: 1; min-width: 0; }
     .mp-offers__price-col { position: absolute; right: 14px; top: 14px; text-align: right; }
     .mp-offers__row { position: relative; padding-right: 110px; }
