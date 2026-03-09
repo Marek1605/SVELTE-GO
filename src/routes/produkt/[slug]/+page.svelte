@@ -354,9 +354,11 @@
                                     <div class="mp-offers__vendor-name">
                                         {offer.shop_name || 'Obchod'}
                                     </div>
-                                    <div class="mp-offers__vendor-rating">
-                                        <svg viewBox="0 0 24 24" fill="#fbbf24" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                        {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
+                                    <div class="mp-offers__vendor-meta">
+                                        <span class="mp-offers__vendor-rating">
+                                            <svg viewBox="0 0 24 24" fill="#fbbf24" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                            {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
+                                        </span>
                                         {#if i === 0}
                                             <span class="mp-offers__cheap-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5" width="10" height="10" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> Najlepšia cena</span>
                                         {/if}
@@ -997,12 +999,19 @@
 }
 
 .mp-offers__vendor-rating {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 3px;
     font-size: 12px;
     color: #6b7280;
+}
+
+.mp-offers__vendor-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     margin-top: 2px;
+    flex-wrap: wrap;
 }
 
 .mp-offers__stock {
@@ -1117,10 +1126,15 @@
 /* When both cheapest + recommended — green glow wins, both badges show */
 .mp-offers__row.cheapest.rec-row { box-shadow: 0 0 20px rgba(34,197,94,0.1), 0 0 16px rgba(217,119,6,0.06); }
 
-/* Ranking style — numbered circles */
+/* Ranking style — numbered circles, single row layout like admin preview */
 .mp-offers__rank { width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
 .mp-offers__row.cheapest .mp-offers__rank { background: #059669; color: #fff; }
-.style-ranking .mp-offers__row { display: flex; align-items: center; gap: 12px; }
+.style-ranking .mp-offers__row { display: flex; align-items: center; gap: 14px; padding: 12px 18px; }
+.style-ranking .mp-offers__vendor { flex: 1; min-width: 0; }
+.style-ranking .mp-offers__stock { flex-shrink: 0; }
+.style-ranking .mp-offers__delivery { flex-shrink: 0; }
+.style-ranking .mp-offers__price-col { flex-shrink: 0; text-align: right; min-width: 90px; }
+.style-ranking .mp-offers__cta-col { flex-shrink: 0; }
 
 /* Minimal style — no cards, just lines */
 .style-minimal .mp-offers__row { border: none; border-radius: 0; border-bottom: 1px solid #f1f5f9; box-shadow: none; padding: 12px 0; margin: 0; }
