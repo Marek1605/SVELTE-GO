@@ -99,25 +99,28 @@
         isWishlisted = wishlist.includes(product?.id);
         isCompared = compare.includes(product?.id);
         
-        // Sticky bar — show when buybox scrolled out, only on mobile
-        const onScroll = () => {
+        // Sticky bar — reliable show/hide
+        let stickyShown = false;
+        const checkSticky = () => {
             const stickyEl = document.getElementById('mp-sticky-bar');
             if (!stickyEl) return;
-            // Only on mobile
-            if (window.innerWidth > 900) { stickyEl.style.display = 'none'; return; }
+            if (window.innerWidth > 900) { stickyEl.style.display = 'none'; stickyShown = false; return; }
             const buyboxEl = document.querySelector('.mp-buybox');
             if (!buyboxEl) return;
-            const rect = buyboxEl.getBoundingClientRect();
-            if (rect.bottom < 0) {
+            const shouldShow = buyboxEl.getBoundingClientRect().bottom < 0;
+            if (shouldShow && !stickyShown) {
                 stickyEl.style.display = 'flex';
-                stickyEl.style.transform = 'translateY(0)';
-            } else {
+                requestAnimationFrame(() => { stickyEl.style.transform = 'translateY(0)'; });
+                stickyShown = true;
+            } else if (!shouldShow && stickyShown) {
                 stickyEl.style.transform = 'translateY(100%)';
+                stickyShown = false;
             }
         };
-        window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', onScroll, { passive: true });
-        setTimeout(onScroll, 500);
+        window.addEventListener('scroll', checkSticky, { passive: true });
+        window.addEventListener('resize', checkSticky, { passive: true });
+        const iv = setInterval(checkSticky, 250);
+        setTimeout(() => clearInterval(iv), 3000);
         
         const handleKey = (e) => {
             if (!lightboxOpen) return;
@@ -126,7 +129,7 @@
             if (e.key === 'ArrowRight') nextImage();
         };
         window.addEventListener('keydown', handleKey);
-        return () => { window.removeEventListener('keydown', handleKey); window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
+        return () => { window.removeEventListener('keydown', handleKey); window.removeEventListener('scroll', checkSticky); window.removeEventListener('resize', checkSticky); clearInterval(iv); };
     });
 </script>
 
@@ -1308,40 +1311,38 @@
     .mp-buybox__name { display: none; }
     .mp-buybox__cta { border-radius: 10px; }
     .mp-product { padding-bottom: 80px; }
-    /* === OFFERS MOBILE — simple clean layout === */
+    /* === OFFERS MOBILE — preview layout === */
     .mp-offers { border-radius: 12px; }
     .mp-offers__list { padding: 10px; gap: 10px; }
     .mp-offers__row {
-        display: flex !important;
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: 1fr auto;
+        gap: 4px 12px;
         padding: 14px;
-        gap: 0;
     }
-    /* Row 1: logo + badges — full width */
-    .mp-offers__vendor { width: 100%; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
-    .mp-offers__logo { width: 70px; height: 30px; border-radius: 6px; font-size: 9px; flex-shrink: 0; }
-    .mp-offers__vendor-info { flex: 1; }
+    /* Col 1 rows: badges, logo+name, rating, stock+delivery */
+    .mp-offers__vendor { grid-column: 1; grid-row: 1; display: block; }
+    .mp-offers__logo { width: 70px; height: 30px; border-radius: 6px; font-size: 9px; display: inline-flex; vertical-align: middle; margin-right: 6px; }
+    .mp-offers__vendor-info { display: inline-block; vertical-align: middle; }
     .mp-offers__badges { display: flex; gap: 4px; margin-bottom: 4px; }
     .mp-offers__cheap-badge { font-size: 9px; padding: 2px 6px; }
     .mp-offers__rec-badge { font-size: 9px; padding: 2px 6px; }
-    .mp-offers__vendor-rating { font-size: 12px; }
-    /* Row 2: stock + delivery — full width */
-    .mp-offers__stock { font-size: 12px; margin-right: 14px; margin-bottom: 10px; }
-    .mp-offers__delivery { font-size: 12px; margin-bottom: 10px; }
-    /* Row 3: price left + CTA right — full width flex */
-    .mp-offers__price-col { flex: 1; min-width: 0; }
+    .mp-offers__vendor-rating { font-size: 12px; margin-top: 2px; }
+    .mp-offers__stock { grid-column: 1; grid-row: 2; font-size: 12px; }
+    .mp-offers__delivery { grid-column: 1; grid-row: 2; font-size: 12px; margin-left: 90px; }
+    /* Col 2: price top, CTA bottom */
+    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; }
     .mp-offers__price { font-size: 18px; }
     .mp-offers__shipping { font-size: 11px; }
     .mp-offers__diff { font-size: 10px; }
-    .mp-offers__cta-col { flex-shrink: 0; align-self: center; }
+    .mp-offers__cta-col { grid-column: 2; grid-row: 2; align-self: end; justify-self: end; }
     .mp-offers__cta { padding: 10px 18px; font-size: 13px; }
     /* Ranking mobile */
-    .style-ranking .mp-offers__rank { width: 24px; height: 24px; font-size: 11px; margin-right: 8px; margin-bottom: 6px; }
+    .style-ranking .mp-offers__rank { width: 24px; height: 24px; font-size: 11px; margin-right: 8px; margin-bottom: 6px; display: inline-flex; vertical-align: middle; }
     .mp-ai-box { display: none; }
     .mp-offers__header { flex-wrap: wrap; padding: 12px 10px 0; }
     .mp-offers__title { font-size: 14px; }
     .mp-offers__right { width: 100%; justify-content: space-between; margin-top: 4px; }
-    /* Mobile title */
     .mp-info__title { font-size: 18px; margin-bottom: 8px; }
     .mp-info { padding: 0; }
     .mp-info__actions { display: none; }
