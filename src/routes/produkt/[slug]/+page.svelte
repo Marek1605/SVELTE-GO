@@ -247,6 +247,10 @@
                             {bestOffer.rating?.toFixed(1) || '4.5'} ({bestOffer.review_count || 0})
                         </div>
                     </div>
+                    <div class="mp-buybox__inline-badges">
+                        <span class="mp-offers__cheap-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5" width="10" height="10" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> Najlepšia cena</span>
+                        <span class="mp-offers__rec-badge"><svg viewBox="0 0 24 24" fill="#b45309" width="10" height="10"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5"/></svg> Odporúčaná</span>
+                    </div>
                 </div>
                 
                 <div class="mp-buybox__meta">
@@ -265,25 +269,27 @@
                     </span>
                 </div>
                 
-                <div class="mp-buybox__price-row">
-                    <span class="mp-buybox__mobile-rec">⭐ Odporúčaná · {bestOffer.shop_name || 'Obchod'}</span>
-                    <span class="mp-buybox__price">{formatPrice(bestOffer.price || lowestPrice)}</span>
-                    <span class="mp-buybox__shipping" class:free={bestOffer.shipping === 0 || freeShipping}>
-                        {bestOffer.shipping === 0 || freeShipping ? '✓ Doprava zdarma' : `+ ${formatPrice(bestOffer.shipping || 2.99)} doprava`}
-                    </span>
+                <div class="mp-buybox__price-cta">
+                    <div class="mp-buybox__price-info">
+                        <span class="mp-buybox__price">{formatPrice(bestOffer.price || lowestPrice)}</span>
+                        <span class="mp-buybox__shipping" class:free={bestOffer.shipping === 0 || freeShipping}>
+                            {bestOffer.shipping === 0 || freeShipping ? '✓ Doprava zdarma' : `+ ${formatPrice(bestOffer.shipping || 2.99)} doprava`}
+                        </span>
+                    </div>
+                    {#if bestOffer.is_master || bestOffer.display_mode === 'master'}
+                    <a href="/kosik?add={product.id}" class="mp-buybox__cta">
+                        Do košíka
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </a>
+                    {:else}
+                    <a href="/go/{bestOffer.id}" target="_blank" rel="noopener noreferrer" class="mp-buybox__cta">
+                        Do obchodu
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </a>
+                    {/if}
                 </div>
                 
-                {#if bestOffer.is_master || bestOffer.display_mode === 'master'}
-                <a href="/kosik?add={product.id}" class="mp-buybox__cta mp-buybox__cta--buy">
-                    Do košíka
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                </a>
-                {:else}
-                <a href="/go/{bestOffer.id}" target="_blank" rel="noopener noreferrer" class="mp-buybox__cta">
-                    Do obchodu
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
-                </a>
-                {/if}
+                <a href="#ponuky" class="mp-buybox__more">Zobraziť všetky ponuky ↓</a>
                 {:else}
                 <div class="mp-buybox__header">
                     <div class="mp-buybox__logo">MP</div>
@@ -842,27 +848,36 @@
     color: #6b7280;
 }
 
-.mp-buybox__price-row {
+.mp-buybox__price-cta {
     display: flex;
-    align-items: baseline;
-    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 16px;
+}
+
+.mp-buybox__price-info {
+    display: flex;
+    flex-direction: column;
 }
 
 .mp-buybox__price {
     font-size: 28px;
     font-weight: 800;
-    color: #111827;
+    color: #059669;
+    line-height: 1;
 }
 
 .mp-buybox__shipping {
     font-size: 13px;
     color: #6b7280;
+    margin-top: 4px;
 }
 .mp-buybox__shipping.free { color: #16a34a; }
 
+/* Inline badges — hidden on desktop, shown on mobile */
+.mp-buybox__inline-badges { display: none; gap: 4px; margin-left: auto; }
+
 .mp-buybox__cta {
-    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1305,12 +1320,15 @@
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
     .mp-ai-box { display: none; }
-    /* Buybox full width */
+    /* Buybox mobile — matches preview */
     .mp-buybox { position: static; border-radius: 0; box-shadow: none; border: none; border-bottom: 1px solid #f0f0f0; padding: 16px 0; }
+    .mp-buybox__badge { display: none; }
+    .mp-buybox__inline-badges { display: flex; }
+    .mp-buybox__header { border-bottom: none; padding-bottom: 0; margin-bottom: 10px; }
     .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
-    .mp-buybox__more { display: none; }
     .mp-buybox__name { display: none; }
-    .mp-buybox__cta { border-radius: 10px; }
+    .mp-buybox__cta { border-radius: 10px; padding: 14px 24px; }
+    .mp-buybox__more { display: block; text-align: center; margin-top: 12px; font-size: 12px; }
     .mp-product { padding-bottom: 80px; }
     /* === OFFERS MOBILE — preview layout === */
     .mp-offers { border-radius: 12px; }
