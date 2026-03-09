@@ -215,7 +215,7 @@
                         {#if bestOffer.shop_logo}
                             <img src={bestOffer.shop_logo} alt={bestOffer.shop_name} class="mp-buybox__logo-img">
                         {:else}
-                            {bestOffer.initials?.toUpperCase() || 'MP'}
+                            <span style="font-size:10px;color:#6b7280;font-weight:700;">{bestOffer.shop_name?.toLowerCase() || 'shop'}</span>
                         {/if}
                     </div>
                     <div class="mp-buybox__vendor">
@@ -758,16 +758,18 @@
 }
 
 .mp-buybox__logo {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #c4956a, #b8875c);
-    color: #fff;
+    width: 80px;
+    height: 36px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 11px;
+    color: #9ca3af;
+    overflow: hidden;
 }
 
 .mp-buybox__name {
@@ -1099,7 +1101,7 @@
 .mp-rec-info p { margin: 0; font-size: 13px; color: #78716c; line-height: 1.6; }
 
 /* Logo images */
-.mp-buybox__logo-img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.mp-buybox__logo-img { width: 100%; height: 100%; object-fit: contain; }
 .mp-offers__logo-img { width: 100%; height: 100%; object-fit: contain; }
 
 /* Cheapest offer — green glow */
@@ -1295,7 +1297,7 @@
     .mp-buybox__badge, .mp-buybox__header, .mp-buybox__meta, .mp-buybox__more, .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
     .mp-buybox__mobile-rec { display: inline; margin-right: 6px; font-size: 9px; }
     .mp-buybox__price-row { margin-bottom: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .mp-buybox__cta { border-radius: 50px; }
+    .mp-buybox__cta { border-radius: 10px; }
     .mp-product { padding-bottom: 140px; }
     
     .mp-offers__row {

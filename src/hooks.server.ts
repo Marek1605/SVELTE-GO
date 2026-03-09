@@ -5,9 +5,31 @@
  * Without this, SvelteKit returns 404 for these paths.
  */
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://megabuy-api:8080';
 
 export async function handle({ event, resolve }) {
+    // Proxy /go/ click tracking to Go backend (redirect passthrough)
+    if (event.url.pathname.startsWith('/go/')) {
+        try {
+            const targetUrl = BACKEND_URL + event.url.pathname;
+            const response = await fetch(targetUrl, { redirect: 'manual' });
+            
+            // Forward the redirect from backend
+            const location = response.headers.get('location');
+            if (location) {
+                return new Response(null, {
+                    status: 302,
+                    headers: { 'Location': location }
+                });
+            }
+            
+            return new Response(response.body, { status: response.status });
+        } catch (e) {
+            console.error('[proxy /go]', event.url.pathname, e);
+            return new Response('Backend unavailable', { status: 502 });
+        }
+    }
+
     // Proxy /api/ requests to Go backend
     if (event.url.pathname.startsWith('/api/')) {
         try {
