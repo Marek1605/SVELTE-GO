@@ -342,7 +342,7 @@
                                 <div class="mp-offers__rank">{i + 1}</div>
                             {/if}
                             <div class="mp-offers__vendor">
-                                <div class="mp-offers__logo" class:cheapest-logo={i === 0} class:rec-logo={offer.id === bestOffer?.id && i !== 0}>
+                                <div class="mp-offers__logo" class:cheapest-logo={i === 0 && !offer.shop_logo} class:rec-logo={offer.id === bestOffer?.id && i !== 0 && !offer.shop_logo}>
                                     {#if offer.shop_logo}
                                         <img src={offer.shop_logo} alt={offer.shop_name} class="mp-offers__logo-img">
                                     {:else}
