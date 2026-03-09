@@ -1336,9 +1336,9 @@
     /* Row 2: stock + delivery */
     .mp-offers__stock { grid-column: 1 / 3; grid-row: 2; font-size: 11px; display: inline-flex; }
     .mp-offers__delivery { grid-column: 3; grid-row: 2; font-size: 11px; justify-self: end; }
-    /* Row 3: CTA full width */
-    .mp-offers__cta-col { grid-column: 1 / -1; grid-row: 3; }
-    .mp-offers__cta { width: 100%; justify-content: center; padding: 10px; font-size: 13px; }
+    /* Row 3: CTA right aligned, not full width */
+    .mp-offers__cta-col { grid-column: 1 / -1; grid-row: 3; display: flex; justify-content: flex-end; }
+    .mp-offers__cta { width: auto; padding: 8px 16px; font-size: 12px; }
     /* Ranking mobile override */
     .style-ranking .mp-offers__row { display: grid !important; }
     .style-ranking .mp-offers__rank { grid-column: 1; grid-row: 1; width: 24px; height: 24px; font-size: 11px; align-self: center; }
