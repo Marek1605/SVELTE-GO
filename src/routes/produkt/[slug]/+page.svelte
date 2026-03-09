@@ -55,6 +55,7 @@
     let offersFilter = 'all';
     let aiOpen = false;
     let infoOpen = false;
+    let stickyBarEl;
     
     $: mainImage = images[currentImageIndex] || product?.image_url || '';
     $: lowestPrice = product?.price_min || product?.price || 0;
@@ -99,6 +100,22 @@
         isWishlisted = wishlist.includes(product?.id);
         isCompared = compare.includes(product?.id);
         
+        // Sticky bar — show when buybox scrolls out of view
+        const buyboxEl = document.querySelector('.mp-buybox');
+        let observer;
+        if (buyboxEl && stickyBarEl) {
+            observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        stickyBarEl.classList.add('visible');
+                    } else {
+                        stickyBarEl.classList.remove('visible');
+                    }
+                });
+            }, { threshold: 0 });
+            observer.observe(buyboxEl);
+        }
+        
         const handleKey = (e) => {
             if (!lightboxOpen) return;
             if (e.key === 'Escape') closeLightbox();
@@ -106,7 +123,10 @@
             if (e.key === 'ArrowRight') nextImage();
         };
         window.addEventListener('keydown', handleKey);
-        return () => window.removeEventListener('keydown', handleKey);
+        return () => {
+            window.removeEventListener('keydown', handleKey);
+            if (observer) observer.disconnect();
+        };
     });
 </script>
 
@@ -219,7 +239,6 @@
                         {/if}
                     </div>
                     <div class="mp-buybox__vendor">
-                        <div class="mp-buybox__name">{bestOffer.shop_name || 'Obchod'}</div>
                         <div class="mp-buybox__rating">
                             <svg viewBox="0 0 24 24" fill="#fbbf24" width="14" height="14"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             {bestOffer.rating?.toFixed(1) || '4.5'} ({bestOffer.review_count || 0})
@@ -301,6 +320,24 @@
                 <a href="#ponuky" class="mp-buybox__more">Zobraziť všetky ponuky →</a>
             </div>
         </div>
+        
+        <!-- Mobile Sticky Bar (appears when scrolled past buybox) -->
+        {#if bestOffer}
+        <div class="mp-sticky-bar" bind:this={stickyBarEl}>
+            <div class="mp-sticky-bar__info">
+                <div class="mp-sticky-bar__shop">⭐ {bestOffer.shop_name || 'Obchod'}</div>
+                <div style="display:flex;align-items:baseline;gap:8px">
+                    <span class="mp-sticky-bar__price">{formatPrice(bestOffer.price || lowestPrice)}</span>
+                    <span class="mp-sticky-bar__shipping">{bestOffer.shipping === 0 ? 'Doprava zdarma' : `+ ${formatPrice(bestOffer.shipping || 0)}`}</span>
+                </div>
+            </div>
+            {#if bestOffer.is_master || bestOffer.display_mode === 'master'}
+                <a href="/kosik?add={product?.id}" class="mp-sticky-bar__cta">Do obchodu <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></a>
+            {:else}
+                <a href="/go/{bestOffer.id}" target="_blank" rel="noopener" class="mp-sticky-bar__cta">Do obchodu <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></a>
+            {/if}
+        </div>
+        {/if}
         
         <!-- Tabs Navigation -->
         <div class="mp-tabs">
@@ -1285,46 +1322,83 @@
     }
     .mp-gallery__main { width: 100%; max-width: 400px; }
     .mp-buybox {
+        position: static;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border-top: none;
+    }
+    .mp-buybox__badge { display: inline-flex; }
+    .mp-buybox__header { display: flex; }
+    .mp-buybox__meta { display: flex; }
+    .mp-buybox__more { display: block; }
+    .mp-buybox__name { display: none; }
+    .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
+    .mp-buybox__mobile-rec { display: none; }
+    .mp-buybox__price-row { margin-bottom: 16px; }
+    .mp-buybox__cta { border-radius: 10px; }
+    .mp-product { padding-bottom: 80px; }
+    
+    /* Sticky bar at bottom — shown via JS when scrolled past buybox */
+    .mp-sticky-bar {
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
         z-index: 999;
-        border-radius: 16px 16px 0 0;
-        box-shadow: 0 -4px 24px rgba(0,0,0,0.12), 0 -2px 12px rgba(217,119,6,0.08);
-        border-top: 2px solid rgba(217,119,6,0.2);
+        background: #fff;
+        border-radius: 14px 14px 0 0;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+        border-top: 2px solid rgba(196,149,106,0.3);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
     }
-    .mp-buybox__badge, .mp-buybox__header, .mp-buybox__meta, .mp-buybox__more, .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
-    .mp-buybox__mobile-rec { display: inline; margin-right: 6px; font-size: 9px; }
-    .mp-buybox__price-row { margin-bottom: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .mp-buybox__cta { border-radius: 10px; }
-    .mp-product { padding-bottom: 140px; }
+    .mp-sticky-bar.visible {
+        transform: translateY(0);
+    }
+    .mp-sticky-bar__info { flex: 1; min-width: 0; }
+    .mp-sticky-bar__shop { font-size: 10px; font-weight: 600; color: #92400e; }
+    .mp-sticky-bar__price { font-size: 20px; font-weight: 800; color: #111; }
+    .mp-sticky-bar__shipping { font-size: 11px; color: #16a34a; }
+    .mp-sticky-bar__cta {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 11px 20px; border-radius: 10px; font-size: 13px; font-weight: 700;
+        background: linear-gradient(135deg, #c4956a, #b8875c); color: #fff;
+        box-shadow: 0 4px 14px rgba(196,149,106,0.35);
+        white-space: nowrap; text-decoration: none;
+    }
     
     .mp-offers__row {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
         gap: 8px;
+        padding: 12px 14px;
+        position: relative;
     }
-    .mp-offers__vendor { width: 100%; display: flex; align-items: center; gap: 10px; }
+    /* Vendor: logo + badges inline */
+    .mp-offers__vendor { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
     .mp-offers__logo { width: 80px; height: 34px; border-radius: 6px; font-size: 10px; }
-    .mp-offers__vendor-info { flex: 1; min-width: 0; }
-    .mp-offers__price-col { position: absolute; right: 14px; top: 14px; text-align: right; }
-    .mp-offers__row { position: relative; padding-right: 110px; }
+    .mp-offers__vendor-info { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; flex: 1; }
+    .mp-offers__vendor-rating { font-size: 11px; }
+    .mp-offers__badges { display: flex; gap: 4px; }
+    .mp-offers__cheap-badge { font-size: 8px; padding: 2px 5px; border-radius: 4px; }
+    .mp-offers__rec-badge { font-size: 8px; padding: 2px 5px; border-radius: 4px; }
+    /* Price right side */
+    .mp-offers__price-col { text-align: right; flex-shrink: 0; }
+    .mp-offers__price { font-size: 15px; }
+    /* Bottom row */
     .mp-offers__stock { font-size: 11px; }
     .mp-offers__delivery { font-size: 11px; }
     .mp-offers__cta-col { margin-left: auto; }
     .mp-offers__cta { padding: 8px 14px; font-size: 12px; }
-    .mp-offers__badges { gap: 4px; }
-    .mp-offers__cheap-badge { font-size: 8px; padding: 2px 5px; border-radius: 4px; }
-    .mp-offers__rec-badge { font-size: 8px; padding: 2px 5px; border-radius: 4px; }
-    /* Bottom row: stock + delivery + CTA */
-    .mp-offers__bottom-row { display: flex; align-items: center; gap: 8px; width: 100%; }
-    .mp-offers__bottom-row .mp-offers__cta-col { margin-left: auto; }
     /* Ranking mobile */
-    .style-ranking .mp-offers__row { flex-direction: row; flex-wrap: wrap; gap: 10px; padding-right: 14px; position: static; }
+    .style-ranking .mp-offers__row { flex-wrap: wrap; gap: 8px; }
     .style-ranking .mp-offers__rank { width: 26px; height: 26px; font-size: 12px; }
-    .style-ranking .mp-offers__vendor { flex: 1; min-width: 60%; }
-    .style-ranking .mp-offers__price-col { position: static; text-align: right; }
+    .style-ranking .mp-offers__vendor { flex: 1; min-width: 50%; }
     .mp-ai-box { max-width: 100%; }
     .mp-ai-box { max-width: 100%; }
     .mp-offers__header { flex-wrap: wrap; }
