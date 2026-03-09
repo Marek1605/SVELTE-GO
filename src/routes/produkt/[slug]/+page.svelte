@@ -19,7 +19,7 @@
     let reviewForm = { author_name: '', rating: 5, title: '', body: '', pros: '', cons: '', verification_code: '' };
     let reviewSubmitting = false;
     let reviewMessage = '';
-    let offersStyle = 'cards';
+    let offersStyle = data.offersStyle || 'cards';
 
     async function loadReviews() {
         if (reviewData.reviews.length > 0 || reviewLoading) return;
@@ -99,10 +99,6 @@
         isWishlisted = wishlist.includes(product?.id);
         isCompared = compare.includes(product?.id);
         
-        // Load offers style from site settings
-        fetch('/api/v1/site/settings').then(r => r.json()).then(s => {
-            if (s?.data?.offers_style) offersStyle = s.data.offers_style;
-        }).catch(() => {});
         
         const handleKey = (e) => {
             if (!lightboxOpen) return;

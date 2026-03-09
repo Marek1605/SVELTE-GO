@@ -42,11 +42,25 @@ export async function load({ params }) {
         // Attach offers to product so the component can access them via product.offers
         product.offers = offers;
         
+        // Load offers style from site settings
+        let offersStyle = 'cards';
+        try {
+            const settingsResult = await api.get('/site/settings');
+            if (settingsResult?.data?.offers_style) {
+                offersStyle = settingsResult.data.offers_style;
+            } else if (settingsResult?.offers_style) {
+                offersStyle = settingsResult.offers_style;
+            }
+        } catch (e) {
+            console.error('Error loading site settings:', e);
+        }
+        
         return {
             product,
             attributes: product.attributes || [],
             images: product.images || (product.image_url ? [product.image_url] : []),
-            offers
+            offers,
+            offersStyle
         };
     } catch (err) {
         if (err?.status) {
