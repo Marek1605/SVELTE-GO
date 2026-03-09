@@ -99,20 +99,23 @@
         isWishlisted = wishlist.includes(product?.id);
         isCompared = compare.includes(product?.id);
         
-        // Sticky bar
-        let observer;
-        setTimeout(() => {
+        // Sticky bar — show when buybox is scrolled out of view
+        let lastScroll = 0;
+        const onScroll = () => {
             const buyboxEl = document.querySelector('.mp-buybox');
             const stickyEl = document.getElementById('mp-sticky-bar');
-            if (buyboxEl && stickyEl) {
-                observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        stickyEl.style.transform = entry.isIntersecting ? 'translateY(100%)' : 'translateY(0)';
-                    });
-                }, { threshold: 0 });
-                observer.observe(buyboxEl);
+            if (!buyboxEl || !stickyEl) return;
+            const rect = buyboxEl.getBoundingClientRect();
+            // Show sticky when buybox bottom is above viewport
+            if (rect.bottom < 0) {
+                stickyEl.style.transform = 'translateY(0)';
+            } else {
+                stickyEl.style.transform = 'translateY(200%)';
             }
-        }, 300);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        // Initial check
+        setTimeout(onScroll, 500);
         
         const handleKey = (e) => {
             if (!lightboxOpen) return;
@@ -121,7 +124,7 @@
             if (e.key === 'ArrowRight') nextImage();
         };
         window.addEventListener('keydown', handleKey);
-        return () => { window.removeEventListener('keydown', handleKey); if (observer) observer.disconnect(); };
+        return () => { window.removeEventListener('keydown', handleKey); window.removeEventListener('scroll', onScroll); };
     });
 </script>
 
