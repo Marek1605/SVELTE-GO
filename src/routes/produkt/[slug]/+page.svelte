@@ -760,16 +760,18 @@
 }
 
 .mp-buybox__logo {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #c4956a, #b8875c);
-    color: #fff;
+    width: 80px;
+    height: 40px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    color: #9ca3af;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
+    overflow: hidden;
 }
 
 .mp-buybox__name {
@@ -959,7 +961,7 @@
 
 .mp-offers__row {
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) 90px 90px 110px 140px;
+    grid-template-columns: minmax(250px, 1fr) 90px 90px 110px 140px;
     align-items: center;
     gap: 16px;
     padding: 14px 18px;
@@ -978,18 +980,19 @@
 }
 
 .mp-offers__logo {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    background: #f3f4f6;
-    border: 1px solid #f0f0f0;
+    width: 120px;
+    height: 50px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: #9ca3af;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .mp-offers__vendor-name {
@@ -1107,8 +1110,8 @@
 .mp-rec-info p { margin: 0; font-size: 13px; color: #78716c; line-height: 1.6; }
 
 /* Logo images */
-.mp-buybox__logo-img { width: 100%; height: 100%; object-fit: contain; padding: 3px; border-radius: 6px; }
-.mp-offers__logo-img { width: 100%; height: 100%; object-fit: contain; padding: 3px; border-radius: 6px; }
+.mp-buybox__logo-img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.mp-offers__logo-img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
 
 /* Cheapest offer — green glow */
 .mp-offers__row.cheapest { border: 1.5px solid rgba(34,197,94,0.3); box-shadow: 0 0 20px rgba(34,197,94,0.1), 0 2px 8px rgba(34,197,94,0.06); }
