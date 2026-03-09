@@ -980,7 +980,7 @@
     height: 40px;
     border-radius: 8px;
     background: #f3f4f6;
-    border: 1px solid #e5e7eb;
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
