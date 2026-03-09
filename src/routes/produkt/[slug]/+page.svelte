@@ -864,6 +864,10 @@
 /* Inline badges — hidden on desktop, shown on mobile */
 .mp-buybox__inline-badges { display: none; gap: 4px; margin-left: auto; }
 .mp-buybox__rec-badge { display: inline-flex; margin-left: 8px; }
+.mp-buybox__rec-badge .mp-offers__rec-badge { font-size: 13px; padding: 5px 12px; }
+.mp-offers__rec-badge svg { width: 12px; height: 12px; }
+.mp-offers__cheap-badge svg { width: 12px; height: 12px; }
+.mp-buybox__rec-badge .mp-offers__rec-badge svg { width: 14px; height: 14px; }
 .mp-buybox__shipping-info { margin-bottom: 16px; }
 .mp-buybox__shipping-info .mp-buybox__shipping { font-size: 13px; }
 
@@ -1098,8 +1102,8 @@
 
 /* Badges */
 .mp-offers__badges { display: flex; gap: 5px; margin-bottom: 3px; flex-wrap: wrap; }
-.mp-offers__rec-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: #b45309; background: #fffbeb; padding: 3px 8px; border-radius: 6px; border: 1px solid #fde68a; white-space: nowrap; }
-.mp-offers__cheap-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: #047857; background: #ecfdf5; padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(5,150,105,0.2); white-space: nowrap; }
+.mp-offers__rec-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: #b45309; background: #fffbeb; padding: 5px 10px; border-radius: 6px; border: 1px solid #fde68a; white-space: nowrap; }
+.mp-offers__cheap-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: #047857; background: #ecfdf5; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(5,150,105,0.2); white-space: nowrap; }
 .mp-offers__diff { font-size: 10px; color: #ef4444; margin-top: 2px; }
 .mp-offers__shipping-mobile { display: none; }
 .mp-offers__save { background: #f0fdf4; color: #16a34a; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
@@ -1312,14 +1316,15 @@
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
     .mp-ai-box { display: none; }
-    /* === BUYBOX MOBILE — 2 column grid matching preview === */
+    /* === BUYBOX MOBILE — logo big top-left, rating under === */
     .mp-buybox {
         position: static; border-radius: 0; box-shadow: none; border: none;
         border-bottom: 1px solid #f0f0f0; padding: 14px 0;
         display: grid !important; grid-template-columns: 1fr auto; gap: 4px 14px; align-items: start;
     }
     .mp-buybox__badge { display: none; }
-    .mp-buybox__header { grid-column: 1; grid-row: 1; border-bottom: none; padding-bottom: 0; margin-bottom: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .mp-buybox__header { grid-column: 1; grid-row: 1; border-bottom: none; padding-bottom: 0; margin-bottom: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .mp-buybox__logo { width: 90px; height: 38px; }
     .mp-buybox__vendor { grid-column: 1; grid-row: 2; margin-bottom: 0; }
     .mp-buybox__meta { grid-column: 1; grid-row: 3; margin-bottom: 2px; }
     .mp-buybox__shipping-info { grid-column: 1; grid-row: 4; margin-bottom: 0; }
@@ -1345,15 +1350,15 @@
         padding: 14px;
         position: relative;
     }
-    /* R1C1: Logo + rating */
-    .mp-offers__vendor { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: 10px; }
-    .mp-offers__logo { width: 80px; height: 32px; border-radius: 6px; font-size: 9px; flex-shrink: 0; }
+    /* R1C1: Logo big, rating under it */
+    .mp-offers__vendor { grid-column: 1; grid-row: 1; display: block; }
+    .mp-offers__logo { width: 90px; height: 36px; border-radius: 6px; font-size: 10px; margin-bottom: 4px; }
     .mp-offers__vendor-info { display: block; }
-    .mp-offers__vendor-rating { font-size: 12px; margin-top: 0; }
+    .mp-offers__vendor-rating { font-size: 12px; margin-top: 4px; }
     /* Badges top-right */
     .mp-offers__badges { position: absolute; top: 12px; right: 14px; display: flex; gap: 4px; margin: 0; }
-    .mp-offers__cheap-badge { font-size: 9px; padding: 2px 6px; }
-    .mp-offers__rec-badge { font-size: 9px; padding: 2px 6px; }
+    .mp-offers__cheap-badge { font-size: 10px; padding: 3px 7px; }
+    .mp-offers__rec-badge { font-size: 10px; padding: 3px 7px; }
     /* R1C2: Price — big, right-aligned */
     .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 18px; align-self: center; }
     .mp-offers__price { font-size: 22px; font-weight: 800; }
@@ -1380,7 +1385,7 @@
     .mp-info { padding: 0; }
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
-    .mp-offers__logo-text { font-size: 9px; }
+    .mp-offers__logo-text { font-size: 10px; }
 }
 
 @media (max-width: 600px) {
