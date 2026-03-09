@@ -101,7 +101,7 @@
         
         // Load offers style from site settings
         fetch('/api/v1/site/settings').then(r => r.json()).then(s => {
-            if (s?.offers_style) offersStyle = s.offers_style;
+            if (s?.data?.offers_style) offersStyle = s.data.offers_style;
         }).catch(() => {});
         
         const handleKey = (e) => {
@@ -339,7 +339,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="mp-offers__subtitle">overených obchodov · aktualizované dnes</div>
                 
                 <div class="mp-offers__list" class:style-ranking={offersStyle === 'ranking'} class:style-minimal={offersStyle === 'minimal'}>
                     {#each filteredOffers as offer, i}
