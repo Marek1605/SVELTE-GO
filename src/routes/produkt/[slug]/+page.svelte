@@ -1312,16 +1312,20 @@
     .mp-info__desc { display: none; }
     .mp-ai-box { display: none; }
     /* Buybox mobile — matches preview */
-    .mp-buybox { position: static; border-radius: 0; box-shadow: none; border: none; border-bottom: 1px solid #f0f0f0; padding: 16px 0; }
+    .mp-buybox { position: static; border-radius: 0; box-shadow: none; border: none; border-bottom: 1px solid #f0f0f0; padding: 16px 0;
+        display: flex; flex-wrap: wrap; gap: 10px; }
     .mp-buybox__badge { display: none; }
     .mp-buybox__inline-badges { display: flex; }
-    .mp-buybox__header { border-bottom: none; padding-bottom: 0; margin-bottom: 10px; }
+    .mp-buybox__header { width: 100%; border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
     .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
     .mp-buybox__name { display: none; }
-    .mp-buybox__price-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .mp-buybox__price { font-size: 28px; color: #059669; }
-    .mp-buybox__cta { width: auto; border-radius: 10px; padding: 14px 24px; }
-    .mp-buybox__more { display: block; text-align: center; margin-top: 12px; font-size: 12px; }
+    .mp-buybox__meta { width: 100%; }
+    .mp-buybox__price-row { order: 2; margin: 0; text-align: right; margin-left: auto; }
+    .mp-buybox__price { font-size: 26px; color: #111; display: block; line-height: 1.1; }
+    .mp-buybox__shipping { font-size: 11px; color: #94a3b8; display: block; }
+    .mp-buybox__shipping.free { color: #94a3b8; }
+    .mp-buybox__cta { order: 1; width: auto; border-radius: 10px; padding: 14px 24px; }
+    .mp-buybox__more { order: 3; width: 100%; display: block; text-align: center; margin-top: 2px; font-size: 12px; }
     .mp-product { padding-bottom: 80px; }
     /* === OFFERS MOBILE — preview layout === */
     .mp-offers { border-radius: 12px; }
