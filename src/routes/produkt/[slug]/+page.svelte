@@ -241,15 +241,14 @@
                             <span class="mp-buybox__logo-text">{bestOffer.shop_name || 'Shop'}</span>
                         {/if}
                     </div>
+                    <div class="mp-buybox__rec-badge">
+                        <span class="mp-offers__rec-badge"><svg viewBox="0 0 24 24" fill="#b45309" width="10" height="10"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5"/></svg> Odporúčaná</span>
+                    </div>
                     <div class="mp-buybox__vendor">
                         <div class="mp-buybox__rating">
                             <svg viewBox="0 0 24 24" fill="#fbbf24" width="14" height="14"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             {bestOffer.rating?.toFixed(1) || '4.5'} ({bestOffer.review_count || 0})
                         </div>
-                    </div>
-                    <div class="mp-buybox__inline-badges">
-                        <span class="mp-offers__cheap-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5" width="10" height="10" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> Najlepšia cena</span>
-                        <span class="mp-offers__rec-badge"><svg viewBox="0 0 24 24" fill="#b45309" width="10" height="10"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5"/></svg> Odporúčaná</span>
                     </div>
                 </div>
                 
@@ -269,11 +268,14 @@
                     </span>
                 </div>
                 
-                <div class="mp-buybox__price-row">
-                    <span class="mp-buybox__price">{formatPrice(bestOffer.price || lowestPrice)}</span>
+                <div class="mp-buybox__shipping-info">
                     <span class="mp-buybox__shipping" class:free={bestOffer.shipping === 0 || freeShipping}>
                         {bestOffer.shipping === 0 || freeShipping ? '✓ Doprava zdarma' : `+ ${formatPrice(bestOffer.shipping || 2.99)} doprava`}
                     </span>
+                </div>
+                
+                <div class="mp-buybox__price-row">
+                    <span class="mp-buybox__price">{formatPrice(bestOffer.price || lowestPrice)}</span>
                 </div>
                 
                 {#if bestOffer.is_master || bestOffer.display_mode === 'master'}
@@ -765,17 +767,7 @@
     }
 
 .mp-buybox__badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: #fef3c7;
-    border: 1px solid #fbbf24;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #92400e;
-    margin-bottom: 16px;
+    display: none;
 }
 .mp-buybox__info-btn { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #d1d5db; background: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #94a3b8; margin-left: 4px; padding: 0; }
 .mp-buybox__info-tooltip { background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 12px; color: #64748b; line-height: 1.6; }
@@ -866,6 +858,9 @@
 
 /* Inline badges — hidden on desktop, shown on mobile */
 .mp-buybox__inline-badges { display: none; gap: 4px; margin-left: auto; }
+.mp-buybox__rec-badge { display: inline-flex; margin-left: 8px; }
+.mp-buybox__shipping-info { margin-bottom: 16px; }
+.mp-buybox__shipping-info .mp-buybox__shipping { font-size: 13px; }
 
 .mp-buybox__cta {
     width: 100%;
@@ -1311,21 +1306,22 @@
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
     .mp-ai-box { display: none; }
-    /* Buybox mobile — matches preview */
-    .mp-buybox { position: static; border-radius: 0; box-shadow: none; border: none; border-bottom: 1px solid #f0f0f0; padding: 16px 0;
-        display: flex; flex-wrap: wrap; gap: 10px; }
+    /* Buybox mobile — 2 column: left info, right price+CTA */
+    .mp-buybox { position: relative; border-radius: 0; box-shadow: none; border: none; border-bottom: 1px solid #f0f0f0; padding: 16px 0; display: block; }
     .mp-buybox__badge { display: none; }
-    .mp-buybox__inline-badges { display: flex; }
-    .mp-buybox__header { width: 100%; border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+    .mp-buybox__header { border-bottom: none; padding-bottom: 0; margin-bottom: 4px; }
+    .mp-buybox__vendor { margin-bottom: 6px; }
     .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
     .mp-buybox__name { display: none; }
-    .mp-buybox__meta { width: 100%; }
-    .mp-buybox__price-row { order: 2; margin: 0; text-align: right; margin-left: auto; }
-    .mp-buybox__price { font-size: 26px; color: #111; display: block; line-height: 1.1; }
-    .mp-buybox__shipping { font-size: 11px; color: #94a3b8; display: block; }
+    .mp-buybox__meta { margin-bottom: 4px; }
+    .mp-buybox__shipping-info { margin-bottom: 0; }
+    .mp-buybox__shipping-info .mp-buybox__shipping { font-size: 12px; color: #94a3b8; }
     .mp-buybox__shipping.free { color: #94a3b8; }
-    .mp-buybox__cta { order: 1; width: auto; border-radius: 10px; padding: 14px 24px; }
-    .mp-buybox__more { order: 3; width: 100%; display: block; text-align: center; margin-top: 2px; font-size: 12px; }
+    .mp-buybox__price-row { position: absolute; right: 0; top: 16px; text-align: right; margin: 0; }
+    .mp-buybox__price { font-size: 30px; color: #111; }
+    .mp-buybox__cta { position: absolute; right: 0; top: 56px; width: auto; border-radius: 10px; padding: 12px 22px; font-size: 14px; }
+    .mp-buybox__cta--buy { position: absolute; right: 0; top: 56px; width: auto; }
+    .mp-buybox__more { display: block; text-align: center; margin-top: 80px; font-size: 12px; }
     .mp-product { padding-bottom: 80px; }
     /* === OFFERS MOBILE — preview layout === */
     .mp-offers { border-radius: 12px; }
