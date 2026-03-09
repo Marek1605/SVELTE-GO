@@ -979,7 +979,7 @@
     width: 100px;
     height: 40px;
     border-radius: 8px;
-    background: #f3f4f6;
+    background: transparent;
     border: none;
     display: flex;
     align-items: center;
@@ -1100,7 +1100,7 @@
 
 /* Logo images */
 .mp-buybox__logo-img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-.mp-offers__logo-img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.mp-offers__logo-img { width: 100%; height: 100%; object-fit: contain; }
 
 /* Cheapest offer — green glow */
 .mp-offers__row.cheapest { border: 1.5px solid rgba(34,197,94,0.3); box-shadow: 0 0 20px rgba(34,197,94,0.1), 0 2px 8px rgba(34,197,94,0.06); }
