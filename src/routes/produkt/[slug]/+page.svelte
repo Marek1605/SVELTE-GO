@@ -792,8 +792,8 @@
     background: #fff;
     border-radius: 14px;
     padding: 20px;
-    border: 2px solid #c4956a;
-    box-shadow: 0 2px 12px rgba(196,149,106,0.1);
+    border: none;
+    box-shadow: 0 2px 6px rgba(196,149,106,0.15), 0 8px 24px rgba(196,149,106,0.1), 0 20px 48px rgba(196,149,106,0.05), inset 0 1px 0 rgba(255,255,255,0.8);
     position: sticky;
     top: 100px;
     overflow: visible;
@@ -965,10 +965,10 @@
    OFFERS SECTION - EXACT MEGAPRICE.SK STYLE
    ============================================= */
 .mp-offers {
-    background: #fff;
+    background: #f8f9fa;
     border-radius: 16px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 10px 24px rgba(0,0,0,0.08);
-    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    overflow: visible;
 }
 
 .mp-offers__header {
@@ -1020,7 +1020,7 @@
     padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
 }
 
 .mp-offers__row {
@@ -1030,13 +1030,14 @@
     gap: 16px;
     padding: 14px 18px;
     background: #fff;
-    border: 1px solid #f0f0f0;
-    border-radius: 10px;
-    transition: all 0.2s;
+    border: none;
+    border-radius: 12px;
+    transition: all 0.25s ease;
     position: relative;
     overflow: visible;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.5);
 }
-.mp-offers__row:hover { border-color: #d1d5db; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.mp-offers__row:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.06); transform: translateY(-1px); }
 
 /* Desktop: badges on frame top-right */
 .mp-offers__badges { position: absolute; top: -10px; right: 14px; z-index: 1; }
@@ -1156,18 +1157,18 @@
 .mp-offers__logo-img { width: 100%; height: 100%; object-fit: contain; }
 
 /* Cheapest offer */
-.mp-offers__row.cheapest { border: 2px solid rgba(34,197,94,0.4); box-shadow: 0 0 20px rgba(34,197,94,0.1), 0 2px 8px rgba(34,197,94,0.06); overflow: visible; }
-.mp-offers__row.cheapest:hover { border-color: rgba(34,197,94,0.6); }
+.mp-offers__row.cheapest { border: none; box-shadow: 0 2px 4px rgba(5,150,105,0.1), 0 6px 20px rgba(5,150,105,0.08), inset 0 1px 0 rgba(255,255,255,0.6); }
+.mp-offers__row.cheapest:hover { box-shadow: 0 4px 8px rgba(5,150,105,0.15), 0 12px 28px rgba(5,150,105,0.1); transform: translateY(-1px); }
 .mp-offers__logo.cheapest-logo { background: #16a34a; color: #fff; border-color: #16a34a; }
 .mp-offers__row.cheapest .mp-offers__price { color: #059669; }
 
 /* Recommended offer — amber glow */
-.mp-offers__row.rec-row:not(.cheapest) { border: 2px solid rgba(217,119,6,0.35); box-shadow: 0 0 20px rgba(217,119,6,0.08), 0 2px 8px rgba(217,119,6,0.04); overflow: visible; }
-.mp-offers__row.rec-row:not(.cheapest):hover { border-color: rgba(217,119,6,0.5); }
+.mp-offers__row.rec-row:not(.cheapest) { border: none; box-shadow: 0 2px 4px rgba(196,149,106,0.12), 0 6px 20px rgba(196,149,106,0.08), inset 0 1px 0 rgba(255,255,255,0.6); overflow: visible; }
+.mp-offers__row.rec-row:not(.cheapest):hover { box-shadow: 0 4px 8px rgba(196,149,106,0.18), 0 12px 28px rgba(196,149,106,0.1); transform: translateY(-1px); }
 .mp-offers__logo.rec-logo { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; border-color: #d97706; }
 
 /* When both cheapest + recommended — green glow wins, both badges show */
-.mp-offers__row.cheapest.rec-row { box-shadow: 0 0 20px rgba(34,197,94,0.1), 0 0 16px rgba(217,119,6,0.06); }
+.mp-offers__row.cheapest.rec-row { box-shadow: 0 2px 4px rgba(5,150,105,0.1), 0 6px 20px rgba(5,150,105,0.08), 0 4px 12px rgba(196,149,106,0.04), inset 0 1px 0 rgba(255,255,255,0.6); }
 
 /* Ranking */
 .mp-offers__rank { width: 32px; height: 32px; border-radius: 8px; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
@@ -1347,9 +1348,10 @@
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
     .mp-ai-box { display: none; }
-    /* === BUYBOX MOBILE — 2 column grid === */
-    .mp-buybox { position: static; border-radius: 0; box-shadow: none; border: none; border-bottom: 1px solid #f0f0f0; padding: 14px 0;
-        display: grid !important; grid-template-columns: 1fr auto; gap: 0 14px; }
+    /* === BUYBOX MOBILE — neumorphic, 2 column grid === */
+    .mp-buybox { position: static; border-radius: 14px; border: none; padding: 16px; margin: 0 10px;
+        box-shadow: 0 2px 6px rgba(196,149,106,0.15), 0 8px 24px rgba(196,149,106,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
+        display: grid !important; grid-template-columns: 1fr auto; gap: 0 14px; overflow: visible; }
     .mp-buybox__badge { display: none; }
     .mp-buybox__left { grid-column: 1; grid-row: 1; }
     .mp-buybox__left .mp-buybox__logo { width: 90px; height: 38px; margin-bottom: 4px; }
@@ -1370,46 +1372,49 @@
     .mp-buybox__more { grid-column: 1 / -1; display: block; text-align: center; margin-top: 8px; font-size: 12px; }
     .mp-product { padding-bottom: 80px; }
 
-    /* === OFFERS MOBILE — clean 2-column grid === */
-    .mp-offers { border-radius: 12px; }
-    .mp-offers__list { padding: 10px; gap: 14px; }
+    /* === OFFERS MOBILE — neumorphic, preview structure === */
+    .mp-offers { border-radius: 12px; background: #f8f9fa; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: visible; }
+    .mp-offers__list { padding: 12px; gap: 16px; }
     .mp-offers__row {
         display: grid !important;
         grid-template-columns: 1fr auto;
-        grid-template-rows: auto auto auto auto;
-        gap: 6px 12px;
-        padding: 12px;
+        grid-template-rows: auto auto auto;
+        gap: 8px 12px;
+        padding: 14px;
         position: relative;
+        background: #fff;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.5);
     }
-    /* R1C1: Logo big, rating under it */
+    .mp-offers__row.cheapest { box-shadow: 0 2px 4px rgba(5,150,105,0.1), 0 6px 20px rgba(5,150,105,0.08), inset 0 1px 0 rgba(255,255,255,0.6); }
+    .mp-offers__row.rec-row:not(.cheapest) { box-shadow: 0 2px 4px rgba(196,149,106,0.12), 0 6px 20px rgba(196,149,106,0.08), inset 0 1px 0 rgba(255,255,255,0.6); }
+    /* R1C1: Logo + rating */
     .mp-offers__vendor { grid-column: 1; grid-row: 1; display: block; }
-    .mp-offers__logo { width: 90px; height: 36px; border-radius: 6px; font-size: 10px; margin-bottom: 4px; }
+    .mp-offers__logo { width: 80px; height: 32px; border-radius: 6px; font-size: 10px; margin-bottom: 3px; }
     .mp-offers__vendor-info { display: block; }
-    .mp-offers__vendor-rating { font-size: 12px; margin-top: 4px; }
-    /* Badges on card frame — outline style */
+    .mp-offers__vendor-rating { font-size: 12px; margin-top: 3px; }
+    /* Badges on card frame */
     .mp-offers__badges { position: absolute; top: -9px; right: 12px; display: flex; gap: 4px; margin: 0; }
     .mp-offers__cheap-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; background: #ecfdf5; }
     .mp-offers__rec-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; background: #fffbeb; }
-    /* R1C2: Price — below badges */
-    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 22px; align-self: start; }
+    /* R1C2: Price + shipping RIGHT */
+    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 12px; align-self: start; }
     .mp-offers__price { font-size: 20px; font-weight: 800; color: #059669; }
-    .mp-offers__shipping { display: none; }
+    .mp-offers__shipping { display: block !important; font-size: 10px; color: #16a34a; margin-top: 1px; }
     .mp-offers__diff { font-size: 10px; }
-    /* R2: Shipping — left */
-    .mp-offers__shipping-mobile { 
-        grid-column: 1 / -1; grid-row: 2;
-        display: block; font-size: 11px; color: #b0b8c4;
-    }
-    /* R3: Stock + delivery inline */
-    .mp-offers__stock { grid-column: 1; grid-row: 3; font-size: 12px; display: inline-flex; }
-    .mp-offers__delivery { grid-column: 1; grid-row: 3; font-size: 12px; margin-left: 90px; }
-    /* R3C2: Price stays right */
-    .mp-offers__cta-col { grid-column: 1 / -1; grid-row: 4; }
+    /* Hide mobile-only shipping (now showing under price) */
+    .mp-offers__shipping-mobile { display: none !important; }
+    /* R2: Stock + delivery */
+    .mp-offers__stock { grid-column: 1; grid-row: 2; font-size: 12px; display: inline-flex; }
+    .mp-offers__delivery { grid-column: 1; grid-row: 2; font-size: 12px; margin-left: 90px; }
+    /* R3: CTA full width */
+    .mp-offers__cta-col { grid-column: 1 / -1; grid-row: 3; }
     .mp-offers__cta { padding: 10px 18px; font-size: 13px; width: 100%; justify-content: center; box-sizing: border-box; }
     /* Ranking mobile */
     .style-ranking .mp-offers__rank { width: 24px; height: 24px; font-size: 11px; margin-right: 8px; margin-bottom: 6px; display: inline-flex; vertical-align: middle; }
     .mp-ai-box { display: none; }
-    .mp-offers__header { flex-wrap: wrap; padding: 12px 10px 0; display: flex; align-items: center; }
+    .mp-offers__header { flex-wrap: nowrap; padding: 12px 12px 0; display: flex; align-items: center; }
     .mp-offers__title { font-size: 15px; flex: 1; }
     .mp-offers__right { width: auto; margin-top: 0; }
     .mp-info__title { font-size: 22px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
