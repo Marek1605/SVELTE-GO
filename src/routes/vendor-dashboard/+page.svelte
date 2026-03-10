@@ -457,32 +457,32 @@
     }
     .mkma-action-btn:hover .material-icons-round { color: #6366f1; }
 
-    /* Mode Section */
-    .mkma-mode-section { background: #fff; border: 1px solid #e8ebef; border-radius: 12px; padding: 18px; margin-bottom: 20px; }
-    .mkma-mode-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    /* Mode Section — compact, site style */
+    .mkma-mode-section { background: #fff; border: 1px solid #e8ebef; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+    .mkma-mode-header { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
     .mkma-info-icon { background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8; display: flex; }
-    .mkma-info-icon:hover { color: #6366f1; }
-    .mkma-info-icon .material-icons-round { font-size: 18px; }
-    .mkma-mode-tooltip { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 14px; font-size: 13px; color: #475569; line-height: 1.6; }
-    .mkma-mode-tooltip p { margin: 0 0 8px; }
+    .mkma-info-icon:hover { color: #c4956a; }
+    .mkma-info-icon .material-icons-round { font-size: 16px; }
+    .mkma-mode-tooltip { background: #faf8f5; border: 1px solid #e8ddd0; border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 12px; color: #6b5e4f; line-height: 1.5; }
+    .mkma-mode-tooltip p { margin: 0 0 6px; }
     .mkma-mode-tooltip p:last-child { margin: 0; }
-    .mkma-mode-tooltip a { color: #6366f1; text-decoration: underline; }
-    .mkma-mode-msg { padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+    .mkma-mode-tooltip a { color: #c4956a; text-decoration: underline; }
+    .mkma-mode-msg { padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-bottom: 10px; }
     .mkma-mode-msg.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
     .mkma-mode-msg.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .mkma-mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .mkma-mode-card { border: 2px solid #e8ebef; border-radius: 10px; padding: 16px; transition: all 0.2s; }
-    .mkma-mode-card.active { border-color: #6366f1; background: #fafaff; }
-    .mkma-mode-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .mkma-mode-card-top strong { font-size: 15px; color: #1e293b; }
-    .mkma-mode-card-icon { font-size: 20px; }
-    .mkma-mode-card p { font-size: 12px; color: #64748b; margin: 0 0 12px; line-height: 1.4; }
-    .mkma-mode-card-btn { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.15s; }
-    .mkma-mode-card-btn:hover:not(:disabled) { border-color: #6366f1; color: #6366f1; }
-    .mkma-mode-card-btn.active { background: #6366f1; color: #fff; border-color: #6366f1; cursor: default; }
-    .mkma-mode-card-btn.paid:not(.active):hover:not(:disabled) { border-color: #f59e0b; color: #d97706; }
-    .mkma-mode-card-note { font-size: 11px; color: #94a3b8; }
-    .mkma-mode-card-note a { color: #6366f1; }
+    .mkma-mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .mkma-mode-card { border: 1.5px solid #e8ebef; border-radius: 8px; padding: 12px; transition: all 0.2s; }
+    .mkma-mode-card.active { border-color: #c4956a; background: #faf8f5; }
+    .mkma-mode-card-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .mkma-mode-card-top strong { font-size: 13px; color: #1e293b; }
+    .mkma-mode-card-icon { font-size: 16px; }
+    .mkma-mode-card p { font-size: 11px; color: #64748b; margin: 0 0 8px; line-height: 1.3; }
+    .mkma-mode-card-btn { width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; font-size: 12px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.15s; }
+    .mkma-mode-card-btn:hover:not(:disabled) { border-color: #c4956a; color: #c4956a; }
+    .mkma-mode-card-btn.active { background: #c4956a; color: #fff; border-color: #c4956a; cursor: default; }
+    .mkma-mode-card-btn.paid:not(.active):hover:not(:disabled) { border-color: #c4956a; color: #b8875c; }
+    .mkma-mode-card-note { font-size: 10px; color: #94a3b8; }
+    .mkma-mode-card-note a { color: #c4956a; }
 
     /* Responsive */
     @media (max-width: 1200px) {

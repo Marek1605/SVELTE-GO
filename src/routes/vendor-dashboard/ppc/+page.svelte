@@ -43,12 +43,20 @@
     $: cardEnabled = paymentSettings.payment_card_enabled === 'true';
     
     const packages = [
-        { id: 1, amount: 10, bonus: 0, popular: false },
-        { id: 2, amount: 25, bonus: 2, popular: false },
-        { id: 3, amount: 50, bonus: 5, popular: true },
-        { id: 4, amount: 100, bonus: 15, popular: false },
-        { id: 5, amount: 250, bonus: 50, popular: false }
+        { id: 1, amount: 10, bonusPct: 0, popular: false },
+        { id: 2, amount: 25, bonusPct: 5, popular: false },
+        { id: 3, amount: 50, bonusPct: 10, popular: true },
+        { id: 4, amount: 100, bonusPct: 15, popular: false },
+        { id: 5, amount: 250, bonusPct: 20, popular: false }
     ];
+    
+    let customAmount = '';
+    let useCustom = false;
+    $: customBonus = Number(customAmount) >= 200 ? 20 : Number(customAmount) >= 100 ? 15 : Number(customAmount) >= 50 ? 10 : Number(customAmount) >= 25 ? 5 : 0;
+    $: customBonusAmount = Math.round(Number(customAmount) * customBonus / 100);
+    $: selectedAmount = useCustom ? Number(customAmount) : (selectedPackage?.amount || 0);
+    $: selectedBonusPct = useCustom ? customBonus : (selectedPackage?.bonusPct || 0);
+    $: selectedTotal = useCustom ? Number(customAmount) + customBonusAmount : (selectedPackage ? selectedPackage.amount + Math.round(selectedPackage.amount * selectedPackage.bonusPct / 100) : 0);
     
     onMount(async () => {
         if (!browser) return;
@@ -272,20 +280,33 @@
                     {#each packages as pkg}
                         <button 
                             class="ppc-package" 
-                            class:selected={selectedPackage?.id === pkg.id}
+                            class:selected={!useCustom && selectedPackage?.id === pkg.id}
                             class:popular={pkg.popular}
-                            on:click={() => selectedPackage = pkg}
+                            on:click={() => { selectedPackage = pkg; useCustom = false; }}
                         >
                             {#if pkg.popular}
                                 <span class="ppc-package-badge">Najobľúbenejší</span>
                             {/if}
                             <div class="ppc-package-amount">{pkg.amount} €</div>
-                            {#if pkg.bonus > 0}
-                                <div class="ppc-package-bonus">+ {pkg.bonus} € bonus</div>
+                            {#if pkg.bonusPct > 0}
+                                <div class="ppc-package-bonus">+ {pkg.bonusPct}% bonus</div>
                             {/if}
-                            <div class="ppc-package-total">= {pkg.amount + pkg.bonus} € kredit</div>
+                            <div class="ppc-package-total">= {pkg.amount + Math.round(pkg.amount * pkg.bonusPct / 100)} € kredit</div>
                         </button>
                     {/each}
+                </div>
+                
+                <div class="ppc-custom-amount">
+                    <h4>Alebo zadajte vlastnú čiastku</h4>
+                    <div class="ppc-custom-row">
+                        <input type="number" class="ppc-custom-input" placeholder="Vlastná čiastka v €" bind:value={customAmount} on:focus={() => { useCustom = true; selectedPackage = null; }} min="5" step="1">
+                        {#if useCustom && Number(customAmount) >= 5}
+                            <span class="ppc-custom-info">
+                                {#if customBonus > 0}+{customBonus}% bonus = <strong>{Number(customAmount) + customBonusAmount} € kredit</strong>{:else}<strong>{customAmount} € kredit</strong>{/if}
+                            </span>
+                        {/if}
+                    </div>
+                    <p class="ppc-custom-note">Min. 5 €. Bonus: 25€+ = 5%, 50€+ = 10%, 100€+ = 15%, 200€+ = 20%</p>
                 </div>
                 
                 <div class="ppc-payment-method">
@@ -306,8 +327,8 @@
                     </div>
                 </div>
                 
-                <button class="ppc-submit-btn" on:click={requestTopup} disabled={loading || !selectedPackage}>
-                    {loading ? 'Spracovávam...' : 'Objednať kredit'}
+                <button class="ppc-submit-btn" on:click={requestTopup} disabled={loading || (!selectedPackage && !useCustom) || (useCustom && Number(customAmount) < 5)}>
+                    {loading ? 'Spracovávam...' : `Prejsť na platbu ${selectedAmount > 0 ? selectedAmount + ' €' : ''}`}
                 </button>
                 
                 {#if paymentMethod === 'bank_transfer' && paymentSettings.payment_iban}
@@ -607,19 +628,30 @@
     
     .ppc-submit-btn {
         width: 100%;
-        padding: 16px;
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        padding: 13px;
+        background: linear-gradient(135deg, #c4956a, #b8875c);
         color: white;
         border: none;
         border-radius: 10px;
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
+        box-shadow: 0 3px 12px rgba(196,149,106,0.3);
     }
     
-    .ppc-submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+    .ppc-submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(196,149,106,0.4); }
     .ppc-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    /* Custom amount */
+    .ppc-custom-amount { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f0f0f0; }
+    .ppc-custom-amount h4 { font-size: 14px; margin-bottom: 10px; color: #374151; }
+    .ppc-custom-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .ppc-custom-input { width: 160px; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 15px; font-weight: 600; color: #111; outline: none; transition: border-color 0.2s; }
+    .ppc-custom-input:focus { border-color: #c4956a; }
+    .ppc-custom-info { font-size: 13px; color: #059669; }
+    .ppc-custom-info strong { font-weight: 700; }
+    .ppc-custom-note { font-size: 11px; color: #94a3b8; margin: 0; }
     
     .ppc-bank-info { margin-top: 24px; padding: 20px; background: #f0f9ff; border-radius: 10px; border: 1px solid #bae6fd; }
     .ppc-bank-info h4 { margin-bottom: 12px; }
@@ -640,17 +672,17 @@
     .ppc-mode-features { list-style: none; padding: 0; margin: 0 0 16px 0; }
     .ppc-mode-features li { padding: 6px 0; font-size: 14px; color: #374151; }
     
-    .ppc-mode-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; background: #e5e7eb; color: #374151; }
-    .ppc-mode-btn.selected { background: #10b981; color: white; }
+    .ppc-mode-btn { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; background: #e5e7eb; color: #374151; font-size: 13px; }
+    .ppc-mode-btn.selected { background: #c4956a; color: white; }
     .ppc-mode-btn:disabled { cursor: not-allowed; }
     
     .ppc-mode-note { font-size: 13px; color: #6b7280; }
-    .ppc-mode-note a { color: #3b82f6; }
+    .ppc-mode-note a { color: #c4956a; }
     
-    .ppc-mode-info { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 20px; }
-    .ppc-mode-info h4 { margin-bottom: 12px; }
+    .ppc-mode-info { background: #faf8f5; border: 1px solid #e8ddd0; border-radius: 10px; padding: 20px; }
+    .ppc-mode-info h4 { margin-bottom: 12px; color: #6b5e4f; }
     .ppc-mode-info ul { margin: 12px 0 0 20px; color: #374151; }
-    .ppc-mode-info li { margin: 6px 0; }
+    .ppc-mode-info li { margin: 6px 0; font-size: 13px; }
     
     /* Pricing */
     .ppc-pricing { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin-top: 20px; }
@@ -662,7 +694,7 @@
     .ppc-pricing-table td strong { color: #059669; font-weight: 700; }
     .ppc-pricing-table tbody tr:hover { background: #f8fffe; }
     .ppc-pricing-note { font-size: 12px; color: #94a3b8; margin: 0; }
-    .ppc-pricing-note a { color: #6366f1; text-decoration: none; }
+    .ppc-pricing-note a { color: #c4956a; text-decoration: none; }
     .ppc-pricing-note a:hover { text-decoration: underline; }
     
     /* Transactions */

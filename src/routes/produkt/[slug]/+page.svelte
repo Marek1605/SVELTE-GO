@@ -179,7 +179,15 @@
             
             <!-- Product Info -->
             <div class="mp-info">
-                <h1 class="mp-info__title">{product.title}</h1>
+                <div class="mp-info__title-row">
+                    <h1 class="mp-info__title">{product.title}</h1>
+                    {#if product.top_rank && product.top_rank <= 2}
+                    <span class="mp-info__top-badge">
+                        <svg viewBox="0 0 24 24" fill="#fff" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        TOP {product.top_rank}
+                    </span>
+                    {/if}
+                </div>
                 
                 {#if product.description}
                     <p class="mp-info__desc">
@@ -268,8 +276,9 @@
                 </div>
                 
                 <div class="mp-buybox__right">
-                    <div class="mp-buybox__rec-badge">
-                        <span class="mp-offers__rec-badge"><svg viewBox="0 0 24 24" fill="#b45309" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5"/></svg> Odporúčaná ponuka</span>
+                    <div class="mp-buybox__frame-badge">
+                        <svg viewBox="0 0 24 24" fill="#fff" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Odporúčaná ponuka
                     </div>
                     <div class="mp-buybox__price-row">
                         <span class="mp-buybox__price">{formatPrice(bestOffer.price || lowestPrice)}</span>
@@ -695,12 +704,29 @@
     min-width: 0;
 }
 
+.mp-info__title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
 .mp-info__title {
     font-size: 22px;
     font-weight: 600;
     color: #1f2937;
     line-height: 1.4;
-    margin-bottom: 16px;
+    margin-bottom: 0;
+    flex: 1;
+}
+.mp-info__top-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #c4956a, #b8875c);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(196,149,106,0.3);
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
 }
 
 .mp-info__desc {
@@ -761,16 +787,35 @@
    ============================================= */
 .mp-buybox {
     background: #fff;
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 20px;
-    border: 1px solid #f0f0f0;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    border: 2px solid #c4956a;
+    box-shadow: 0 2px 12px rgba(196,149,106,0.1);
     position: sticky;
     top: 100px;
+    overflow: visible;
     }
 
 .mp-buybox__badge {
     display: none;
+}
+
+/* Frame badge — sits on top border */
+.mp-buybox__frame-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: linear-gradient(135deg, #c4956a, #b8875c);
+    color: #fff;
+    padding: 4px 14px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 8px rgba(196,149,106,0.3);
+    white-space: nowrap;
 }
 
 /* Buybox desktop — single column stacked */
@@ -831,9 +876,6 @@
 .mp-buybox__shipping { font-size: 13px; color: #6b7280; }
 .mp-buybox__shipping.free { color: #16a34a; }
 
-.mp-buybox__rec-badge { display: inline-flex; margin-bottom: 8px; }
-.mp-buybox__rec-badge .mp-offers__rec-badge { font-size: 13px; padding: 6px 14px; border-radius: 8px; }
-.mp-buybox__rec-badge .mp-offers__rec-badge svg { width: 14px; height: 14px; }
 .mp-offers__rec-badge svg { width: 12px; height: 12px; }
 .mp-offers__cheap-badge svg { width: 12px; height: 12px; }
 
@@ -970,7 +1012,7 @@
     padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 14px;
 }
 
 .mp-offers__row {
@@ -983,8 +1025,13 @@
     border: 1px solid #f0f0f0;
     border-radius: 10px;
     transition: all 0.2s;
+    position: relative;
+    overflow: visible;
 }
 .mp-offers__row:hover { border-color: #d1d5db; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+/* Desktop: badges on frame top-right */
+.mp-offers__badges { position: absolute; top: -10px; right: 14px; z-index: 1; }
 
 .mp-offers__vendor {
     display: flex;
@@ -1074,10 +1121,10 @@
 .mp-offers__cta.cart { background: #c4956a; color: #fff; }
 .mp-offers__cta.cart:hover { background: #b8875c; }
 
-/* Badges */
-.mp-offers__badges { display: flex; gap: 5px; margin-bottom: 3px; flex-wrap: wrap; }
-.mp-offers__rec-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #92400e; background: linear-gradient(135deg, #fffbeb, #fef3c7); padding: 5px 12px; border-radius: 8px; border: 1px solid #fde68a; white-space: nowrap; box-shadow: 0 1px 3px rgba(217,119,6,0.1); }
-.mp-offers__cheap-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #065f46; background: linear-gradient(135deg, #ecfdf5, #d1fae5); padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(5,150,105,0.2); white-space: nowrap; box-shadow: 0 1px 3px rgba(5,150,105,0.1); }
+/* Badges — filled gradient, modern */
+.mp-offers__badges { display: flex; gap: 6px; margin-bottom: 4px; }
+.mp-offers__rec-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #d97706, #f59e0b); padding: 4px 10px; border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 6px rgba(217,119,6,0.25); border: none; }
+.mp-offers__cheap-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #059669, #10b981); padding: 4px 10px; border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 6px rgba(5,150,105,0.25); border: none; }
 .mp-offers__diff { font-size: 10px; color: #ef4444; margin-top: 2px; }
 .mp-offers__shipping-mobile { display: none; }
 .mp-offers__save { background: #f0fdf4; color: #16a34a; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
@@ -1099,14 +1146,14 @@
 .mp-offers__logo-img { width: 100%; height: 100%; object-fit: contain; }
 
 /* Cheapest offer */
-.mp-offers__row.cheapest { border: 1.5px solid rgba(34,197,94,0.3); box-shadow: 0 0 20px rgba(34,197,94,0.1), 0 2px 8px rgba(34,197,94,0.06); }
-.mp-offers__row.cheapest:hover { border-color: rgba(34,197,94,0.5); }
+.mp-offers__row.cheapest { border: 2px solid rgba(34,197,94,0.4); box-shadow: 0 0 20px rgba(34,197,94,0.1), 0 2px 8px rgba(34,197,94,0.06); overflow: visible; }
+.mp-offers__row.cheapest:hover { border-color: rgba(34,197,94,0.6); }
 .mp-offers__logo.cheapest-logo { background: #16a34a; color: #fff; border-color: #16a34a; }
 .mp-offers__row.cheapest .mp-offers__price { color: #059669; }
 
 /* Recommended offer — amber glow */
-.mp-offers__row.rec-row:not(.cheapest) { border: 1.5px solid rgba(217,119,6,0.25); box-shadow: 0 0 20px rgba(217,119,6,0.08), 0 2px 8px rgba(217,119,6,0.04); }
-.mp-offers__row.rec-row:not(.cheapest):hover { border-color: rgba(217,119,6,0.4); box-shadow: 0 0 24px rgba(217,119,6,0.12); }
+.mp-offers__row.rec-row:not(.cheapest) { border: 2px solid rgba(217,119,6,0.35); box-shadow: 0 0 20px rgba(217,119,6,0.08), 0 2px 8px rgba(217,119,6,0.04); overflow: visible; }
+.mp-offers__row.rec-row:not(.cheapest):hover { border-color: rgba(217,119,6,0.5); }
 .mp-offers__logo.rec-logo { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; border-color: #d97706; }
 
 /* When both cheapest + recommended — green glow wins, both badges show */
@@ -1303,8 +1350,7 @@
     .mp-buybox__left .mp-buybox__shipping.free { color: #94a3b8; }
     .mp-buybox__left .mp-buybox__meta { margin-bottom: 0; }
     .mp-buybox__right { grid-column: 2; grid-row: 1; align-items: flex-end; gap: 6px; }
-    .mp-buybox__right .mp-buybox__rec-badge { margin-bottom: 4px; margin-left: 0; }
-    .mp-buybox__right .mp-buybox__rec-badge .mp-offers__rec-badge { font-size: 9px; padding: 3px 8px; border-radius: 6px; }
+    .mp-buybox__right .mp-buybox__frame-badge { position: static; font-size: 9px; padding: 3px 8px; border-radius: 6px; margin-bottom: 4px; align-self: flex-end; }
     .mp-buybox__right .mp-buybox__price { font-size: 28px; color: #059669; }
     .mp-buybox__right .mp-buybox__price-row { margin-bottom: 6px; }
     .mp-buybox__right .mp-buybox__cta { width: auto; padding: 10px 20px; font-size: 14px; }
@@ -1315,7 +1361,7 @@
 
     /* === OFFERS MOBILE — clean 2-column grid === */
     .mp-offers { border-radius: 12px; }
-    .mp-offers__list { padding: 10px; gap: 10px; }
+    .mp-offers__list { padding: 10px; gap: 14px; }
     .mp-offers__row {
         display: grid !important;
         grid-template-columns: 1fr auto;
@@ -1329,10 +1375,10 @@
     .mp-offers__logo { width: 90px; height: 36px; border-radius: 6px; font-size: 10px; margin-bottom: 4px; }
     .mp-offers__vendor-info { display: block; }
     .mp-offers__vendor-rating { font-size: 12px; margin-top: 4px; }
-    /* Badges top-right, SIDE BY SIDE */
-    .mp-offers__badges { position: absolute; top: 10px; right: 12px; display: flex; flex-direction: row; gap: 4px; margin: 0; }
-    .mp-offers__cheap-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; }
-    .mp-offers__rec-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; }
+    /* Badges on card frame — overlapping top border */
+    .mp-offers__badges { position: absolute; top: -10px; right: 12px; display: flex; gap: 5px; margin: 0; }
+    .mp-offers__cheap-badge { font-size: 9px; padding: 3px 8px; border-radius: 5px; }
+    .mp-offers__rec-badge { font-size: 9px; padding: 3px 8px; border-radius: 5px; }
     /* R1C2: Price — below badges */
     .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 22px; align-self: start; }
     .mp-offers__price { font-size: 20px; font-weight: 800; color: #059669; }
