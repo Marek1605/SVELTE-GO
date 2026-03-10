@@ -1298,8 +1298,9 @@
     .mp-buybox__left .mp-buybox__meta { margin-bottom: 4px; }
     .mp-buybox__left .mp-buybox__shipping-info .mp-buybox__shipping { font-size: 12px; color: #94a3b8; }
     .mp-buybox__left .mp-buybox__shipping.free { color: #94a3b8; }
-    .mp-buybox__right { grid-column: 2; grid-row: 1; align-items: flex-end; gap: 8px; }
-    .mp-buybox__right .mp-buybox__rec-badge { margin-bottom: 4px; margin-left: 0; }
+    .mp-buybox__right { grid-column: 2; grid-row: 1; align-items: flex-end; gap: 6px; }
+    .mp-buybox__right .mp-buybox__rec-badge { margin-bottom: 2px; margin-left: 0; }
+    .mp-buybox__right .mp-buybox__rec-badge .mp-offers__rec-badge { font-size: 9px; padding: 3px 8px; border-radius: 6px; }
     .mp-buybox__right .mp-buybox__price { font-size: 30px; color: #059669; }
     .mp-buybox__right .mp-buybox__cta { width: auto; padding: 12px 22px; font-size: 14px; }
     .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
@@ -1323,12 +1324,12 @@
     .mp-offers__logo { width: 90px; height: 36px; border-radius: 6px; font-size: 10px; margin-bottom: 4px; }
     .mp-offers__vendor-info { display: block; }
     .mp-offers__vendor-rating { font-size: 12px; margin-top: 4px; }
-    /* Badges top-right, stacked vertically */
-    .mp-offers__badges { position: absolute; top: 12px; right: 14px; display: flex; flex-direction: column; gap: 4px; margin: 0; align-items: flex-end; }
-    .mp-offers__cheap-badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; }
-    .mp-offers__rec-badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; }
-    /* R1C2: Price — big, right-aligned, below stacked badges */
-    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 38px; align-self: start; }
+    /* Badges top-right, stacked vertically, SMALL */
+    .mp-offers__badges { position: absolute; top: 10px; right: 12px; display: flex; flex-direction: column; gap: 3px; margin: 0; align-items: flex-end; }
+    .mp-offers__cheap-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; }
+    .mp-offers__rec-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; }
+    /* R1C2: Price — below small badges */
+    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 28px; align-self: start; }
     .mp-offers__price { font-size: 22px; font-weight: 800; }
     .mp-offers__shipping { display: none; }
     .mp-offers__diff { font-size: 10px; }
