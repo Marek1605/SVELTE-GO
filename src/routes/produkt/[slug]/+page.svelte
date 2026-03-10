@@ -282,6 +282,9 @@
                     </div>
                     <div class="mp-buybox__price-row">
                         <span class="mp-buybox__price">{formatPrice(bestOffer.price || lowestPrice)}</span>
+                        <span class="mp-buybox__price-shipping" class:free={bestOffer.shipping === 0 || freeShipping}>
+                            {bestOffer.shipping === 0 || freeShipping ? '✓ Doprava zdarma' : `+ ${formatPrice(bestOffer.shipping || 2.99)} doprava`}
+                        </span>
                     </div>
                     {#if bestOffer.is_master || bestOffer.display_mode === 'master'}
                     <a href="/kosik?add={product.id}" class="mp-buybox__cta mp-buybox__cta--buy">
@@ -800,23 +803,25 @@
     display: none;
 }
 
-/* Frame badge — sits on top border */
+/* Frame badge — sits on top border, pleasant amber */
 .mp-buybox__frame-badge {
     position: absolute;
     top: -12px;
     right: 20px;
-    background: linear-gradient(135deg, #c4956a, #b8875c);
-    color: #fff;
-    padding: 4px 14px;
+    background: #fffbeb;
+    color: #92400e;
+    padding: 5px 14px;
     border-radius: 8px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 5px;
-    box-shadow: 0 2px 8px rgba(196,149,106,0.3);
+    border: 1px solid #fde68a;
+    box-shadow: 0 2px 8px rgba(217,119,6,0.15);
     white-space: nowrap;
 }
+.mp-buybox__frame-badge svg { fill: #b45309; }
 
 /* Buybox desktop — single column stacked */
 .mp-buybox__left { margin-bottom: 14px; }
@@ -871,7 +876,7 @@
     color: #6b7280;
 }
 
-.mp-buybox__shipping-info { margin-bottom: 0; }
+.mp-buybox__shipping-info { display: none; }
 .mp-buybox__shipping-info .mp-buybox__shipping { font-size: 13px; }
 .mp-buybox__shipping { font-size: 13px; color: #6b7280; }
 .mp-buybox__shipping.free { color: #16a34a; }
@@ -886,7 +891,10 @@
     font-size: 32px;
     font-weight: 800;
     color: #059669;
+    display: block;
 }
+.mp-buybox__price-shipping { font-size: 12px; color: #16a34a; display: block; margin-top: 2px; }
+.mp-buybox__price-shipping:not(.free) { color: #6b7280; }
 
 .mp-buybox__cta {
     width: 100%;
@@ -1121,10 +1129,12 @@
 .mp-offers__cta.cart { background: #c4956a; color: #fff; }
 .mp-offers__cta.cart:hover { background: #b8875c; }
 
-/* Badges — filled gradient, modern */
+/* Badges — pleasant outline style */
 .mp-offers__badges { display: flex; gap: 6px; margin-bottom: 4px; }
-.mp-offers__rec-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #d97706, #f59e0b); padding: 4px 10px; border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 6px rgba(217,119,6,0.25); border: none; }
-.mp-offers__cheap-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #059669, #10b981); padding: 4px 10px; border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 6px rgba(5,150,105,0.25); border: none; }
+.mp-offers__rec-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #b45309; background: #fffbeb; padding: 3px 8px; border-radius: 6px; border: 1px solid #fde68a; white-space: nowrap; }
+.mp-offers__cheap-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #047857; background: #ecfdf5; padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(5,150,105,0.2); white-space: nowrap; }
+.mp-offers__rec-badge svg { width: 10px; height: 10px; }
+.mp-offers__cheap-badge svg { width: 10px; height: 10px; }
 .mp-offers__diff { font-size: 10px; color: #ef4444; margin-top: 2px; }
 .mp-offers__shipping-mobile { display: none; }
 .mp-offers__save { background: #f0fdf4; color: #16a34a; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
@@ -1345,12 +1355,13 @@
     .mp-buybox__left .mp-buybox__logo { width: 90px; height: 38px; margin-bottom: 4px; }
     .mp-buybox__left { display: flex; flex-direction: column; }
     .mp-buybox__left .mp-buybox__rating { margin-bottom: 4px; }
-    .mp-buybox__left .mp-buybox__shipping-info { order: -1; margin-bottom: 4px; }
+    .mp-buybox__left .mp-buybox__shipping-info { order: -1; margin-bottom: 4px; display: block; }
     .mp-buybox__left .mp-buybox__shipping-info .mp-buybox__shipping { font-size: 12px; color: #94a3b8; }
     .mp-buybox__left .mp-buybox__shipping.free { color: #94a3b8; }
+    .mp-buybox__right .mp-buybox__price-shipping { display: none; }
     .mp-buybox__left .mp-buybox__meta { margin-bottom: 0; }
     .mp-buybox__right { grid-column: 2; grid-row: 1; align-items: flex-end; gap: 6px; }
-    .mp-buybox__right .mp-buybox__frame-badge { position: static; font-size: 9px; padding: 3px 8px; border-radius: 6px; margin-bottom: 4px; align-self: flex-end; }
+    .mp-buybox__right .mp-buybox__frame-badge { position: static; font-size: 9px; padding: 3px 8px; border-radius: 6px; margin-bottom: 4px; align-self: flex-end; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; box-shadow: none; }
     .mp-buybox__right .mp-buybox__price { font-size: 28px; color: #059669; }
     .mp-buybox__right .mp-buybox__price-row { margin-bottom: 6px; }
     .mp-buybox__right .mp-buybox__cta { width: auto; padding: 10px 20px; font-size: 14px; }
@@ -1375,10 +1386,10 @@
     .mp-offers__logo { width: 90px; height: 36px; border-radius: 6px; font-size: 10px; margin-bottom: 4px; }
     .mp-offers__vendor-info { display: block; }
     .mp-offers__vendor-rating { font-size: 12px; margin-top: 4px; }
-    /* Badges on card frame — overlapping top border */
-    .mp-offers__badges { position: absolute; top: -10px; right: 12px; display: flex; gap: 5px; margin: 0; }
-    .mp-offers__cheap-badge { font-size: 9px; padding: 3px 8px; border-radius: 5px; }
-    .mp-offers__rec-badge { font-size: 9px; padding: 3px 8px; border-radius: 5px; }
+    /* Badges on card frame — outline style */
+    .mp-offers__badges { position: absolute; top: -9px; right: 12px; display: flex; gap: 4px; margin: 0; }
+    .mp-offers__cheap-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; background: #ecfdf5; }
+    .mp-offers__rec-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; background: #fffbeb; }
     /* R1C2: Price — below badges */
     .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 22px; align-self: start; }
     .mp-offers__price { font-size: 20px; font-weight: 800; color: #059669; }
