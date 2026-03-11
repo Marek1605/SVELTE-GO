@@ -3,6 +3,7 @@
     import { onMount } from 'svelte';
 
     let currentStyle = 'cards';
+    let currentTagStyle = 'chips';
     let saving = false;
     let message = '';
     let loading = true;
@@ -28,11 +29,19 @@
         }
     ];
 
+    const tagStyles = [
+        { id: 'dots', name: 'Bodky', desc: 'Farebné bodky + oddeľovač, minimalistický', icon: '⚬' },
+        { id: 'chips', name: 'Čipy', desc: 'Zaoblené 8px čipy, jemná výplň, moderný look', icon: '◻' },
+        { id: 'underline', name: 'Podčiarknutie', desc: 'Text so spodným farebným akcentom', icon: '▁' },
+        { id: 'inline', name: 'Inline', desc: 'Ikony + text bez pozadia, čistý Apple-like štýl', icon: '→' },
+    ];
+
     onMount(async () => {
         try {
             const res = await adminFetch('/admin/site-settings');
             if (res.success && res.data) {
                 currentStyle = res.data.offers_style || 'cards';
+                currentTagStyle = res.data.tags_style || 'chips';
             }
         } catch (e) { console.error(e); }
         loading = false;
@@ -46,6 +55,27 @@
             const res = await adminFetch('/admin/toggle-ui-setting', {
                 method: 'POST',
                 body: JSON.stringify({ key: 'offers_style', value: id })
+            });
+            if (res.success) {
+                message = 'Uložené ✓';
+                setTimeout(() => message = '', 2000);
+            } else {
+                message = res.error || 'Chyba';
+            }
+        } catch (e) {
+            message = 'Chyba pri ukladaní';
+        }
+        saving = false;
+    }
+
+    async function saveTagStyle(id) {
+        saving = true;
+        message = '';
+        currentTagStyle = id;
+        try {
+            const res = await adminFetch('/admin/toggle-ui-setting', {
+                method: 'POST',
+                body: JSON.stringify({ key: 'tags_style', value: id })
             });
             if (res.success) {
                 message = 'Uložené ✓';
@@ -159,6 +189,67 @@
                         <span class="dp__demo-btn sm">Do obchodu ↗</span>
                     </div>
                 {/if}
+            </div>
+        </div>
+
+        <!-- TAG STYLE SECTION -->
+        <div class="dp__section-divider"></div>
+        <div class="dp__header" style="margin-top:32px">
+            <h1>🏷️ Štýl tagov</h1>
+            <p>Vyberte vizuál informačných tagov (Skladom, Doprava, Hodnotenie) pri ponukách</p>
+        </div>
+
+        <div class="dp__grid dp__grid--4">
+            {#each tagStyles as ts}
+                <button 
+                    class="dp__card" 
+                    class:active={currentTagStyle === ts.id}
+                    on:click={() => saveTagStyle(ts.id)}
+                    disabled={saving}
+                >
+                    <div class="dp__card-icon">{ts.icon}</div>
+                    <div class="dp__card-name">{ts.name}</div>
+                    <div class="dp__card-desc">{ts.desc}</div>
+                    {#if currentTagStyle === ts.id}
+                        <div class="dp__card-active">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+                            Aktívny
+                        </div>
+                    {/if}
+                </button>
+            {/each}
+        </div>
+
+        <!-- Tag preview -->
+        <div class="dp__preview">
+            <h2>Náhľad tagov</h2>
+            <div class="dp__preview-box">
+                <div class="dp__demo-row dp__demo-card dp__demo-card--best">
+                    <div class="dp__demo-logo green">PR</div>
+                    <div class="dp__demo-tags">
+                        {#if currentTagStyle === 'dots'}
+                            <span class="dp__tag-dot green"></span><span class="dp__tag-text green">Skladom</span>
+                            <span class="dp__tag-sep">|</span>
+                            <span class="dp__tag-dot green"></span><span class="dp__tag-text green">Zdarma</span>
+                            <span class="dp__tag-sep">|</span>
+                            <span class="dp__tag-text">★ 4.5 (0)</span>
+                        {:else if currentTagStyle === 'chips'}
+                            <span class="dp__tag-chip green">✓ Skladom</span>
+                            <span class="dp__tag-chip green">🚚 Zdarma</span>
+                            <span class="dp__tag-chip">★ 4.5 (0)</span>
+                        {:else if currentTagStyle === 'underline'}
+                            <span class="dp__tag-uline green">✓ Skladom</span>
+                            <span class="dp__tag-uline green">Zdarma</span>
+                            <span class="dp__tag-text">★ 4.5 (0)</span>
+                        {:else}
+                            <span class="dp__tag-inline green">✓ Skladom</span>
+                            <span class="dp__tag-inline green">🚚 Zdarma</span>
+                            <span class="dp__tag-inline">★ 4.5 (0)</span>
+                        {/if}
+                    </div>
+                    <span class="dp__demo-price green">3,15 €</span>
+                    <span class="dp__demo-btn">Do obchodu ↗</span>
+                </div>
             </div>
         </div>
     {/if}
@@ -277,5 +368,26 @@
 
 @media (max-width: 700px) {
     .dp__grid { grid-template-columns: 1fr; }
+    .dp__grid--4 { grid-template-columns: 1fr 1fr; }
 }
+
+/* 4-column grid for tags */
+.dp__grid--4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Section divider */
+.dp__section-divider { height: 1px; background: #eef0f4; margin: 28px 0 0; }
+
+/* Tag preview styles */
+.dp__demo-tags { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.dp__tag-dot { width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; display: inline-block; }
+.dp__tag-dot.green { background: #059669; }
+.dp__tag-text { font-size: 12px; color: #64748b; }
+.dp__tag-text.green { color: #059669; font-weight: 600; }
+.dp__tag-sep { color: #e5e7eb; font-size: 12px; }
+.dp__tag-chip { font-size: 10px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 8px; }
+.dp__tag-chip.green { color: #047857; background: #f0fdf4; }
+.dp__tag-uline { font-size: 12px; font-weight: 600; color: #64748b; padding-bottom: 3px; border-bottom: 2px solid #d1d5db; }
+.dp__tag-uline.green { color: #059669; border-bottom-color: #059669; }
+.dp__tag-inline { font-size: 12px; font-weight: 500; color: #6b7280; }
+.dp__tag-inline.green { color: #059669; font-weight: 600; }
 </style>

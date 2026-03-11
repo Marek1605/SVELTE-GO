@@ -20,6 +20,7 @@
     let reviewSubmitting = false;
     let reviewMessage = '';
     let offersStyle = data.offersStyle || 'cards';
+    let tagsStyle = data.tagsStyle || 'chips';
 
     async function loadReviews() {
         if (reviewData.reviews.length > 0 || reviewLoading) return;
@@ -426,22 +427,27 @@
                                         {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
                                     </span>
                                 </div>
-                                <div class="mp-offers__meta-row">
+                                <div class="mp-offers__tags" class:tags-dots={tagsStyle === 'dots'} class:tags-chips={tagsStyle === 'chips'} class:tags-underline={tagsStyle === 'underline'} class:tags-inline={tagsStyle === 'inline'}>
                                     {#if offer.stock_status === 'instock'}
-                                        <span class="mp-offers__stock in">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+                                        <span class="mp-tag mp-tag--stock mp-tag--positive">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>
                                             Skladom
                                         </span>
                                     {:else if offer.delivery}
-                                        <span class="mp-offers__delivery">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                        <span class="mp-tag mp-tag--stock">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                                             {offer.delivery}
                                         </span>
                                     {:else}
-                                        <span class="mp-offers__stock">Na obj.</span>
+                                        <span class="mp-tag mp-tag--stock">Na obj.</span>
                                     {/if}
-                                    <span class="mp-offers__shipping-info-left" class:free={offer.shipping === 0}>
-                                        {offer.shipping === 0 ? '✓ Doprava zdarma' : `+ ${formatPrice(offer.shipping || 0)} doprava`}
+                                    <span class="mp-tag mp-tag--ship" class:mp-tag--positive={offer.shipping === 0}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                        {offer.shipping === 0 ? 'Zdarma' : `${formatPrice(offer.shipping || 0)} €`}
+                                    </span>
+                                    <span class="mp-tag mp-tag--rating">
+                                        <svg viewBox="0 0 24 24" fill="#fbbf24" width="11" height="11"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                        {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
                                     </span>
                                 </div>
                             </div>
@@ -1164,9 +1170,43 @@
 .mp-offers__cheap-badge svg { width: 10px; height: 10px; }
 .mp-offers__diff { font-size: 10px; color: #ef4444; margin-top: 2px; }
 
-/* Shipping info on left */
-.mp-offers__shipping-info-left { font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 4px; }
-.mp-offers__shipping-info-left.free { color: #16a34a; }
+/* =============================================
+   TAG STYLES — 4 variants switchable from admin
+   ============================================= */
+.mp-offers__tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mp-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #64748b; white-space: nowrap; }
+.mp-tag--positive { color: #059669; }
+
+/* A: DOTS — dot prefix + pipe separators */
+.tags-dots .mp-tag { gap: 5px; }
+.tags-dots .mp-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; }
+.tags-dots .mp-tag--positive::before { background: #059669; }
+.tags-dots .mp-tag svg { display: none; }
+.tags-dots { gap: 8px; }
+.tags-dots .mp-tag + .mp-tag::after { content: ''; }
+.tags-dots .mp-tag--ship::before { content: ''; }
+.tags-dots .mp-tag--rating::before { display: none; }
+.tags-dots .mp-tag--rating svg { display: inline; }
+
+/* B: CHIPS — soft rounded fills */
+.tags-chips .mp-tag { background: #f1f5f9; padding: 5px 12px; border-radius: 8px; font-weight: 600; font-size: 11px; }
+.tags-chips .mp-tag--positive { background: #f0fdf4; color: #047857; }
+.tags-chips .mp-tag--rating { background: #fafaf9; color: #78716c; }
+
+/* C: UNDERLINE — text with colored bottom border */
+.tags-underline .mp-tag { padding-bottom: 3px; border-bottom: 2px solid #d1d5db; font-weight: 600; }
+.tags-underline .mp-tag--positive { border-bottom-color: #059669; }
+.tags-underline .mp-tag svg { display: none; }
+.tags-underline .mp-tag--rating svg { display: inline; }
+.tags-underline .mp-tag--rating { border-bottom: none; }
+.tags-underline { gap: 14px; }
+
+/* D: INLINE — icons + text, no backgrounds, clean Apple-like */
+.tags-inline .mp-tag { font-size: 13px; font-weight: 500; color: #6b7280; gap: 5px; }
+.tags-inline .mp-tag--positive { color: #059669; font-weight: 600; }
+.tags-inline .mp-tag--positive svg { stroke: #059669; }
+.tags-inline .mp-tag--rating { color: #78716c; }
+.tags-inline { gap: 14px; }
 .mp-offers__save { background: #f0fdf4; color: #16a34a; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
 .mp-offers__subtitle { font-size: 11px; color: #94a3b8; padding: 0 16px 8px; }
 .mp-offers__right { display: flex; align-items: center; gap: 8px; }
@@ -1427,8 +1467,11 @@
     .mp-offers__vendor { display: block; margin-bottom: 4px; }
     .mp-offers__logo { width: 80px; height: 32px; border-radius: 6px; font-size: 10px; margin-bottom: 3px; }
     .mp-offers__vendor-rating { font-size: 12px; margin-top: 3px; }
-    .mp-offers__meta-row { display: flex; align-items: center; gap: 10px; font-size: 12px; margin-top: 4px; flex-wrap: wrap; }
-    .mp-offers__shipping-info-left { font-size: 11px; }
+    .mp-offers__tags { font-size: 11px; margin-top: 4px; gap: 4px; }
+    .tags-chips .mp-tag { padding: 3px 8px; font-size: 10px; border-radius: 6px; }
+    .tags-underline { gap: 10px; }
+    .tags-inline { gap: 10px; }
+    .tags-inline .mp-tag { font-size: 11px; }
     /* Right col: display:contents so price stays top-right, CTA spans full */
     .mp-offers__right-col { display: contents !important; }
     .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 8px; align-self: start; }
