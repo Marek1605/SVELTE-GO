@@ -45,6 +45,7 @@ export async function load({ params }) {
         // Load offers style from site settings
         let offersStyle = 'cards';
         let tagsStyle = 'chips';
+        let priceStyle = 'default';
         try {
             const settingsResult = await api.get('/site/settings');
             if (settingsResult?.data?.offers_style) {
@@ -57,6 +58,11 @@ export async function load({ params }) {
             } else if (settingsResult?.tags_style) {
                 tagsStyle = settingsResult.tags_style;
             }
+            if (settingsResult?.data?.price_style) {
+                priceStyle = settingsResult.data.price_style;
+            } else if (settingsResult?.price_style) {
+                priceStyle = settingsResult.price_style;
+            }
         } catch (e) {
             console.error('Error loading site settings:', e);
         }
@@ -67,7 +73,8 @@ export async function load({ params }) {
             images: product.images || (product.image_url ? [product.image_url] : []),
             offers,
             offersStyle,
-            tagsStyle
+            tagsStyle,
+            priceStyle
         };
     } catch (err) {
         if (err?.status) {

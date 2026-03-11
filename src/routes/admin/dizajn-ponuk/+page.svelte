@@ -4,6 +4,7 @@
 
     let currentStyle = 'cards';
     let currentTagStyle = 'chips';
+    let currentPriceStyle = 'default';
     let saving = false;
     let message = '';
     let loading = true;
@@ -36,12 +37,20 @@
         { id: 'inline', name: 'Inline', desc: 'Ikony + text bez pozadia, čistý Apple-like štýl', icon: '→' },
     ];
 
+    const priceStyles = [
+        { id: 'default', name: 'Zelená', desc: 'Najlacnejšia cena zelená, ostatné čierne', icon: '💚' },
+        { id: 'accent', name: 'Border', desc: 'Zelený border vľavo pri najlacnejšej', icon: '▎' },
+        { id: 'pill', name: 'Pill', desc: 'Najlacnejšia cena v zelenom pozadí', icon: '💊' },
+        { id: 'underline', name: 'Podčiarknutie', desc: 'Zelené podčiarknutie najlacnejšej', icon: '▁' },
+    ];
+
     onMount(async () => {
         try {
             const res = await adminFetch('/admin/site-settings');
             if (res.success && res.data) {
                 currentStyle = res.data.offers_style || 'cards';
                 currentTagStyle = res.data.tags_style || 'chips';
+                currentPriceStyle = res.data.price_style || 'default';
             }
         } catch (e) { console.error(e); }
         loading = false;
@@ -76,6 +85,27 @@
             const res = await adminFetch('/admin/toggle-ui-setting', {
                 method: 'POST',
                 body: JSON.stringify({ key: 'tags_style', value: id })
+            });
+            if (res.success) {
+                message = 'Uložené ✓';
+                setTimeout(() => message = '', 2000);
+            } else {
+                message = res.error || 'Chyba';
+            }
+        } catch (e) {
+            message = 'Chyba pri ukladaní';
+        }
+        saving = false;
+    }
+
+    async function savePriceStyle(id) {
+        saving = true;
+        message = '';
+        currentPriceStyle = id;
+        try {
+            const res = await adminFetch('/admin/toggle-ui-setting', {
+                method: 'POST',
+                body: JSON.stringify({ key: 'price_style', value: id })
             });
             if (res.success) {
                 message = 'Uložené ✓';
@@ -251,6 +281,34 @@
                     <span class="dp__demo-btn">Do obchodu ↗</span>
                 </div>
             </div>
+        </div>
+
+        <!-- PRICE STYLE SECTION -->
+        <div class="dp__section-divider"></div>
+        <div class="dp__header" style="margin-top:32px">
+            <h1>💰 Štýl ceny</h1>
+            <p>Ako zvýrazniť najlacnejšiu ponuku</p>
+        </div>
+
+        <div class="dp__grid dp__grid--4">
+            {#each priceStyles as ps}
+                <button 
+                    class="dp__card" 
+                    class:active={currentPriceStyle === ps.id}
+                    on:click={() => savePriceStyle(ps.id)}
+                    disabled={saving}
+                >
+                    <div class="dp__card-icon">{ps.icon}</div>
+                    <div class="dp__card-name">{ps.name}</div>
+                    <div class="dp__card-desc">{ps.desc}</div>
+                    {#if currentPriceStyle === ps.id}
+                        <div class="dp__card-active">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+                            Aktívny
+                        </div>
+                    {/if}
+                </button>
+            {/each}
         </div>
     {/if}
 </div>

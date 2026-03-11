@@ -21,6 +21,7 @@
     let reviewMessage = '';
     let offersStyle = data.offersStyle || 'cards';
     let tagsStyle = data.tagsStyle || 'chips';
+    let priceStyle = data.priceStyle || 'default';
 
     async function loadReviews() {
         if (reviewData.reviews.length > 0 || reviewLoading) return;
@@ -454,7 +455,7 @@
                             
                             <!-- Right: Price + CTA only -->
                             <div class="mp-offers__right-col">
-                                <div class="mp-offers__price-col">
+                                <div class="mp-offers__price-col" class:price-accent={priceStyle === 'accent' && i === 0} class:price-pill={priceStyle === 'pill' && i === 0} class:price-underline={priceStyle === 'underline' && i === 0}>
                                     <div class="mp-offers__price">{formatPrice(offer.price)}</div>
                                     {#if offer.price > (offers[0]?.price || 0) + 0.01}
                                         <div class="mp-offers__diff">+{formatPrice(offer.price - (offers[0]?.price || 0))}</div>
@@ -910,7 +911,8 @@
 .mp-buybox__price {
     font-size: 34px;
     font-weight: 800;
-    color: #059669;
+    color: #1f2937;
+    font-family: 'Georgia', 'Times New Roman', serif;
     display: block;
     line-height: 1;
 }
@@ -1140,7 +1142,22 @@
     font-size: 22px;
     font-weight: 800;
     color: #1f2937;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    line-height: 1;
 }
+
+/* Price style: default — cheapest green */
+.mp-offers__row.cheapest .mp-offers__price { color: #059669; }
+
+/* Price style: accent — green left border, price stays dark */
+.price-accent { border-left: 3px solid #059669; padding-left: 10px; }
+.price-accent .mp-offers__price { color: #1f2937 !important; }
+
+/* Price style: pill — green background */
+.price-pill .mp-offers__price { color: #047857 !important; background: #f0fdf4; padding: 5px 12px; border-radius: 8px; display: inline-block; }
+
+/* Price style: underline — green bottom border, price stays dark */
+.price-underline .mp-offers__price { color: #1f2937 !important; border-bottom: 3px solid #059669; padding-bottom: 3px; display: inline-block; }
 
 .mp-offers__shipping {
     font-size: 11px;
@@ -1433,7 +1450,7 @@
     .mp-buybox__right { display: contents !important; }
     /* Badge on frame — pushed higher */
     .mp-buybox__right .mp-buybox__frame-badge { position: absolute; top: -10px; right: 16px; font-size: 9px; padding: 3px 8px; border-radius: 6px; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; box-shadow: none; }
-    .mp-buybox__right .mp-buybox__price { font-size: 30px; color: #059669; }
+    .mp-buybox__right .mp-buybox__price { font-size: 24px; color: #1f2937; }
     /* CTA full width */
     .mp-buybox__cta { grid-column: 1 / -1; grid-row: 2; width: 100%; padding: 12px 20px; font-size: 15px; box-sizing: border-box; }
     .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
@@ -1475,7 +1492,7 @@
     /* Right col: display:contents so price stays top-right, CTA spans full */
     .mp-offers__right-col { display: contents !important; }
     .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 8px; align-self: start; }
-    .mp-offers__price { font-size: 20px; font-weight: 800; color: #059669; }
+    .mp-offers__price { font-size: 20px; font-weight: 800; color: #1f2937; }
     .mp-offers__diff { font-size: 10px; }
     /* CTA full width spanning both columns */
     .mp-offers__cta-col { grid-column: 1 / -1; grid-row: 2; }
