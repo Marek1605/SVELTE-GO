@@ -398,10 +398,10 @@
                             {#if hasBadges}
                             <div class="mp-offers__badges">
                                 {#if i === 0}
-                                    <span class="mp-offers__cheap-badge">↘ Najlepšia cena</span>
+                                    <span class="mp-offers__cheap-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5" width="10" height="10" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> Najlepšia cena</span>
                                 {/if}
                                 {#if offer.id === bestOffer?.id}
-                                    <span class="mp-offers__rec-badge">● Odporúčaná ponuka</span>
+                                    <span class="mp-offers__rec-badge"><svg viewBox="0 0 24 24" fill="#b45309" width="10" height="10"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5"/></svg> Odporúčaná ponuka</span>
                                 {/if}
                             </div>
                             {/if}
@@ -825,8 +825,8 @@
 .mp-buybox__frame-badge svg { fill: #b45309; }
 
 /* Buybox desktop — single column stacked like preview */
-.mp-buybox__left { margin-bottom: 10px; }
-.mp-buybox__right { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+.mp-buybox__left { margin-bottom: 0; }
+.mp-buybox__right { display: flex; flex-direction: column; align-items: stretch; }
 
 .mp-buybox__logo {
     width: 90px;
@@ -1144,8 +1144,8 @@
 
 /* Badges — small outline style on card frame */
 .mp-offers__badges { display: flex; gap: 6px; }
-.mp-offers__rec-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; color: #b45309; background: #fffbeb; padding: 2px 8px; border-radius: 5px; border: 1px solid #fde68a; white-space: nowrap; }
-.mp-offers__cheap-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; color: #047857; background: #ecfdf5; padding: 2px 8px; border-radius: 5px; border: 1px solid rgba(5,150,105,0.2); white-space: nowrap; }
+.mp-offers__rec-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #b45309; background: #fffbeb; padding: 3px 10px; border-radius: 6px; border: 1px solid #fde68a; white-space: nowrap; }
+.mp-offers__cheap-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #047857; background: #ecfdf5; padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(5,150,105,0.2); white-space: nowrap; }
 .mp-offers__rec-badge svg { width: 10px; height: 10px; }
 .mp-offers__cheap-badge svg { width: 10px; height: 10px; }
 .mp-offers__diff { font-size: 10px; color: #ef4444; margin-top: 2px; }
@@ -1401,21 +1401,22 @@
     .mp-offers__row.rec-row:not(.cheapest) { box-shadow: 0 2px 4px rgba(196,149,106,0.12), 0 6px 20px rgba(196,149,106,0.08), inset 0 1px 0 rgba(255,255,255,0.6); }
     /* Badges on card frame */
     .mp-offers__badges { position: absolute; top: -9px; right: 12px; display: flex; gap: 4px; margin: 0; }
-    .mp-offers__cheap-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; }
-    .mp-offers__rec-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; }
+    .mp-offers__cheap-badge { font-size: 9px; padding: 2px 8px; border-radius: 5px; }
+    .mp-offers__rec-badge { font-size: 9px; padding: 2px 8px; border-radius: 5px; }
     /* Row left: logo + rating + meta */
     .mp-offers__row-left { grid-column: 1; grid-row: 1; }
     .mp-offers__vendor { display: block; margin-bottom: 4px; }
     .mp-offers__logo { width: 80px; height: 32px; border-radius: 6px; font-size: 10px; margin-bottom: 3px; }
     .mp-offers__vendor-rating { font-size: 12px; margin-top: 3px; }
     .mp-offers__row-meta { display: flex; align-items: center; gap: 14px; font-size: 12px; margin-top: 4px; }
-    /* Row right: price + shipping */
-    .mp-offers__row-right { grid-column: 2; grid-row: 1; text-align: right; padding-top: 8px; align-self: start; }
+    /* Row right: use contents so children become grid items */
+    .mp-offers__row-right { display: contents !important; }
+    .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 8px; align-self: start; }
     .mp-offers__price { font-size: 20px; font-weight: 800; }
     .mp-offers__shipping { display: block !important; font-size: 10px; color: #16a34a; margin-top: 1px; }
     .mp-offers__diff { font-size: 10px; }
-    /* CTA full width below */
-    .mp-offers__row-right .mp-offers__cta-col { margin-top: 6px; }
+    /* CTA full width spanning both columns */
+    .mp-offers__cta-col { grid-column: 1 / -1; grid-row: 2; }
     .mp-offers__cta { padding: 10px 18px; font-size: 13px; width: 100%; justify-content: center; box-sizing: border-box; }
     /* Ranking mobile */
     .style-ranking .mp-offers__rank { width: 24px; height: 24px; font-size: 11px; position: static; transform: none; border: none; box-shadow: none; margin-right: 8px; margin-bottom: 6px; display: inline-flex; vertical-align: middle; }
