@@ -413,20 +413,14 @@
                             </div>
                             {/if}
                             
-                            <!-- Left: Logo + rating + info -->
+                            <!-- Left: Logo + tags -->
                             <div class="mp-offers__left-col">
-                                <div class="mp-offers__vendor">
-                                    <div class="mp-offers__logo" class:cheapest-logo={i === 0 && !offer.shop_logo} class:rec-logo={offer.id === bestOffer?.id && i !== 0 && !offer.shop_logo}>
-                                        {#if offer.shop_logo}
-                                            <img src={offer.shop_logo} alt={offer.shop_name} class="mp-offers__logo-img">
-                                        {:else}
-                                            <span class="mp-offers__logo-text">{offer.shop_name || 'Shop'}</span>
-                                        {/if}
-                                    </div>
-                                    <span class="mp-offers__vendor-rating">
-                                        <svg viewBox="0 0 24 24" fill="#fbbf24" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                        {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
-                                    </span>
+                                <div class="mp-offers__logo" class:cheapest-logo={i === 0 && !offer.shop_logo} class:rec-logo={offer.id === bestOffer?.id && i !== 0 && !offer.shop_logo}>
+                                    {#if offer.shop_logo}
+                                        <img src={offer.shop_logo} alt={offer.shop_name} class="mp-offers__logo-img">
+                                    {:else}
+                                        <span class="mp-offers__logo-text">{offer.shop_name || 'Shop'}</span>
+                                    {/if}
                                 </div>
                                 <div class="mp-offers__tags" class:tags-dots={tagsStyle === 'dots'} class:tags-chips={tagsStyle === 'chips'} class:tags-underline={tagsStyle === 'underline'} class:tags-inline={tagsStyle === 'inline'}>
                                     {#if offer.stock_status === 'instock'}
@@ -912,7 +906,6 @@
     font-size: 34px;
     font-weight: 800;
     color: #1f2937;
-    font-family: 'Georgia', 'Times New Roman', serif;
     display: block;
     line-height: 1;
 }
@@ -1047,10 +1040,9 @@
 }
 
 .mp-offers__row {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
     align-items: center;
-    gap: 8px 16px;
+    gap: 16px;
     padding: 14px 18px;
     background: #fff;
     border: none;
@@ -1066,16 +1058,16 @@
 /* Badges — absolute on card frame */
 .mp-offers__badges { position: absolute; top: -10px; right: 16px; z-index: 1; display: flex; gap: 6px; }
 
-/* Left column: logo + rating + stock/delivery */
-.mp-offers__left-col { grid-column: 1; }
-.mp-offers__right-col { grid-column: 2; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+/* Left column: logo + rating + tags — single row */
+.mp-offers__left-col { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }
+.mp-offers__right-col { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 
 .mp-offers__vendor {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     min-width: 0;
-    margin-bottom: 6px;
+    flex-shrink: 0;
 }
 
 .mp-offers__meta-row {
@@ -1113,7 +1105,6 @@
     gap: 3px;
     font-size: 12px;
     color: #6b7280;
-    margin-top: 2px;
 }
 
 .mp-offers__stock {
@@ -1136,13 +1127,14 @@
 
 .mp-offers__price-col {
     text-align: right;
+    flex-shrink: 0;
+    min-width: 80px;
 }
 
 .mp-offers__price {
     font-size: 22px;
     font-weight: 800;
     color: #1f2937;
-    font-family: 'Georgia', 'Times New Roman', serif;
     line-height: 1;
 }
 
@@ -1450,7 +1442,7 @@
     .mp-buybox__right { display: contents !important; }
     /* Badge on frame — pushed higher */
     .mp-buybox__right .mp-buybox__frame-badge { position: absolute; top: -10px; right: 16px; font-size: 9px; padding: 3px 8px; border-radius: 6px; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; box-shadow: none; }
-    .mp-buybox__right .mp-buybox__price { font-size: 24px; color: #1f2937; }
+    .mp-buybox__right .mp-buybox__price { font-size: 22px; color: #1f2937; }
     /* CTA full width */
     .mp-buybox__cta { grid-column: 1 / -1; grid-row: 2; width: 100%; padding: 12px 20px; font-size: 15px; box-sizing: border-box; }
     .mp-buybox__trust, .mp-buybox__info-tooltip { display: none; }
@@ -1480,11 +1472,9 @@
     .mp-offers__cheap-badge { font-size: 9px; padding: 2px 8px; border-radius: 5px; }
     .mp-offers__rec-badge { font-size: 9px; padding: 2px 8px; border-radius: 5px; }
     /* Left col */
-    .mp-offers__left-col { grid-column: 1; grid-row: 1; }
-    .mp-offers__vendor { display: block; margin-bottom: 4px; }
-    .mp-offers__logo { width: 80px; height: 32px; border-radius: 6px; font-size: 10px; margin-bottom: 3px; }
-    .mp-offers__vendor-rating { font-size: 12px; margin-top: 3px; }
-    .mp-offers__tags { font-size: 11px; margin-top: 4px; gap: 4px; }
+    .mp-offers__left-col { grid-column: 1; grid-row: 1; display: block !important; }
+    .mp-offers__logo { width: 80px; height: 32px; border-radius: 6px; font-size: 10px; margin-bottom: 4px; }
+    .mp-offers__tags { font-size: 11px; margin-top: 4px; gap: 4px; flex-wrap: wrap; }
     .tags-chips .mp-tag { padding: 3px 8px; font-size: 10px; border-radius: 6px; }
     .tags-underline { gap: 10px; }
     .tags-inline { gap: 10px; }
