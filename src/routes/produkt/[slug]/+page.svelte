@@ -347,9 +347,30 @@
                 {/if}
                 
             </div>
+
+            <!-- AI Assistant — mobile only, below buybox -->
+            <div class="mp-ai-box mp-ai-box--mobile">
+                <button class="mp-ai-toggle" class:open={aiOpen} on:click={() => aiOpen = !aiOpen}>
+                    <span class="mp-ai-toggle__icon">✨</span>
+                    <div class="mp-ai-toggle__text"><strong>AI Asistent</strong><span>Opýtajte sa na produkt</span></div>
+                    <svg class="mp-ai-toggle__arrow" class:open={aiOpen} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                {#if aiOpen}
+                <div class="mp-ai-panel">
+                    <div class="mp-ai-actions">
+                        <button class="mp-ai-action">💬 Opýtať sa</button>
+                        <button class="mp-ai-action">🔄 Alternatívy</button>
+                        <button class="mp-ai-action">📊 Cenový vývoj</button>
+                        <button class="mp-ai-action">⭐ Recenzie</button>
+                    </div>
+                    <div class="mp-ai-input">
+                        <input type="text" placeholder="Napíšte otázku o produkte...">
+                        <button class="mp-ai-send">→</button>
+                    </div>
+                </div>
+                {/if}
+            </div>
         </div>
-        
-        <!-- Mobile Sticky Bar -->
         {#if bestOffer}
         <div class="mp-sticky-bar" id="mp-sticky-bar">
             <div class="mp-sticky-bar__info">
@@ -787,26 +808,27 @@
 
 /* AI Assistant — expandable */
 .mp-ai-box { margin-top: 8px; max-width: 50%; }
+.mp-ai-box--mobile { display: none; }
 .mp-ai-toggle {
     width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 16px;
-    background: linear-gradient(135deg, #c4956a, #a87c5a); color: #fff;
+    background: linear-gradient(135deg, #8b7355, #6d5a43); color: #fff;
     border: none; border-radius: 14px; cursor: pointer; transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(196,149,106,0.3);
+    box-shadow: 0 2px 8px rgba(109,90,67,0.25);
 }
-.mp-ai-toggle:hover { box-shadow: 0 4px 14px rgba(196,149,106,0.4); background: linear-gradient(135deg, #b8875c, #9a7050); }
-.mp-ai-toggle.open { border-radius: 14px 14px 0 0; background: linear-gradient(135deg, #a87c5a, #8f6a4a); }
+.mp-ai-toggle:hover { box-shadow: 0 4px 14px rgba(109,90,67,0.35); background: linear-gradient(135deg, #7d6749, #5f4e3a); }
+.mp-ai-toggle.open { border-radius: 14px 14px 0 0; background: linear-gradient(135deg, #6d5a43, #574838); }
 .mp-ai-toggle__icon { font-size: 18px; }
 .mp-ai-toggle__text { flex: 1; text-align: left; }
 .mp-ai-toggle__text strong { display: block; font-size: 13px; }
-.mp-ai-toggle__text span { font-size: 11px; opacity: 0.75; }
+.mp-ai-toggle__text span { font-size: 11px; opacity: 0.7; }
 .mp-ai-toggle__arrow { transition: transform 0.2s; }
 .mp-ai-toggle__arrow.open { transform: rotate(180deg); }
-.mp-ai-panel { background: #3d2e1f; border-radius: 0 0 14px 14px; padding: 14px; }
+.mp-ai-panel { background: #4a3d30; border-radius: 0 0 14px 14px; padding: 14px; }
 .mp-ai-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-.mp-ai-action { display: flex; align-items: center; gap: 6px; padding: 10px 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
-.mp-ai-action:hover { background: rgba(255,255,255,0.14); }
+.mp-ai-action { display: flex; align-items: center; gap: 6px; padding: 10px 12px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.mp-ai-action:hover { background: rgba(255,255,255,0.13); }
 .mp-ai-input { display: flex; gap: 6px; }
-.mp-ai-input input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; font-size: 13px; outline: none; }
+.mp-ai-input input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: #fff; font-size: 13px; outline: none; }
 .mp-ai-send { padding: 10px 16px; background: #c4956a; border: none; border-radius: 10px; color: #fff; font-weight: 700; cursor: pointer; }
 
 /* =============================================
@@ -1454,7 +1476,8 @@
     /* Hide desktop-only stuff on mobile */
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
-    .mp-ai-box { display: block; max-width: 100%; margin-top: 6px; }
+    .mp-ai-box { display: none; }
+    .mp-ai-box--mobile { display: block; margin: 12px 10px 0; }
     /* === BUYBOX MOBILE — similar to offer rows === */
     .mp-buybox { position: static; border-radius: 14px; border: none; padding: 16px; margin: 0 10px; margin-top: 18px;
         box-shadow: 0 2px 6px rgba(196,149,106,0.15), 0 8px 24px rgba(196,149,106,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
