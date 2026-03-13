@@ -425,6 +425,10 @@
                                         <span class="mp-offers__logo-text">{offer.shop_name || 'Shop'}</span>
                                     {/if}
                                 </div>
+                                <div class="mp-offers__mobile-rating">
+                                    <svg viewBox="0 0 24 24" fill="#fbbf24" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                    {offer.rating?.toFixed(1) || '4.5'} ({offer.review_count || 0})
+                                </div>
                                 <div class="mp-offers__tags" class:tags-dots={tagsStyle === 'dots'} class:tags-chips={tagsStyle === 'chips'} class:tags-underline={tagsStyle === 'underline'} class:tags-inline={tagsStyle === 'inline'}>
                                     {#if offer.stock_status === 'instock'}
                                         <span class="mp-tag mp-tag--stock mp-tag--positive">
@@ -785,22 +789,24 @@
 .mp-ai-box { margin-top: 8px; max-width: 50%; }
 .mp-ai-toggle {
     width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 16px;
-    background: linear-gradient(135deg, #1e293b, #334155); color: #fff;
+    background: linear-gradient(135deg, #c4956a, #a87c5a); color: #fff;
     border: none; border-radius: 14px; cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(196,149,106,0.3);
 }
-.mp-ai-toggle.open { border-radius: 14px 14px 0 0; background: #0f172a; }
+.mp-ai-toggle:hover { box-shadow: 0 4px 14px rgba(196,149,106,0.4); background: linear-gradient(135deg, #b8875c, #9a7050); }
+.mp-ai-toggle.open { border-radius: 14px 14px 0 0; background: linear-gradient(135deg, #a87c5a, #8f6a4a); }
 .mp-ai-toggle__icon { font-size: 18px; }
 .mp-ai-toggle__text { flex: 1; text-align: left; }
 .mp-ai-toggle__text strong { display: block; font-size: 13px; }
-.mp-ai-toggle__text span { font-size: 11px; opacity: 0.6; }
+.mp-ai-toggle__text span { font-size: 11px; opacity: 0.75; }
 .mp-ai-toggle__arrow { transition: transform 0.2s; }
 .mp-ai-toggle__arrow.open { transform: rotate(180deg); }
-.mp-ai-panel { background: #0f172a; border-radius: 0 0 14px 14px; padding: 14px; }
+.mp-ai-panel { background: #3d2e1f; border-radius: 0 0 14px 14px; padding: 14px; }
 .mp-ai-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-.mp-ai-action { display: flex; align-items: center; gap: 6px; padding: 10px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
-.mp-ai-action:hover { background: rgba(255,255,255,0.1); }
+.mp-ai-action { display: flex; align-items: center; gap: 6px; padding: 10px 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
+.mp-ai-action:hover { background: rgba(255,255,255,0.14); }
 .mp-ai-input { display: flex; gap: 6px; }
-.mp-ai-input input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #fff; font-size: 13px; outline: none; }
+.mp-ai-input input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; font-size: 13px; outline: none; }
 .mp-ai-send { padding: 10px 16px; background: #c4956a; border: none; border-radius: 10px; color: #fff; font-weight: 700; cursor: pointer; }
 
 /* =============================================
@@ -824,7 +830,7 @@
 /* Frame badge — sits on top border, higher up */
 .mp-buybox__frame-badge {
     position: absolute;
-    top: -14px;
+    top: -16px;
     right: 20px;
     background: #fffbeb;
     color: #92400e;
@@ -1059,14 +1065,15 @@
     overflow: visible;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.5);
 }
-.mp-offers__row.has-badges { margin-top: 14px; }
+.mp-offers__row.has-badges { margin-top: 20px; }
 .mp-offers__row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 12px 28px rgba(0,0,0,0.06); }
 
 /* Badges — absolute on card frame */
-.mp-offers__badges { position: absolute; top: -10px; right: 16px; z-index: 1; display: flex; gap: 6px; }
+.mp-offers__badges { position: absolute; top: -14px; right: 16px; z-index: 1; display: flex; gap: 6px; }
 
 /* Left column: logo + rating + tags — single row */
 .mp-offers__left-col { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }
+.mp-offers__mobile-rating { display: none; font-size: 12px; color: #6b7280; align-items: center; gap: 4px; }
 .mp-offers__right-col { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 
 .mp-offers__vendor {
@@ -1447,9 +1454,9 @@
     /* Hide desktop-only stuff on mobile */
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
-    .mp-ai-box { display: none; }
+    .mp-ai-box { display: block; max-width: 100%; margin-top: 6px; }
     /* === BUYBOX MOBILE — similar to offer rows === */
-    .mp-buybox { position: static; border-radius: 14px; border: none; padding: 16px; margin: 0 10px;
+    .mp-buybox { position: static; border-radius: 14px; border: none; padding: 16px; margin: 0 10px; margin-top: 18px;
         box-shadow: 0 2px 6px rgba(196,149,106,0.15), 0 8px 24px rgba(196,149,106,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
         display: grid !important; grid-template-columns: 1fr auto; gap: 8px 14px; overflow: visible; }
     .mp-buybox__badge { display: none; }
@@ -1466,7 +1473,7 @@
     .mp-buybox__original-price { font-size: 13px; margin-bottom: 2px; }
     .mp-buybox__right { display: contents !important; }
     /* Badge on frame — pushed higher */
-    .mp-buybox__right .mp-buybox__frame-badge { position: absolute; top: -10px; right: 16px; font-size: 9px; padding: 3px 8px; border-radius: 6px; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; box-shadow: none; }
+    .mp-buybox__right .mp-buybox__frame-badge { position: absolute; top: -14px; right: 16px; font-size: 9px; padding: 3px 8px; border-radius: 6px; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; box-shadow: none; }
     .mp-buybox__right .mp-buybox__price { font-size: 22px; color: #1f2937; }
     /* CTA full width */
     .mp-buybox__cta { grid-column: 1 / -1; grid-row: 2; width: 100%; padding: 12px 20px; font-size: 15px; box-sizing: border-box; }
@@ -1482,24 +1489,26 @@
         display: grid !important;
         grid-template-columns: 1fr auto;
         gap: 8px 12px;
-        padding: 14px;
+        padding: 16px;
         position: relative;
         background: #fff;
         border: none;
         border-radius: 12px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.5);
     }
-    .mp-offers__row.has-badges { margin-top: 14px; }
+    .mp-offers__row.has-badges { margin-top: 18px; }
     .mp-offers__row.cheapest { box-shadow: 0 2px 4px rgba(5,150,105,0.1), 0 6px 20px rgba(5,150,105,0.08), inset 0 1px 0 rgba(255,255,255,0.6); }
     .mp-offers__row.rec-row:not(.cheapest) { box-shadow: 0 2px 4px rgba(196,149,106,0.12), 0 6px 20px rgba(196,149,106,0.08), inset 0 1px 0 rgba(255,255,255,0.6); }
     /* Badges on card frame */
-    .mp-offers__badges { position: absolute; top: -9px; right: 12px; display: flex; gap: 4px; margin: 0; }
+    .mp-offers__badges { position: absolute; top: -12px; right: 12px; display: flex; gap: 4px; margin: 0; }
     .mp-offers__cheap-badge { font-size: 9px; padding: 2px 8px; border-radius: 5px; }
     .mp-offers__rec-badge { font-size: 9px; padding: 2px 8px; border-radius: 5px; }
     /* Left col */
     .mp-offers__left-col { grid-column: 1; grid-row: 1; display: block !important; }
-    .mp-offers__logo { width: 80px; height: 32px; border-radius: 6px; font-size: 10px; margin-bottom: 4px; }
-    .mp-offers__tags { font-size: 11px; margin-top: 4px; gap: 4px; flex-wrap: wrap; }
+    .mp-offers__logo { width: 80px; height: 32px; border-radius: 6px; font-size: 10px; margin-bottom: 2px; }
+    .mp-offers__mobile-rating { display: flex; font-size: 11px; margin-bottom: 6px; }
+    .mp-offers__tags .mp-tag--rating { display: none; }
+    .mp-offers__tags { font-size: 11px; margin-top: 0; gap: 4px; flex-wrap: wrap; }
     .tags-chips .mp-tag { padding: 3px 8px; font-size: 10px; border-radius: 6px; }
     .tags-underline { gap: 10px; }
     .tags-inline { gap: 10px; }
@@ -1517,7 +1526,6 @@
     /* Ranking mobile */
     .style-ranking .mp-offers__rank { width: 24px; height: 24px; font-size: 11px; position: static; transform: none; border: none; box-shadow: none; margin-right: 8px; margin-bottom: 6px; display: inline-flex; vertical-align: middle; }
     .style-ranking .mp-offers__row { padding-left: 14px; }
-    .mp-ai-box { display: none; }
     .mp-offers__header { flex-wrap: nowrap; padding: 12px 12px 0; display: flex; align-items: center; }
     .mp-offers__title { font-size: 15px; flex: 1; }
     .mp-offers__right { width: auto; margin-top: 0; }
