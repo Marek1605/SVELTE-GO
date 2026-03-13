@@ -281,6 +281,9 @@
                         </div>
                     </div>
                     <div class="mp-buybox__price-row">
+                        {#if bestOffer.original_price && bestOffer.original_price > bestOffer.price}
+                            <span class="mp-buybox__original-price">{formatPrice(bestOffer.original_price)}</span>
+                        {/if}
                         <span class="mp-buybox__price">{formatPrice(bestOffer.price || lowestPrice)}</span>
                         <span class="mp-buybox__price-shipping" class:free={bestOffer.shipping === 0 || freeShipping}>
                             {bestOffer.shipping === 0 || freeShipping ? '✓ Doprava zdarma' : `+ ${formatPrice(bestOffer.shipping || 2.99)} doprava`}
@@ -449,7 +452,10 @@
                             
                             <!-- Right: Price + CTA only -->
                             <div class="mp-offers__right-col">
-                                <div class="mp-offers__price-col" class:price-accent={priceStyle === 'accent' && i === 0} class:price-pill={priceStyle === 'pill' && i === 0} class:price-underline={priceStyle === 'underline' && i === 0}>
+                                <div class="mp-offers__price-col" class:price-accent={priceStyle === 'accent' && i === 0} class:price-pill={priceStyle === 'pill' && i === 0} class:price-underline={priceStyle === 'underline' && i === 0} class:price-glow={priceStyle === 'glow' && i === 0} class:price-shadow-glow={priceStyle === 'shadow-glow' && i === 0} class:price-dark={priceStyle === 'dark' && i === 0}>
+                                    {#if offer.original_price && offer.original_price > offer.price}
+                                        <div class="mp-offers__original-price">{formatPrice(offer.original_price)}</div>
+                                    {/if}
                                     <div class="mp-offers__price">{formatPrice(offer.price)}</div>
                                     {#if offer.price > (offers[0]?.price || 0) + 0.01}
                                         <div class="mp-offers__diff">+{formatPrice(offer.price - (offers[0]?.price || 0))}</div>
@@ -890,7 +896,7 @@
 }
 
 .mp-buybox__shipping-info { display: none; }
-.mp-buybox__shipping-left { font-size: 13px; color: #6b7280; display: flex; align-items: center; gap: 4px; }
+.mp-buybox__shipping-left { font-size: 13px; color: #6b7280; display: none; align-items: center; gap: 4px; }
 .mp-buybox__shipping-left.free { color: #16a34a; }
 .mp-buybox__shipping-info .mp-buybox__shipping { font-size: 13px; }
 .mp-buybox__shipping { font-size: 13px; color: #6b7280; }
@@ -911,6 +917,7 @@
 }
 .mp-buybox__price-shipping { font-size: 13px; color: #16a34a; display: block; margin-top: 4px; }
 .mp-buybox__price-shipping:not(.free) { color: #6b7280; }
+.mp-buybox__original-price { font-size: 15px; font-weight: 500; color: #9ca3af; text-decoration: line-through; display: block; line-height: 1; margin-bottom: 4px; }
 
 .mp-buybox__cta {
     width: 100%;
@@ -1053,7 +1060,7 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.5);
 }
 .mp-offers__row.has-badges { margin-top: 14px; }
-.mp-offers__row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 12px 28px rgba(0,0,0,0.06); transform: translateY(-1px); }
+.mp-offers__row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 12px 28px rgba(0,0,0,0.06); }
 
 /* Badges — absolute on card frame */
 .mp-offers__badges { position: absolute; top: -10px; right: 16px; z-index: 1; display: flex; gap: 6px; }
@@ -1151,6 +1158,19 @@
 /* Price style: underline — green bottom border, price stays dark */
 .price-underline .mp-offers__price { color: #1f2937 !important; border-bottom: 3px solid #059669; padding-bottom: 3px; display: inline-block; }
 
+/* Price style: glow — subtle green glow around price */
+.price-glow .mp-offers__price { color: #047857 !important; text-shadow: 0 0 12px rgba(5,150,105,0.35), 0 0 4px rgba(5,150,105,0.15); }
+
+/* Price style: shadow-glow — glowing card shadow on cheapest */
+.price-shadow-glow { position: relative; }
+.price-shadow-glow .mp-offers__price { color: #1f2937 !important; }
+
+/* Price style: dark — price stays black, no green */
+.price-dark .mp-offers__price { color: #1f2937 !important; }
+
+/* Original price (strikethrough) in offers */
+.mp-offers__original-price { font-size: 12px; font-weight: 500; color: #9ca3af; text-decoration: line-through; line-height: 1; margin-bottom: 2px; }
+
 .mp-offers__shipping {
     font-size: 11px;
     color: #16a34a;
@@ -1236,13 +1256,17 @@
 
 /* Cheapest offer */
 .mp-offers__row.cheapest { border: none; box-shadow: 0 2px 4px rgba(5,150,105,0.1), 0 6px 20px rgba(5,150,105,0.08), inset 0 1px 0 rgba(255,255,255,0.6); }
-.mp-offers__row.cheapest:hover { box-shadow: 0 4px 8px rgba(5,150,105,0.15), 0 12px 28px rgba(5,150,105,0.1); transform: translateY(-1px); }
+.mp-offers__row.cheapest:hover { box-shadow: 0 4px 8px rgba(5,150,105,0.15), 0 12px 28px rgba(5,150,105,0.1); }
 .mp-offers__logo.cheapest-logo { background: #16a34a; color: #fff; border-color: #16a34a; }
 .mp-offers__row.cheapest .mp-offers__price { color: #059669; }
 
+/* Shadow-glow on cheapest row when active */
+.mp-offers__row.cheapest:has(.price-shadow-glow) { box-shadow: 0 0 0 1px rgba(5,150,105,0.1), 0 4px 16px rgba(5,150,105,0.15), 0 8px 32px rgba(5,150,105,0.1); }
+.mp-offers__row.cheapest:has(.price-shadow-glow):hover { box-shadow: 0 0 0 1px rgba(5,150,105,0.15), 0 6px 20px rgba(5,150,105,0.2), 0 12px 40px rgba(5,150,105,0.12); }
+
 /* Recommended offer — amber glow */
 .mp-offers__row.rec-row:not(.cheapest) { border: none; box-shadow: 0 2px 4px rgba(196,149,106,0.12), 0 6px 20px rgba(196,149,106,0.08), inset 0 1px 0 rgba(255,255,255,0.6); overflow: visible; }
-.mp-offers__row.rec-row:not(.cheapest):hover { box-shadow: 0 4px 8px rgba(196,149,106,0.18), 0 12px 28px rgba(196,149,106,0.1); transform: translateY(-1px); }
+.mp-offers__row.rec-row:not(.cheapest):hover { box-shadow: 0 4px 8px rgba(196,149,106,0.18), 0 12px 28px rgba(196,149,106,0.1); }
 .mp-offers__logo.rec-logo { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; border-color: #d97706; }
 
 /* When both cheapest + recommended — green glow wins, both badges show */
@@ -1435,10 +1459,11 @@
     .mp-buybox__left .mp-buybox__rating { margin-bottom: 4px; }
     .mp-buybox__left .mp-buybox__shipping-info { display: none; }
     .mp-buybox__left .mp-buybox__meta { margin-bottom: 0; font-size: 12px; gap: 10px; }
-    .mp-buybox__left .mp-buybox__shipping-left { font-size: 12px; }
+    .mp-buybox__left .mp-buybox__shipping-left { font-size: 12px; display: flex; }
     /* Price top-right aligned with logo */
     .mp-buybox__price-row { grid-column: 2; grid-row: 1; align-self: start; justify-self: end; text-align: right; margin-bottom: 0; }
     .mp-buybox__price-shipping { display: none !important; }
+    .mp-buybox__original-price { font-size: 13px; margin-bottom: 2px; }
     .mp-buybox__right { display: contents !important; }
     /* Badge on frame — pushed higher */
     .mp-buybox__right .mp-buybox__frame-badge { position: absolute; top: -10px; right: 16px; font-size: 9px; padding: 3px 8px; border-radius: 6px; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; box-shadow: none; }
@@ -1483,6 +1508,8 @@
     .mp-offers__right-col { display: contents !important; }
     .mp-offers__price-col { grid-column: 2; grid-row: 1; text-align: right; padding-top: 8px; align-self: start; }
     .mp-offers__price { font-size: 20px; font-weight: 800; color: #1f2937; }
+    .mp-offers__row.cheapest .mp-offers__price { color: #1f2937; }
+    .mp-offers__original-price { font-size: 11px; }
     .mp-offers__diff { font-size: 10px; }
     /* CTA full width spanning both columns */
     .mp-offers__cta-col { grid-column: 1 / -1; grid-row: 2; }

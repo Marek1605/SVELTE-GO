@@ -42,6 +42,9 @@
         { id: 'accent', name: 'Border', desc: 'Zelený border vľavo pri najlacnejšej', icon: '▎' },
         { id: 'pill', name: 'Pill', desc: 'Najlacnejšia cena v zelenom pozadí', icon: '💊' },
         { id: 'underline', name: 'Podčiarknutie', desc: 'Zelené podčiarknutie najlacnejšej', icon: '▁' },
+        { id: 'glow', name: 'Glow', desc: 'Zelený svietiaci text na najlacnejšej cene', icon: '✨' },
+        { id: 'shadow-glow', name: 'Shadow Glow', desc: 'Svietiaci zelený shadow okolo celej ponuky', icon: '🔆' },
+        { id: 'dark', name: 'Čierna', desc: 'Všetky ceny čierne, bez farebného zvýraznenia', icon: '⬛' },
     ];
 
     onMount(async () => {
