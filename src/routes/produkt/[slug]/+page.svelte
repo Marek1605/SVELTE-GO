@@ -231,32 +231,18 @@
             <div class="mp-info">
                 <div class="mp-info__title-row">
                     <h1 class="mp-info__title">{product.title}</h1>
+                    {#if productRank > 0 && productRank <= 10}
                     <div class="mp-info__badges">
-                        {#if isAiRecommended}
-                        <span class="mp-info__ai-badge">
-                            <span class="mp-info__ai-icon-wrap">
-                                <svg viewBox="0 0 16 16" width="11" height="11" fill="#fff"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
-                                <span class="mp-info__ai-orb"></span>
-                            </span>
-                            AI odporúča
-                        </span>
-                        {/if}
+                        <span class="mp-info__rank-num {productRank <= 3 ? 'rank-gold' : productRank <= 10 ? 'rank-blue' : ''}">{productRank}</span>
                         {#if productRank === 1}
-                        <span class="mp-info__rank-badge mp-info__rank-badge--gold">
-                            <svg viewBox="0 0 24 24" fill="#fff" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            #1 Najlepšia voľba
-                        </span>
-                        {:else if productRank > 1 && productRank <= 3}
-                        <span class="mp-info__rank-badge mp-info__rank-badge--blue">
-                            <svg viewBox="0 0 24 24" fill="#fff" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            #{productRank} Obľúbený produkt
-                        </span>
-                        {:else if productRank > 3 && productRank <= 10}
-                        <span class="mp-info__rank-badge mp-info__rank-badge--warm">
-                            #{productRank} v kategórii
-                        </span>
+                        <span class="mp-info__rank-label mp-info__rank-label--gold">Najlepšia voľba</span>
+                        {:else if productRank <= 3}
+                        <span class="mp-info__rank-label mp-info__rank-label--blue">Obľúbený produkt</span>
+                        {:else}
+                        <span class="mp-info__rank-label mp-info__rank-label--warm">Top {productRank} v kategórii</span>
                         {/if}
                     </div>
+                    {/if}
                 </div>
                 
                 {#if product.description}
@@ -920,7 +906,14 @@
     flex: 1;
     min-width: 200px;
 }
-.mp-info__badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+.mp-info__badges { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.mp-info__rank-num { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 8px; font-weight: 800; font-size: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+.mp-info__rank-num.rank-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; }
+.mp-info__rank-num.rank-blue { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
+.mp-info__rank-label { font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 8px; white-space: nowrap; }
+.mp-info__rank-label--gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+.mp-info__rank-label--blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
+.mp-info__rank-label--warm { background: #fef3c7; color: #92400e; }
 .mp-info__rank-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; white-space: nowrap; color: #fff; flex-shrink: 0; }
 .mp-info__rank-badge--gold { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
 .mp-info__rank-badge--blue { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
