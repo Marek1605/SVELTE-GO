@@ -78,6 +78,11 @@
         return map[action] || action;
     }
 
+    function maxTokensFromDays(days) {
+        if (!days || !days.length) return 1;
+        return Math.max(...days.map(d => d.tokens), 1);
+    }
+
     onMount(() => { loadSettings(); });
 </script>
 
@@ -216,10 +221,9 @@
         
         <!-- Simple bar chart -->
         <div class="aip__chart">
-            {@const maxTokens = Math.max(...data.by_day.map(d => d.tokens), 1)}
             {#each data.by_day as day}
             <div class="aip__chart-bar-wrap">
-                <div class="aip__chart-bar" style="height: {Math.max(4, (day.tokens / maxTokens) * 120)}px">
+                <div class="aip__chart-bar" style="height: {Math.max(4, (day.tokens / maxTokensFromDays(data.by_day)) * 120)}px">
                     <span class="aip__chart-tooltip">{fmtTokens(day.tokens)} tok / ${fmtCost(day.cost)}</span>
                 </div>
                 <div class="aip__chart-label">{day.date.slice(5)}</div>
