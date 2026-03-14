@@ -66,6 +66,20 @@
     let aiReviewLoading = false;
     let aiReviewLoaded = false;
     let isAiRecommended = false;
+    let productRank = 0;
+
+    async function fetchProductRank() {
+        if (!product?.category_id) return;
+        try {
+            const slug = product.category_slug || '';
+            if (!slug) return;
+            const res = await fetch(`/api/v1/categories/${slug}`);
+            const json = await res.json();
+            const prods = json?.data?.products || json?.products || [];
+            const idx = prods.findIndex(p => p.id === product.id);
+            if (idx >= 0) productRank = idx + 1;
+        } catch(e) { /* silent */ }
+    }
 
     async function aiChat(question, action = 'chat') {
         if (aiLoading) return;
@@ -104,12 +118,16 @@
     }
 
     async function checkAiRecommended() {
-        if (!product?.category_id) return;
+        if (!product?.category_id) { console.log('[AI Badge] no category_id on product'); return; }
         try {
             const res = await fetch(`/api/v1/ai/recommended/${product.category_id}`);
             const json = await res.json();
-            if (json.success && json.data?.product_id === product.id) isAiRecommended = true;
-        } catch(e) { /* silent */ }
+            console.log('[AI Badge] product:', product.id, 'category:', product.category_id, 'recommended:', json.data?.product_id);
+            if (json.success && json.data?.product_id === product.id) {
+                isAiRecommended = true;
+                console.log('[AI Badge] THIS product is AI recommended!');
+            }
+        } catch(e) { console.error('[AI Badge] error:', e); }
     }
     
     $: mainImage = images[currentImageIndex] || product?.image_url || '';
@@ -155,6 +173,7 @@
         isWishlisted = wishlist.includes(product?.id);
         isCompared = compare.includes(product?.id);
         checkAiRecommended();
+        fetchProductRank();
         
         // Sticky bar — reliable show/hide
         let stickyShown = false;
@@ -238,21 +257,32 @@
             <div class="mp-info">
                 <div class="mp-info__title-row">
                     <h1 class="mp-info__title">{product.title}</h1>
-                    {#if isAiRecommended}
-                    <span class="mp-info__ai-badge">
-                        <span class="mp-info__ai-icon-wrap">
-                            <svg viewBox="0 0 16 16" width="11" height="11" fill="#fff"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
-                            <span class="mp-info__ai-orb"></span>
+                    <div class="mp-info__badges">
+                        {#if isAiRecommended}
+                        <span class="mp-info__ai-badge">
+                            <span class="mp-info__ai-icon-wrap">
+                                <svg viewBox="0 0 16 16" width="11" height="11" fill="#fff"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
+                                <span class="mp-info__ai-orb"></span>
+                            </span>
+                            AI odporúča
                         </span>
-                        AI odporúča
-                    </span>
-                    {/if}
-                    {#if product.top_rank && product.top_rank <= 2}
-                    <span class="mp-info__top-badge">
-                        <svg viewBox="0 0 24 24" fill="#fff" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        TOP {product.top_rank}
-                    </span>
-                    {/if}
+                        {/if}
+                        {#if productRank === 1}
+                        <span class="mp-info__rank-badge mp-info__rank-badge--gold">
+                            <svg viewBox="0 0 24 24" fill="#fff" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            #1 Najlepšia voľba
+                        </span>
+                        {:else if productRank > 1 && productRank <= 3}
+                        <span class="mp-info__rank-badge mp-info__rank-badge--blue">
+                            <svg viewBox="0 0 24 24" fill="#fff" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            #{productRank} Obľúbený produkt
+                        </span>
+                        {:else if productRank > 3 && productRank <= 10}
+                        <span class="mp-info__rank-badge mp-info__rank-badge--warm">
+                            #{productRank} v kategórii
+                        </span>
+                        {/if}
+                    </div>
                 </div>
                 
                 {#if product.description}
@@ -906,7 +936,7 @@
     min-width: 0;
 }
 
-.mp-info__title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+.mp-info__title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .mp-info__title {
     font-size: 22px;
     font-weight: 600;
@@ -932,6 +962,11 @@
 }
 
 /* AI Recommended Badge - Orbit Core style */
+.mp-info__badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+.mp-info__rank-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; white-space: nowrap; color: #fff; }
+.mp-info__rank-badge--gold { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+.mp-info__rank-badge--blue { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
+.mp-info__rank-badge--warm { background: #fef3c7; color: #92400e; font-weight: 600; font-size: 11px; padding: 4px 10px; }
 .mp-info__ai-badge {
     display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
     padding: 4px 12px 4px 6px; border-radius: 12px;
