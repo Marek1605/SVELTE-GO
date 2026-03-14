@@ -65,21 +65,8 @@
     let aiReviewData = null;
     let aiReviewLoading = false;
     let aiReviewLoaded = false;
-    let isAiRecommended = false;
-    let productRank = 0;
-
-    async function fetchProductRank() {
-        if (!product?.category_id) return;
-        try {
-            const slug = product.category_slug || '';
-            if (!slug) return;
-            const res = await fetch(`/api/v1/categories/${slug}`);
-            const json = await res.json();
-            const prods = json?.data?.products || json?.products || [];
-            const idx = prods.findIndex(p => p.id === product.id);
-            if (idx >= 0) productRank = idx + 1;
-        } catch(e) { /* silent */ }
-    }
+    let isAiRecommended = data.isAiRecommended || false;
+    let productRank = data.productRank || 0;
 
     async function aiChat(question, action = 'chat') {
         if (aiLoading) return;
@@ -117,18 +104,6 @@
         aiReviewLoaded = true;
     }
 
-    async function checkAiRecommended() {
-        if (!product?.category_id) { console.log('[AI Badge] no category_id on product'); return; }
-        try {
-            const res = await fetch(`/api/v1/ai/recommended/${product.category_id}`);
-            const json = await res.json();
-            console.log('[AI Badge] product:', product.id, 'category:', product.category_id, 'recommended:', json.data?.product_id);
-            if (json.success && json.data?.product_id === product.id) {
-                isAiRecommended = true;
-                console.log('[AI Badge] THIS product is AI recommended!');
-            }
-        } catch(e) { console.error('[AI Badge] error:', e); }
-    }
     
     $: mainImage = images[currentImageIndex] || product?.image_url || '';
     $: lowestPrice = product?.price_min || product?.price || 0;
@@ -172,8 +147,6 @@
         const compare = JSON.parse(localStorage.getItem('mp_compare') || '[]');
         isWishlisted = wishlist.includes(product?.id);
         isCompared = compare.includes(product?.id);
-        checkAiRecommended();
-        fetchProductRank();
         
         // Sticky bar — reliable show/hide
         let stickyShown = false;
