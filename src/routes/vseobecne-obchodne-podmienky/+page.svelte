@@ -91,7 +91,7 @@
                 <div class="legal-meta">
                     <span>Platné od: <strong>1. januára 2025</strong></span>
                     <span class="meta-sep">·</span>
-                    <span>Aktualizované: <strong>4. marca 2026</strong></span>
+                    <span>Aktualizované: <strong>14. marca 2026</strong></span>
                 </div>
             </div>
 
@@ -247,10 +247,61 @@
 
             <!-- Článok 10 -->
             <section id="cl10">
-                <h2>Článok 10 – Ochrana duševného vlastníctva</h2>
-                <p>10.1 Inzerent udeľuje Prevádzkovateľovi bezodplatnú, nevýhradnú licenciu na používanie produktových fotografií, názvov, popisov a iného obsahu obsiahnutého v XML feede na účely zobrazenia na Portáli.</p>
-                <p>10.2 Inzerent zodpovedá za to, že obsah XML feedu neporušuje práva duševného vlastníctva tretích osôb. V prípade nárokov tretích osôb vyplývajúcich z porušenia práv obsahom feedu Inzerent odškodní Prevádzkovateľa.</p>
-                <p>10.3 Prevádzkovateľ je vlastníkom všetkých práv k Portálu, jeho dizajnu, zdrojovému kódu, databáze a ostatným prvkom.</p>
+                <h2>Článok 10 – Ochrana duševného vlastníctva a zodpovednosť za obsah feedu</h2>
+
+                <h3>10.1 Licencia na obsah XML feedu</h3>
+                <p>Ak sú predmetom XML feedu akékoľvek informácie, ktoré možno považovať za autorské dielo v zmysle zákona č. 185/2015 Z. z. (Autorský zákon), a to vrátane, ale nie výlučne, produktových fotografií, obrázkov, grafík, popisov, textov, log a iného obsahu (ďalej len „Dielo"), Inzerent udeľuje Prevádzkovateľovi nevýhradnú, bezodplatnú, časovo a miestne neobmedzenú licenciu na:</p>
+                <ul>
+                    <li>Sprístupňovanie Diela tretím osobám (návštevníkom Portálu) prostredníctvom Portálu</li>
+                    <li>Rozmnožovanie Diela na účely technického spracovania, indexácie, ukladania do vyrovnávacej pamäte (cache) a zálohovania</li>
+                    <li>Zaradenie Diela do súborného diela (databázy produktov Portálu)</li>
+                    <li>Použitie Diela na komerčné účely, vrátane zobrazenia v rámci plateného porovnávania cien</li>
+                    <li>Použitie Diela v propagačných materiáloch, článkoch, newsletteroch a na sociálnych sieťach Prevádzkovateľa</li>
+                    <li>Úpravu, zmenu veľkosti, orezanie a iné technické úpravy Diela na účely optimálneho zobrazenia na Portáli</li>
+                </ul>
+                <p>Dielo môže byť použité bez uvedenia autora alebo zdroja.</p>
+
+                <div class="highlight-box warn">
+                    <span class="material-icons-round" style="color:#dc2626">gavel</span>
+                    <div>
+                        <strong>10.2 Vyhlásenie a záruka Inzerenta</strong><br>
+                        Inzerent výslovne vyhlasuje a zaručuje, že je oprávnený udeliť licenciu a práva podľa bodu 10.1 týchto VOP, a to ku všetkým Dielam obsiahnutým v XML feede — vrátane všetkých produktových fotografií a obrázkov. Inzerent potvrdzuje, že disponuje potrebnými autorskými právami, licenciami alebo súhlasmi od nositeľov práv na použitie všetkých obrázkov a iného obsahu, ktorý poskytuje v XML feede.
+                    </div>
+                </div>
+
+                <div class="highlight-box warn">
+                    <span class="material-icons-round" style="color:#dc2626">shield</span>
+                    <div>
+                        <strong>10.3 Odškodnenie (indemnifikácia)</strong><br>
+                        V prípade, že sa vyhlásenie Inzerenta podľa bodu 10.2 ukáže ako nepravdivé alebo zavádzajúce, Inzerent sa zaväzuje nahradiť Prevádzkovateľovi akúkoľvek tým spôsobenú škodu a náklady, a to najmä vo forme:
+                    </div>
+                </div>
+                <ul>
+                    <li>Náhrady škody a ušlého zisku</li>
+                    <li>Licenčných poplatkov alebo autorskej odmeny, ktorú si oprávnene uplatní nositeľ práv</li>
+                    <li>Bezdôvodného obohatenia za neoprávnené použitie Diela</li>
+                    <li>Nákladov na právne zastúpenie a súdne trovy</li>
+                    <li>Akýchkoľvek pokút, penále alebo iných sankcií uložených Prevádzkovateľovi v súvislosti s porušením autorských práv obsahom XML feedu Inzerenta</li>
+                </ul>
+                <p>Táto povinnosť Inzerenta na odškodnenie platí bez ohľadu na to, či Prevádzkovateľ o porušení práv vedel alebo vedieť mohol.</p>
+
+                <h3>10.4 Automatické zobrazovanie obsahu feedu</h3>
+                <p>Inzerent berie na vedomie, že obsah XML feedu (vrátane obrázkov) je na Portáli zobrazovaný automaticky prostredníctvom automatizovaného systému bez predchádzajúcej manuálnej kontroly zo strany Prevádzkovateľa. Prevádzkovateľ nie je povinný overovať licenčný status obrázkov ani iného obsahu dodávaného Inzerentom v XML feede.</p>
+
+                <h3>10.5 Postup pri nahlásení porušenia práv (Notice & Takedown)</h3>
+                <p>Ak Prevádzkovateľ obdrží od nositeľa autorských práv alebo jeho zástupcu (napr. CopyTrack, PicRights, Pixsy alebo iného) oznámenie o porušení autorských práv k obsahu pochádzajúcemu z XML feedu Inzerenta:</p>
+                <ul>
+                    <li>Prevádzkovateľ je oprávnený bezodkladne odstrániť alebo znneprístupniť sporný obsah bez predchádzajúceho upozornenia Inzerenta</li>
+                    <li>Prevádzkovateľ bezodkladne informuje Inzerenta o prijatom oznámení a postúpi mu všetky relevantné podklady</li>
+                    <li>Inzerent je povinný v lehote 5 pracovných dní reagovať a poskytnúť Prevádzkovateľovi dôkaz o oprávnení na použitie sporného obsahu alebo potvrdiť jeho odstránenie zo svojho XML feedu</li>
+                    <li>Akékoľvek finančné nároky vznesené nositeľom práv voči Prevádzkovateľovi v súvislosti s obsahom XML feedu Inzerenta znáša výlučne Inzerent v zmysle bodu 10.3</li>
+                </ul>
+
+                <h3>10.6 Zakázaný obsah</h3>
+                <p>Inzerent nesmie do XML feedu zaraďovať obrázky a iný obsah, ktorý porušuje autorské práva, práva k ochranným známkam, označeniu pôvodu alebo iné práva duševného vlastníctva tretích osôb. Porušenie tohto ustanovenia sa považuje za závažné porušenie VOP v zmysle článku 11.3.</p>
+
+                <h3>10.7 Duševné vlastníctvo Prevádzkovateľa</h3>
+                <p>Prevádzkovateľ je vlastníkom všetkých práv k Portálu, jeho dizajnu, zdrojovému kódu, databáze, algoritmom a ostatným prvkom. Akékoľvek použitie obsahu Portálu bez predchádzajúceho písomného súhlasu Prevádzkovateľa je zakázané.</p>
             </section>
 
             <!-- Článok 11 -->
@@ -350,6 +401,8 @@
     .highlight-box { display: flex; gap: 12px; padding: 14px 18px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; margin: 14px 0; align-items: flex-start; }
     .highlight-box div { font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.6; color: #92400e; }
     .highlight-box strong { font-weight: 700; }
+    .highlight-box.warn { background: #fef2f2; border-color: #fecaca; }
+    .highlight-box.warn div { color: #991b1b; }
     
     /* Definition list */
     .def-list { margin: 0; padding: 0; }
