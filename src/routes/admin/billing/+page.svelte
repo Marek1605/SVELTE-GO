@@ -1,9 +1,8 @@
 <script>
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
+    import { adminFetch } from '$lib/adminApi.js';
     
-    const API_BASE = browser ? window.location.origin + '/api/v1' : '';
-    let token = '';
     let loading = true;
     let saving = false;
     let message = null;
@@ -26,23 +25,14 @@
     
     onMount(async () => {
         if (!browser) return;
-        token = localStorage.getItem('admin_token') || '';
         await loadSettings();
         await loadTopups();
         loading = false;
     });
     
-    async function adminFetch(path, opts = {}) {
-        const res = await fetch(API_BASE + '/admin' + path, {
-            ...opts,
-            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...(opts.headers || {}) }
-        });
-        return res.json();
-    }
-    
     async function loadSettings() {
         try {
-            const res = await adminFetch('/billing-settings');
+            const res = await adminFetch('/admin/billing-settings');
             if (res.success && res.data) settings = { ...settings, ...res.data };
         } catch (e) { console.error(e); }
     }
@@ -50,7 +40,7 @@
     async function saveSettings() {
         saving = true; message = null;
         try {
-            const res = await adminFetch('/billing-settings', { method: 'POST', body: JSON.stringify(settings) });
+            const res = await adminFetch('/admin/billing-settings', { method: 'POST', body: JSON.stringify(settings) });
             message = res.success ? { type: 'success', text: 'Nastavenia uložené ✓' } : { type: 'error', text: res.error || 'Chyba' };
         } catch (e) { message = { type: 'error', text: 'Chyba pri ukladaní' }; }
         saving = false;
@@ -59,7 +49,7 @@
     async function testConnection() {
         testResult = null;
         try {
-            const res = await adminFetch('/billing-settings/test', { method: 'POST' });
+            const res = await adminFetch('/admin/billing-settings/test', { method: 'POST' });
             testResult = res.success ? { type: 'success', text: res.message } : { type: 'error', text: res.error };
         } catch (e) { testResult = { type: 'error', text: 'Chyba pripojenia' }; }
     }
@@ -67,7 +57,7 @@
     async function loadTopups() {
         topupLoading = true;
         try {
-            const res = await adminFetch('/topups?status=' + topupFilter);
+            const res = await adminFetch('/admin/topups?status=' + topupFilter);
             if (res.success) { topups = res.data || []; topupStats = res.stats || topupStats; }
         } catch (e) { console.error(e); }
         topupLoading = false;
@@ -76,7 +66,7 @@
     async function markPaid(topupId) {
         if (!confirm('Naozaj chcete potvrdiť platbu? Kredit bude pridaný vendorovi.')) return;
         try {
-            const res = await adminFetch('/topups/' + topupId + '/mark-paid', { method: 'POST' });
+            const res = await adminFetch('/admin/topups/' + topupId + '/mark-paid', { method: 'POST' });
             if (res.success) {
                 message = { type: 'success', text: res.message };
                 await loadTopups();
@@ -89,7 +79,7 @@
     async function cancelTopup(topupId) {
         if (!confirm('Zrušiť tento topup?')) return;
         try {
-            const res = await adminFetch('/topups/' + topupId + '/cancel', { method: 'POST' });
+            const res = await adminFetch('/admin/topups/' + topupId + '/cancel', { method: 'POST' });
             if (res.success) await loadTopups();
         } catch (e) {}
     }

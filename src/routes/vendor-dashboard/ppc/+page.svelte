@@ -385,19 +385,6 @@
                 <div class="ppc-bank-notice">
                     Využitím platby prostredníctvom bankového prevodu sa vám dobitý kredit načíta na váš MegaBuy účet až po uhradení automaticky vygenerovanej zálohovej faktúry, ktorú dostanete na e-mail uvedený vo fakturačných údajoch. PPC systém môžete naplno využívať až po pripísaní čiastky na náš bankový účet, čo môže trvať až 3 pracovné dni. <strong>Navýšenie kreditu pred pripísaním platby na náš bankový účet nie je možné.</strong>
                 </div>
-
-                {#if myShops.length > 0}
-                <div class="ppc-billing-section">
-                    <h4>Fakturačné údaje</h4>
-                    <select class="ppc-billing-select" bind:value={selectedShopId}>
-                        {#each myShops as s}
-                            <option value={s.id}>
-                                Obchod: {s.shop_name} | {vendor?.company_name || ''}, {vendor?.address || ''}, {vendor?.city || ''}, {vendor?.zip || ''}{vendor?.ico ? ', IČ: ' + vendor.ico : ''}{vendor?.ic_dph ? ', IČ DPH: ' + vendor.ic_dph : ''}
-                            </option>
-                        {/each}
-                    </select>
-                </div>
-                {/if}
                 
                 <h3>Vyberte si balík kreditu</h3>
                 <div class="ppc-packages">
@@ -446,19 +433,6 @@
                     {/if}
                 </div>
                 
-                {#if myShops.length > 0}
-                <div class="ppc-billing-select">
-                    <h4>Fakturačné údaje</h4>
-                    <select bind:value={selectedShopId} class="ppc-billing-dropdown">
-                        {#each myShops as s}
-                            <option value={s.id}>
-                                Obchod: {s.shop_name} | {vendor?.company_name || vendor?.contact_person || ''}, {vendor?.address || ''}, {vendor?.city || ''}, {vendor?.zip || ''}{vendor?.ico ? `, IČ: ${vendor.ico}` : ''}{vendor?.ic_dph ? `, IČ DPH: ${vendor.ic_dph}` : ''}
-                            </option>
-                        {/each}
-                    </select>
-                </div>
-                {/if}
-
                 <div class="ppc-payment-method">
                     <h4>Spôsob platby</h4>
                     <div class="ppc-payment-options">
@@ -476,6 +450,19 @@
                         {/if}
                     </div>
                 </div>
+
+                {#if myShops.length > 0}
+                <div class="ppc-billing-section">
+                    <h4>Fakturačné údaje</h4>
+                    <select class="ppc-billing-select" bind:value={selectedShopId}>
+                        {#each myShops as s}
+                            <option value={s.id}>
+                                Obchod: {s.shop_name} | {vendor?.company_name || vendor?.contact_person || ''}, {vendor?.address || ''}, {vendor?.city || ''}, {vendor?.zip || ''}{vendor?.ico ? `, IČ: ${vendor.ico}` : ''}{vendor?.ic_dph ? `, IČ DPH: ${vendor.ic_dph}` : ''}
+                            </option>
+                        {/each}
+                    </select>
+                </div>
+                {/if}
                 
                 <button class="ppc-submit-btn" on:click={requestTopup} disabled={loading || (!selectedPackage && !useCustom) || (useCustom && Number(customAmount) < 5)}>
                     {loading ? 'Spracovávam...' : `Prejsť na platbu ${selectedAmount > 0 ? selectedAmount + ' €' : ''}`}
