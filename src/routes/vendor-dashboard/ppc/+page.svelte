@@ -320,7 +320,6 @@
                             Po dobití: <strong>{formatNumber(currentCredit + Number(customAmount) + customBonusAmount, 2)} €</strong>
                         </div>
                     {/if}
-                    </div>
                 </div>
                 
                 <div class="ppc-payment-method">
