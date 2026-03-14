@@ -104,6 +104,7 @@
         aiReviewLoaded = true;
     }
 
+    // AI recommended and rank come from server via data.isAiRecommended and data.productRank
     
     $: mainImage = images[currentImageIndex] || product?.image_url || '';
     $: lowestPrice = product?.price_min || product?.price || 0;
@@ -917,7 +918,13 @@
     line-height: 1.4;
     margin-bottom: 0;
     flex: 1;
+    min-width: 200px;
 }
+.mp-info__badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+.mp-info__rank-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; white-space: nowrap; color: #fff; flex-shrink: 0; }
+.mp-info__rank-badge--gold { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+.mp-info__rank-badge--blue { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
+.mp-info__rank-badge--warm { background: #fef3c7; color: #92400e; font-weight: 600; }
 .mp-info__top-badge {
     display: inline-flex;
     align-items: center;
@@ -935,11 +942,6 @@
 }
 
 /* AI Recommended Badge - Orbit Core style */
-.mp-info__badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
-.mp-info__rank-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; white-space: nowrap; color: #fff; }
-.mp-info__rank-badge--gold { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
-.mp-info__rank-badge--blue { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
-.mp-info__rank-badge--warm { background: #fef3c7; color: #92400e; font-weight: 600; font-size: 11px; padding: 4px 10px; }
 .mp-info__ai-badge {
     display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
     padding: 4px 12px 4px 6px; border-radius: 12px;
