@@ -15,6 +15,8 @@
     let selectedPackage = null;
     let paymentMethod = 'bank_transfer';
     let message = null;
+    let myShops = [];
+    let selectedShopId = '';
     
     // Payment settings from admin
     let paymentSettings = {
@@ -52,6 +54,8 @@
     
     let customAmount = '';
     let useCustom = false;
+    let showPaymentPage = false;
+    let paymentData = null;
     $: customBonus = Number(customAmount) >= 200 ? 20 : Number(customAmount) >= 100 ? 15 : Number(customAmount) >= 50 ? 10 : Number(customAmount) >= 25 ? 5 : 0;
     $: customBonusAmount = Math.round(Number(customAmount) * customBonus / 100);
     $: selectedAmount = useCustom ? Number(customAmount) : (selectedPackage?.amount || 0);
@@ -60,8 +64,21 @@
     
     onMount(async () => {
         if (!browser) return;
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentSettings()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentSettings(), loadMyShops()]);
+        if (myShops.length > 0 && !selectedShopId) selectedShopId = myShops[0].id;
     });
+    
+    async function loadMyShops() {
+        const token = localStorage.getItem('vendor_token');
+        if (!token) return;
+        try {
+            const res = await fetch(`${API_BASE}/vendor/my-shops`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success && data.data) myShops = data.data;
+        } catch (e) { console.error(e); }
+    }
+    
+    $: selectedShopBilling = myShops.find(s => s.id === selectedShopId);
     
     async function loadPaymentSettings() {
         const token = localStorage.getItem('vendor_token');
@@ -118,34 +135,51 @@
     }
     
     async function requestTopup() {
-        if (!selectedPackage) {
-            message = { type: 'error', text: 'Vyberte balík kreditu' };
+        if (!selectedPackage && !useCustom) {
+            message = { type: 'error', text: 'Vyberte balík kreditu alebo zadajte vlastnú čiastku' };
+            return;
+        }
+        if (useCustom && Number(customAmount) < 5) {
+            message = { type: 'error', text: 'Minimálna suma je 5 €' };
             return;
         }
         
         loading = true;
         const token = localStorage.getItem('vendor_token');
         
+        const amount = useCustom ? Number(customAmount) : selectedPackage.amount;
+        const bonusPct = useCustom ? customBonus : selectedPackage.bonusPct;
+        const bonusAmt = useCustom ? customBonusAmount : Math.round(selectedPackage.amount * selectedPackage.bonusPct / 100);
+        const totalCred = amount + bonusAmt;
+        
         try {
-            const res = await fetch(`${API_BASE}/vendor/credit/topup`, {
+            const res = await fetch(`${API_BASE}/vendor/credit/topup-v2`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    package_id: selectedPackage.id,
-                    amount: selectedPackage.amount,
-                    bonus: selectedPackage.bonus,
-                    payment_method: paymentMethod
+                    amount: amount,
+                    bonus_pct: bonusPct,
+                    bonus_amount: bonusAmt,
+                    total_credit: totalCred,
+                    payment_method: paymentMethod,
+                    shop_id: selectedShopId || undefined
                 })
             });
             const data = await res.json();
             
             if (data.success) {
-                message = { type: 'success', text: 'Žiadosť o dobíjanie bola odoslaná. Po prijatí platby bude kredit pripísaný.' };
-                selectedPackage = null;
-                await loadTransactions();
+                paymentData = {
+                    topup_id: data.topup_id,
+                    amount: amount,
+                    bonus_pct: bonusPct,
+                    bonus_amount: bonusAmt,
+                    total_credit: totalCred,
+                    ...data.payment
+                };
+                showPaymentPage = true;
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri odosielaní žiadosti' };
             }
@@ -268,12 +302,102 @@
     <!-- Tab Content -->
     <div class="ppc-tab-content">
         {#if activeTab === 'topup'}
+            {#if showPaymentPage && paymentData}
+            <!-- PAYMENT PAGE -->
+            <div class="ppc-payment-page">
+                <button class="ppc-back-btn" on:click={() => { showPaymentPage = false; paymentData = null; }}>← Späť na výber</button>
+                
+                <div class="ppc-payment-summary">
+                    <div class="ppc-payment-icon">🏦</div>
+                    <h3>Platobné údaje</h3>
+                    <p class="ppc-payment-subtitle">Uhraďte nasledujúcu sumu bankovým prevodom</p>
+                </div>
+
+                <div class="ppc-payment-details">
+                    <div class="ppc-payment-amount-box">
+                        <span class="ppc-payment-label-sm">Suma na úhradu</span>
+                        <span class="ppc-payment-amount-big">{formatNumber(paymentData.amount, 2)} €</span>
+                        {#if paymentData.bonus_pct > 0}
+                            <span class="ppc-payment-bonus-info">+ {paymentData.bonus_pct}% bonus = {formatNumber(paymentData.total_credit, 2)} € kredit</span>
+                        {/if}
+                    </div>
+
+                    <div class="ppc-payment-bank-details">
+                        <div class="ppc-bank-row">
+                            <span class="ppc-bank-label">Názov účtu</span>
+                            <span class="ppc-bank-value">{paymentData.bank_account_name || 'Megabuy s.r.o.'}</span>
+                        </div>
+                        <div class="ppc-bank-row">
+                            <span class="ppc-bank-label">IBAN</span>
+                            <span class="ppc-bank-value ppc-iban">{paymentData.bank_iban || '—'}</span>
+                            <button class="ppc-copy-btn" on:click={() => { navigator.clipboard.writeText(paymentData.bank_iban); }}>📋</button>
+                        </div>
+                        <div class="ppc-bank-row">
+                            <span class="ppc-bank-label">SWIFT/BIC</span>
+                            <span class="ppc-bank-value">{paymentData.bank_swift || 'TATRSKBX'}</span>
+                        </div>
+                        <div class="ppc-bank-row">
+                            <span class="ppc-bank-label">Banka</span>
+                            <span class="ppc-bank-value">{paymentData.bank_name || 'Tatra banka'}</span>
+                        </div>
+                        <div class="ppc-bank-row highlight">
+                            <span class="ppc-bank-label">Variabilný symbol</span>
+                            <span class="ppc-bank-value ppc-vs">{paymentData.variable_symbol}</span>
+                            <button class="ppc-copy-btn" on:click={() => { navigator.clipboard.writeText(paymentData.variable_symbol); }}>📋</button>
+                        </div>
+                        <div class="ppc-bank-row">
+                            <span class="ppc-bank-label">Suma</span>
+                            <span class="ppc-bank-value">{formatNumber(paymentData.amount, 2)} €</span>
+                        </div>
+                    </div>
+
+                    {#if paymentData.bank_iban}
+                    <div class="ppc-qr-section">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=SPD*1.0*ACC:{paymentData.bank_iban.replace(/\s/g,'')}*AM:{paymentData.amount}*CC:EUR*X-VS:{paymentData.variable_symbol}*MSG:MegaBuy+kredit" alt="QR platba" class="ppc-qr-img" />
+                        <p class="ppc-qr-label">Naskenujte QR kód v bankovej aplikácii</p>
+                    </div>
+                    {/if}
+
+                    {#if paymentData.sf_proforma_no}
+                    <div class="ppc-proforma-info">
+                        Zálohová faktúra <strong>{paymentData.sf_proforma_no}</strong> bola odoslaná na váš e-mail.
+                    </div>
+                    {/if}
+
+                    <div class="ppc-payment-notice">
+                        <strong>ℹ️ Dôležité informácie</strong>
+                        <p>Kredit bude pripísaný na váš účet po uhradení zálohovej faktúry a pripísaní platby na náš bankový účet. Spracovanie trvá zvyčajne 1–3 pracovné dni.</p>
+                        <p>Po pripísaní platby vám bude automaticky vystavená riadna faktúra a odoslaná na váš e-mail.</p>
+                        <p>Navýšenie kreditu pred pripísaním platby na náš účet nie je možné.</p>
+                    </div>
+                </div>
+            </div>
+
+            {:else}
+            <!-- TOPUP FORM -->
             <div class="ppc-topup">
                 <!-- Aktuálny kredit info - zvýraznené pri dobíjaní -->
                 <div class="ppc-current-credit-info">
                     <span class="ppc-cci-label">Aktuálny kredit:</span>
                     <span class="ppc-cci-value" class:low={currentCredit < 5}>{formatNumber(currentCredit, 2)} €</span>
                 </div>
+
+                <div class="ppc-bank-notice">
+                    Využitím platby prostredníctvom bankového prevodu sa vám dobitý kredit načíta na váš MegaBuy účet až po uhradení automaticky vygenerovanej zálohovej faktúry, ktorú dostanete na e-mail uvedený vo fakturačných údajoch. PPC systém môžete naplno využívať až po pripísaní čiastky na náš bankový účet, čo môže trvať až 3 pracovné dni. <strong>Navýšenie kreditu pred pripísaním platby na náš bankový účet nie je možné.</strong>
+                </div>
+
+                {#if myShops.length > 0}
+                <div class="ppc-billing-section">
+                    <h4>Fakturačné údaje</h4>
+                    <select class="ppc-billing-select" bind:value={selectedShopId}>
+                        {#each myShops as s}
+                            <option value={s.id}>
+                                Obchod: {s.shop_name} | {vendor?.company_name || ''}, {vendor?.address || ''}, {vendor?.city || ''}, {vendor?.zip || ''}{vendor?.ico ? ', IČ: ' + vendor.ico : ''}{vendor?.ic_dph ? ', IČ DPH: ' + vendor.ic_dph : ''}
+                            </option>
+                        {/each}
+                    </select>
+                </div>
+                {/if}
                 
                 <h3>Vyberte si balík kreditu</h3>
                 <div class="ppc-packages">
@@ -282,7 +406,7 @@
                             class="ppc-package" 
                             class:selected={!useCustom && selectedPackage?.id === pkg.id}
                             class:popular={pkg.popular}
-                            on:click={() => { selectedPackage = pkg; useCustom = false; }}
+                            on:click={() => { selectedPackage = pkg; useCustom = false; customAmount = ''; }}
                         >
                             {#if pkg.popular}
                                 <span class="ppc-package-badge">Najobľúbenejší</span>
@@ -322,6 +446,19 @@
                     {/if}
                 </div>
                 
+                {#if myShops.length > 0}
+                <div class="ppc-billing-select">
+                    <h4>Fakturačné údaje</h4>
+                    <select bind:value={selectedShopId} class="ppc-billing-dropdown">
+                        {#each myShops as s}
+                            <option value={s.id}>
+                                Obchod: {s.shop_name} | {vendor?.company_name || vendor?.contact_person || ''}, {vendor?.address || ''}, {vendor?.city || ''}, {vendor?.zip || ''}{vendor?.ico ? `, IČ: ${vendor.ico}` : ''}{vendor?.ic_dph ? `, IČ DPH: ${vendor.ic_dph}` : ''}
+                            </option>
+                        {/each}
+                    </select>
+                </div>
+                {/if}
+
                 <div class="ppc-payment-method">
                     <h4>Spôsob platby</h4>
                     <div class="ppc-payment-options">
@@ -364,6 +501,7 @@
                     </div>
                 {/if}
             </div>
+            {/if}
             
         {:else if activeTab === 'mode'}
             <div class="ppc-mode">
@@ -729,9 +867,53 @@
     .ppc-tx-amount.positive { color: #10b981; font-weight: 600; }
     .ppc-tx-amount.negative { color: #ef4444; font-weight: 600; }
     
+    /* Payment Page */
+    .ppc-bank-notice { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #78716c; line-height: 1.6; margin-bottom: 16px; }
+    .ppc-bank-notice strong { color: #92400e; }
+    .ppc-billing-section { margin-bottom: 16px; }
+    .ppc-billing-section h4 { font-size: 13px; font-weight: 600; color: #374151; margin: 0 0 6px; }
+    .ppc-billing-select { width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #1f2937; background: #fff; cursor: pointer; transition: border-color 0.2s; }
+    .ppc-billing-select:focus { border-color: #c4956a; outline: none; box-shadow: 0 0 0 3px rgba(196,149,106,0.12); }
+    .ppc-payment-page { max-width: 560px; }
+    .ppc-back-btn { background: none; border: none; color: #6b7280; font-size: 13px; cursor: pointer; padding: 0; margin-bottom: 16px; display: flex; align-items: center; gap: 4px; }
+    .ppc-back-btn:hover { color: #c4956a; }
+    .ppc-payment-summary { text-align: center; margin-bottom: 24px; }
+    .ppc-payment-icon { font-size: 36px; margin-bottom: 8px; }
+    .ppc-payment-summary h3 { font-size: 20px; font-weight: 700; margin: 0 0 4px; color: #1f2937; }
+    .ppc-payment-subtitle { font-size: 13px; color: #6b7280; margin: 0; }
+    
+    .ppc-payment-amount-box { text-align: center; padding: 16px; background: #f8fafc; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+    .ppc-payment-label-sm { font-size: 11px; color: #6b7280; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .ppc-payment-amount-big { font-size: 32px; font-weight: 800; color: #1f2937; display: block; }
+    .ppc-payment-bonus-info { font-size: 12px; color: #059669; display: block; margin-top: 4px; }
+    
+    .ppc-payment-bank-details { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+    .ppc-bank-row { display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid #f1f5f9; }
+    .ppc-bank-row:last-child { border-bottom: none; }
+    .ppc-bank-row.highlight { background: #fffbeb; }
+    .ppc-bank-label { font-size: 12px; color: #6b7280; width: 130px; flex-shrink: 0; }
+    .ppc-bank-value { font-size: 13px; font-weight: 600; color: #1f2937; flex: 1; }
+    .ppc-iban { font-family: monospace; letter-spacing: 1px; font-size: 12px; }
+    .ppc-vs { font-family: monospace; font-size: 15px; color: #b45309; }
+    .ppc-copy-btn { background: none; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 11px; flex-shrink: 0; }
+    .ppc-copy-btn:hover { background: #f1f5f9; }
+    
+    .ppc-qr-section { text-align: center; margin-bottom: 20px; padding: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; }
+    .ppc-qr-img { width: 180px; height: 180px; margin: 0 auto; display: block; border-radius: 8px; }
+    .ppc-qr-label { font-size: 11px; color: #6b7280; margin: 10px 0 0; }
+    
+    .ppc-proforma-info { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #16a34a; margin-bottom: 16px; text-align: center; }
+    
+    .ppc-payment-notice { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+    .ppc-payment-notice strong { font-size: 13px; color: #1f2937; display: block; margin-bottom: 8px; }
+    .ppc-payment-notice p { font-size: 12px; color: #6b7280; margin: 0 0 6px; line-height: 1.5; }
+    .ppc-payment-notice p:last-child { margin-bottom: 0; }
+
     @media (max-width: 768px) {
         .ppc-tabs { overflow-x: auto; }
         .ppc-payment-options { flex-direction: column; }
         .ppc-packages { grid-template-columns: repeat(2, 1fr); }
+        .ppc-bank-label { width: 100px; font-size: 11px; }
+        .ppc-payment-amount-big { font-size: 26px; }
     }
 </style>

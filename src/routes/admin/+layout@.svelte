@@ -82,6 +82,7 @@
             { href: '/admin/vendor-offers', label: 'Ponuky vendorov', icon: '🏪' },
             { href: '/admin/vendor-requests', label: 'Žiadosti vendorov', icon: '📩' },
             { href: '/admin/offers', label: 'Feedy predajcov', icon: '📋' },
+            { href: '/admin/billing', label: 'Fakturácia & Kredit', icon: '💰' },
         ]},
         { key: 'tools', label: 'Import & AI', items: [
             { href: '/admin/feeds', label: 'Feed Import', icon: '📥' },
