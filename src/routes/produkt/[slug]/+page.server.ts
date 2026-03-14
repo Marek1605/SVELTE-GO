@@ -52,30 +52,49 @@ export async function load({ params }) {
             else if (settingsResult?.price_style) priceStyle = settingsResult.price_style;
         } catch (e) {}
         
-        // Load product rank in category (server-side = reliable)
+        // Determine category_id from any available field
+        const categoryId = product.category_id || product.categoryId || product.CategoryID || '';
+        
         let productRank = 0;
         let isAiRecommended = false;
         
-        if (product.category_id) {
-            // Get AI recommended for this category
+        if (categoryId) {
+            // Check AI recommended
             try {
-                const aiRes = await api.get(`/ai/recommended/${product.category_id}`);
+                const aiRes = await api.get(`/ai/recommended/${categoryId}`);
                 if (aiRes?.success && aiRes?.data?.product_id === product.id) {
                     isAiRecommended = true;
                 }
             } catch (e) {}
             
-            // Get category products to determine rank
+            // Get rank: load category products and find position
             try {
-                const catSlug = product.category_slug;
+                const catSlug = product.category_slug || product.categorySlug || '';
+                
                 if (catSlug) {
                     const catRes = await api.get(`/categories/${catSlug}`);
-                    const catProducts = catRes?.data?.products || catRes?.products || [];
-                    const idx = catProducts.findIndex(p => p.id === product.id);
-                    if (idx >= 0) productRank = idx + 1;
+                    const catData = catRes?.data || catRes || {};
+                    let catProducts = catData.products || [];
+                    
+                    // API may return products as object/dict, array, or string
+                    if (catProducts && typeof catProducts === 'object' && !Array.isArray(catProducts)) {
+                        // It's a dict/object - convert values to array
+                        catProducts = Object.values(catProducts);
+                    }
+                    if (typeof catProducts === 'string') {
+                        try { catProducts = JSON.parse(catProducts); } catch(e) { catProducts = []; }
+                    }
+                    if (!Array.isArray(catProducts)) {
+                        catProducts = [];
+                    }
+                    
+                    if (catProducts.length > 0) {
+                        const idx = catProducts.findIndex(p => p.id === product.id);
+                        if (idx >= 0) productRank = idx + 1;
+                    }
                 }
             } catch (e) {
-                console.error('Error loading rank:', e);
+                console.error('[product] Error loading rank:', e?.message || e);
             }
         }
         
