@@ -320,7 +320,7 @@
                             Po dobití: <strong>{formatNumber(currentCredit + Number(customAmount) + customBonusAmount, 2)} €</strong>
                         </div>
                     {/if}
-                    <p class="ppc-custom-note">Min. 5 €. Bonus: 25€+ = 5%, 50€+ = 10%, 100€+ = 15%, 200€+ = 20%</p>
+                    </div>
                 </div>
                 
                 <div class="ppc-payment-method">
@@ -620,41 +620,42 @@
     /* Payment */
     .ppc-payment-method { margin: 24px 0; }
     .ppc-payment-method h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
-    .ppc-payment-options { display: flex; gap: 12px; }
+    .ppc-payment-options { display: flex; gap: 10px; }
     
     .ppc-payment-option {
-        flex: 1;
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 16px;
+        gap: 8px;
+        padding: 10px 16px;
         background: #f8fafc;
         border: 2px solid #e5e7eb;
-        border-radius: 10px;
+        border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
+        font-size: 13px;
     }
     
     .ppc-payment-option.selected { border-color: #3b82f6; background: #eff6ff; }
     .ppc-payment-option input { display: none; }
-    .ppc-payment-icon { font-size: 24px; }
-    .ppc-payment-label { font-weight: 500; }
+    .ppc-payment-icon { font-size: 18px; }
+    .ppc-payment-label { font-weight: 500; font-size: 13px; }
     
     .ppc-submit-btn {
+        max-width: 320px;
         width: 100%;
-        padding: 13px;
+        padding: 11px 24px;
         background: linear-gradient(135deg, #c4956a, #b8875c);
         color: white;
         border: none;
-        border-radius: 10px;
-        font-size: 15px;
+        border-radius: 8px;
+        font-size: 14px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
-        box-shadow: 0 3px 12px rgba(196,149,106,0.3);
+        box-shadow: 0 2px 8px rgba(196,149,106,0.25);
     }
     
-    .ppc-submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(196,149,106,0.4); }
+    .ppc-submit-btn:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(196,149,106,0.35); }
     .ppc-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     
     /* Custom amount */

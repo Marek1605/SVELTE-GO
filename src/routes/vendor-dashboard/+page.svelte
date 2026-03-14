@@ -458,26 +458,26 @@
     .mkma-action-btn:hover .material-icons-round { color: #6366f1; }
 
     /* Mode Section — compact, site style */
-    .mkma-mode-section { background: #fff; border: 1px solid #e8ebef; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
-    .mkma-mode-header { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+    .mkma-mode-section { background: #fff; border: 1px solid #e8ebef; border-radius: 10px; padding: 12px; margin-bottom: 16px; }
+    .mkma-mode-header { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
     .mkma-info-icon { background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8; display: flex; }
     .mkma-info-icon:hover { color: #c4956a; }
     .mkma-info-icon .material-icons-round { font-size: 16px; }
-    .mkma-mode-tooltip { background: #faf8f5; border: 1px solid #e8ddd0; border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 12px; color: #6b5e4f; line-height: 1.5; }
+    .mkma-mode-tooltip { background: #faf8f5; border: 1px solid #e8ddd0; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 11px; color: #6b5e4f; line-height: 1.5; }
     .mkma-mode-tooltip p { margin: 0 0 6px; }
     .mkma-mode-tooltip p:last-child { margin: 0; }
     .mkma-mode-tooltip a { color: #c4956a; text-decoration: underline; }
-    .mkma-mode-msg { padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-bottom: 10px; }
+    .mkma-mode-msg { padding: 5px 10px; border-radius: 6px; font-size: 11px; margin-bottom: 8px; }
     .mkma-mode-msg.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
     .mkma-mode-msg.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .mkma-mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .mkma-mode-card { border: 1.5px solid #e8ebef; border-radius: 8px; padding: 12px; transition: all 0.2s; }
-    .mkma-mode-card.active { border-color: #c4956a; background: #faf8f5; }
-    .mkma-mode-card-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-    .mkma-mode-card-top strong { font-size: 13px; color: #1e293b; }
-    .mkma-mode-card-icon { font-size: 16px; }
-    .mkma-mode-card p { font-size: 11px; color: #64748b; margin: 0 0 8px; line-height: 1.3; }
-    .mkma-mode-card-btn { width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; font-size: 12px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.15s; }
+    .mkma-mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mkma-mode-card { border: 1.5px solid #e8ebef; border-radius: 8px; padding: 10px; transition: all 0.2s; }
+    .mkma-mode-card.active { border-color: #c4956a; background: #fdf8f5; }
+    .mkma-mode-card-top { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
+    .mkma-mode-card-top strong { font-size: 12px; color: #1e293b; }
+    .mkma-mode-card-icon { font-size: 14px; }
+    .mkma-mode-card p { font-size: 10px; color: #64748b; margin: 0 0 6px; line-height: 1.3; }
+    .mkma-mode-card-btn { width: 100%; padding: 5px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; font-size: 11px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.15s; }
     .mkma-mode-card-btn:hover:not(:disabled) { border-color: #c4956a; color: #c4956a; }
     .mkma-mode-card-btn.active { background: #c4956a; color: #fff; border-color: #c4956a; cursor: default; }
     .mkma-mode-card-btn.paid:not(.active):hover:not(:disabled) { border-color: #c4956a; color: #b8875c; }
