@@ -82,7 +82,6 @@
             { href: '/admin/vendor-offers', label: 'Ponuky vendorov', icon: '🏪' },
             { href: '/admin/vendor-requests', label: 'Žiadosti vendorov', icon: '📩' },
             { href: '/admin/offers', label: 'Feedy predajcov', icon: '📋' },
-            { href: '/admin/billing', label: 'Fakturácia & Kredit', icon: '💰' },
         ]},
         { key: 'tools', label: 'Import & AI', items: [
             { href: '/admin/feeds', label: 'Feed Import', icon: '📥' },
@@ -93,6 +92,7 @@
             { href: '/admin/settings', label: 'Nastavenia', icon: '⚙️' },
             { href: '/admin/pages', label: 'Stránky', icon: '📄' },
             { href: '/admin/dizajn-ponuk', label: 'Dizajn ponúk', icon: '🎨' },
+            { href: '/admin/badge-settings', label: 'Badge štýly', icon: '🏅' },
         ]},
         { key: 'analytics', label: 'Analytika', items: [
             { href: '/admin/top-produkty', label: 'Rebríčky (TOP)', icon: '🏆' },

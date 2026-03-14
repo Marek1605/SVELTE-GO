@@ -2,6 +2,7 @@
     import { formatPrice } from '$lib/api';
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
+    import { onMount } from 'svelte';
 
     export let data;
 
@@ -17,6 +18,18 @@
     $: currentPage = data.page || 1;
     $: totalPages = data.total_pages || 1;
     $: errorMessage = data.error || null;
+
+    let aiRecommendedId = 0;
+
+    $: if (category?.id) fetchAIRecommended(category.id);
+
+    async function fetchAIRecommended(catId) {
+        try {
+            const res = await fetch(`/api/v1/ai/recommended/${catId}`);
+            const json = await res.json();
+            if (json.success && json.data?.product_id) aiRecommendedId = json.data.product_id;
+        } catch(e) { /* silent */ }
+    }
 
     let minPrice = '';
     let maxPrice = '';
@@ -493,6 +506,15 @@
                                                     {:else if product.rank <= 3}
                                                         <span class="pl__badge pl__badge--hot">Obľúbený produkt</span>
                                                     {/if}
+                                                    {#if product.id === aiRecommendedId}
+                                                        <span class="pl__badge pl__badge--ai">
+                                                            <span class="pl__ai-icon">
+                                                                <svg viewBox="0 0 16 16" width="10" height="10" fill="#fff"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
+                                                                <span class="pl__ai-orb"></span>
+                                                            </span>
+                                                            AI odporúča
+                                                        </span>
+                                                    {/if}
                                                 </div>
                                                 <h3 class="pl__title"><a href="/produkt/{product.slug}">{decodeHtml(product.title)}</a></h3>
                                                 <div class="pl__rating">
@@ -551,9 +573,18 @@
                             {:else}
                                 <div class="prods__grid">
                                     {#each products as product}
-                                        <article class="pc" class:pc--ranked={product.rank <= 3}>
+                                        <article class="pc" class:pc--ranked={product.rank <= 3} class:pc--ai={product.id === aiRecommendedId}>
                                             {#if product.rank && product.rank <= 50}
                                                 <div class="pc__rank {getRankClass(product.rank)}">{product.rank}</div>
+                                            {/if}
+                                            {#if product.id === aiRecommendedId}
+                                                <div class="pc__ai-badge">
+                                                    <span class="pc__ai-icon">
+                                                        <svg viewBox="0 0 16 16" width="9" height="9" fill="#fff"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
+                                                        <span class="pc__ai-orb"></span>
+                                                    </span>
+                                                    AI
+                                                </div>
                                             {/if}
                                             <a href="/produkt/{product.slug}" class="pc__img">
                                                 {#if product.image_url}
@@ -945,6 +976,10 @@
 .pl__badge--top { background: linear-gradient(135deg, #ff6b35, #ff8f5e); color: #fff; }
 .pl__badge--gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 700; }
 .pl__badge--hot { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: #fff; font-weight: 700; }
+.pl__badge--ai { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 3px 10px 3px 6px; border-radius: 12px; border: 1px solid #e9d5ff; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: #fff; }
+.pl__ai-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; position: relative; }
+.pl__ai-orb { position: absolute; width: 16px; height: 16px; border: 1.5px dashed rgba(255,255,255,0.4); border-radius: 50%; animation: aiOrbit 4s linear infinite; }
+@keyframes aiOrbit { to { transform: rotate(360deg); } }
 
 /* RANK BADGES - leaf categories (ribbon style) */
 .pl__rank { position: absolute; left: 0; top: 10px; z-index: 2; display: flex; align-items: center; justify-content: center; min-width: 28px; height: 24px; padding: 0 8px; font-weight: 800; font-size: 11px; letter-spacing: -0.3px; border-radius: 0 6px 6px 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
@@ -962,6 +997,10 @@
 .pc__rank.rank-warm { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; opacity: 0.85; }
 .pc__rank.rank-gray { background: #e2e8f0; color: #64748b; font-size: 9px; }
 .pc--ranked { border-color: #fde68a; }
+.pc--ai { border-color: #e9d5ff; }
+.pc__ai-badge { position: absolute; right: 6px; top: 6px; z-index: 2; display: flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; padding: 3px 8px 3px 4px; border-radius: 10px; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: #fff; }
+.pc__ai-icon { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; position: relative; }
+.pc__ai-orb { position: absolute; width: 13px; height: 13px; border: 1px dashed rgba(255,255,255,0.4); border-radius: 50%; animation: aiOrbit 4s linear infinite; }
 .pl__title { font-size: 16px; font-weight: 700; margin: 0 0 6px; line-height: 1.35; }
 .pl__title a { color: #1f2937; transition: color 0.15s; }
 .pl__title a:hover { color: #c4956a; }

@@ -58,6 +58,60 @@
     let aiOpen = false;
     let infoOpen = false;
     
+    // AI Assistant state
+    let aiMessages = [];
+    let aiInput = '';
+    let aiLoading = false;
+    let aiReviewData = null;
+    let aiReviewLoading = false;
+    let aiReviewLoaded = false;
+    let isAiRecommended = false;
+
+    async function aiChat(question, action = 'chat') {
+        if (aiLoading) return;
+        if (action === 'chat' && !question.trim()) return;
+        aiLoading = true;
+        if (action === 'chat') aiMessages = [...aiMessages, { role: 'user', text: question }];
+        aiInput = '';
+        try {
+            const res = await fetch('/api/v1/ai/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: product.id, question, action })
+            });
+            const json = await res.json();
+            if (json.success) {
+                aiMessages = [...aiMessages, { role: 'ai', text: json.data.response }];
+            } else {
+                aiMessages = [...aiMessages, { role: 'ai', text: 'Prepáčte, nepodarilo sa získať odpoveď.' }];
+            }
+        } catch(e) {
+            aiMessages = [...aiMessages, { role: 'ai', text: 'Chyba pripojenia.' }];
+        }
+        aiLoading = false;
+    }
+
+    async function loadAIReview() {
+        if (aiReviewLoaded || aiReviewLoading) return;
+        aiReviewLoading = true;
+        try {
+            const res = await fetch(`/api/v1/products/${product.id}/ai-review`);
+            const json = await res.json();
+            if (json.success) aiReviewData = json.data;
+        } catch(e) { /* silent */ }
+        aiReviewLoading = false;
+        aiReviewLoaded = true;
+    }
+
+    async function checkAiRecommended() {
+        if (!product?.category_id) return;
+        try {
+            const res = await fetch(`/api/v1/ai/recommended/${product.category_id}`);
+            const json = await res.json();
+            if (json.success && json.data?.product_id === product.id) isAiRecommended = true;
+        } catch(e) { /* silent */ }
+    }
+    
     $: mainImage = images[currentImageIndex] || product?.image_url || '';
     $: lowestPrice = product?.price_min || product?.price || 0;
     $: freeShipping = lowestPrice >= 49;
@@ -100,6 +154,7 @@
         const compare = JSON.parse(localStorage.getItem('mp_compare') || '[]');
         isWishlisted = wishlist.includes(product?.id);
         isCompared = compare.includes(product?.id);
+        checkAiRecommended();
         
         // Sticky bar — reliable show/hide
         let stickyShown = false;
@@ -183,6 +238,15 @@
             <div class="mp-info">
                 <div class="mp-info__title-row">
                     <h1 class="mp-info__title">{product.title}</h1>
+                    {#if isAiRecommended}
+                    <span class="mp-info__ai-badge">
+                        <span class="mp-info__ai-icon-wrap">
+                            <svg viewBox="0 0 16 16" width="11" height="11" fill="#fff"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
+                            <span class="mp-info__ai-orb"></span>
+                        </span>
+                        AI odporúča
+                    </span>
+                    {/if}
                     {#if product.top_rank && product.top_rank <= 2}
                     <span class="mp-info__top-badge">
                         <svg viewBox="0 0 24 24" fill="#fff" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -215,21 +279,44 @@
                 <!-- AI Assistant — expandable -->
                 <div class="mp-ai-box">
                     <button class="mp-ai-toggle" class:open={aiOpen} on:click={() => aiOpen = !aiOpen}>
-                        <span class="mp-ai-toggle__icon">✨</span>
+                        <span class="mp-ai-toggle__icon">
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="#7c3aed"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
+                            <span class="mp-ai-toggle__orb"></span>
+                        </span>
                         <div class="mp-ai-toggle__text"><strong>AI Asistent</strong><span>Opýtajte sa na produkt</span></div>
                         <svg class="mp-ai-toggle__arrow" class:open={aiOpen} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                     {#if aiOpen}
                     <div class="mp-ai-panel">
                         <div class="mp-ai-actions">
-                            <button class="mp-ai-action">💬 Opýtať sa</button>
-                            <button class="mp-ai-action">🔄 Alternatívy</button>
-                            <button class="mp-ai-action">📊 Cenový vývoj</button>
-                            <button class="mp-ai-action">⭐ Recenzie</button>
+                            <button class="mp-ai-action" on:click={() => aiChat('Povedz mi viac o tomto produkte', 'describe')}>📝 Viac o produkte</button>
+                            <button class="mp-ai-action" on:click={() => aiChat('Pre koho je tento produkt vhodný?', 'chat')}>🎯 Pre koho je?</button>
+                            <button class="mp-ai-action" on:click={() => aiChat('Aké sú alternatívy k tomuto produktu?', 'chat')}>🔄 Alternatívy</button>
+                            <button class="mp-ai-action" on:click={() => aiChat('Oplatí sa kúpiť tento produkt?', 'chat')}>💡 Oplatí sa?</button>
                         </div>
+                        {#if aiMessages.length > 0}
+                        <div class="mp-ai-messages">
+                            {#each aiMessages as msg}
+                                <div class="mp-ai-msg" class:mp-ai-msg--user={msg.role === 'user'} class:mp-ai-msg--ai={msg.role === 'ai'}>
+                                    {#if msg.role === 'ai'}
+                                        <span class="mp-ai-msg__avatar">
+                                            <svg viewBox="0 0 16 16" width="12" height="12" fill="#7c3aed"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
+                                        </span>
+                                    {/if}
+                                    <span class="mp-ai-msg__text">{msg.text}</span>
+                                </div>
+                            {/each}
+                            {#if aiLoading}
+                                <div class="mp-ai-msg mp-ai-msg--ai">
+                                    <span class="mp-ai-msg__avatar"><svg viewBox="0 0 16 16" width="12" height="12" fill="#7c3aed"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg></span>
+                                    <span class="mp-ai-msg__typing"><span></span><span></span><span></span></span>
+                                </div>
+                            {/if}
+                        </div>
+                        {/if}
                         <div class="mp-ai-input">
-                            <input type="text" placeholder="Napíšte otázku o produkte...">
-                            <button class="mp-ai-send">→</button>
+                            <input type="text" placeholder="Napíšte otázku o produkte..." bind:value={aiInput} on:keydown={(e) => e.key === 'Enter' && aiChat(aiInput)}>
+                            <button class="mp-ai-send" on:click={() => aiChat(aiInput)} disabled={aiLoading || !aiInput.trim()}>→</button>
                         </div>
                     </div>
                     {/if}
@@ -351,21 +438,36 @@
             <!-- AI Assistant — mobile only, below buybox -->
             <div class="mp-ai-box mp-ai-box--mobile">
                 <button class="mp-ai-toggle" class:open={aiOpen} on:click={() => aiOpen = !aiOpen}>
-                    <span class="mp-ai-toggle__icon">✨</span>
+                    <span class="mp-ai-toggle__icon">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="#7c3aed"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
+                        <span class="mp-ai-toggle__orb"></span>
+                    </span>
                     <div class="mp-ai-toggle__text"><strong>AI Asistent</strong><span>Opýtajte sa na produkt</span></div>
                     <svg class="mp-ai-toggle__arrow" class:open={aiOpen} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 {#if aiOpen}
                 <div class="mp-ai-panel">
                     <div class="mp-ai-actions">
-                        <button class="mp-ai-action">💬 Opýtať sa</button>
-                        <button class="mp-ai-action">🔄 Alternatívy</button>
-                        <button class="mp-ai-action">📊 Cenový vývoj</button>
-                        <button class="mp-ai-action">⭐ Recenzie</button>
+                        <button class="mp-ai-action" on:click={() => aiChat('Povedz mi viac o tomto produkte', 'describe')}>📝 Viac o produkte</button>
+                        <button class="mp-ai-action" on:click={() => aiChat('Pre koho je tento produkt vhodný?', 'chat')}>🎯 Pre koho?</button>
+                        <button class="mp-ai-action" on:click={() => aiChat('Oplatí sa kúpiť tento produkt?', 'chat')}>💡 Oplatí sa?</button>
                     </div>
+                    {#if aiMessages.length > 0}
+                    <div class="mp-ai-messages">
+                        {#each aiMessages as msg}
+                            <div class="mp-ai-msg" class:mp-ai-msg--user={msg.role === 'user'} class:mp-ai-msg--ai={msg.role === 'ai'}>
+                                {#if msg.role === 'ai'}<span class="mp-ai-msg__avatar"><svg viewBox="0 0 16 16" width="12" height="12" fill="#7c3aed"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg></span>{/if}
+                                <span class="mp-ai-msg__text">{msg.text}</span>
+                            </div>
+                        {/each}
+                        {#if aiLoading}
+                            <div class="mp-ai-msg mp-ai-msg--ai"><span class="mp-ai-msg__avatar"><svg viewBox="0 0 16 16" width="12" height="12" fill="#7c3aed"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg></span><span class="mp-ai-msg__typing"><span></span><span></span><span></span></span></div>
+                        {/if}
+                    </div>
+                    {/if}
                     <div class="mp-ai-input">
-                        <input type="text" placeholder="Napíšte otázku o produkte...">
-                        <button class="mp-ai-send">→</button>
+                        <input type="text" placeholder="Napíšte otázku..." bind:value={aiInput} on:keydown={(e) => e.key === 'Enter' && aiChat(aiInput)}>
+                        <button class="mp-ai-send" on:click={() => aiChat(aiInput)} disabled={aiLoading || !aiInput.trim()}>→</button>
                     </div>
                 </div>
                 {/if}
@@ -387,7 +489,7 @@
         <!-- Tabs Navigation -->
         <div class="mp-tabs">
             <button class="mp-tabs__btn" class:active={activeTab === 'offers'} on:click={() => activeTab = 'offers'}>Kde kúpiť</button>
-                <button class="mp-tabs__btn" class:active={activeTab === 'reviews'} on:click={() => { activeTab = 'reviews'; loadReviews(); }}>
+                <button class="mp-tabs__btn" class:active={activeTab === 'reviews'} on:click={() => { activeTab = 'reviews'; loadReviews(); loadAIReview(); }}>
                     Recenzie {#if reviewData.total > 0}<span class="mp-tabs__count">({reviewData.total})</span>{/if}
                 </button>
             <button class="mp-tabs__btn" class:active={activeTab === 'desc'} on:click={() => activeTab = 'desc'}>Popis</button>
@@ -561,6 +663,60 @@
                         {reviewSubmitting ? 'Odosielam...' : 'Odoslať recenziu'}
                     </button>
                 </div>
+                {/if}
+
+                <!-- AI Review -->
+                {#if aiReviewLoading}
+                    <div class="rv-ai-card">
+                        <div class="rv-ai-header">
+                            <span class="rv-ai-icon-wrap">
+                                <svg viewBox="0 0 16 16" width="12" height="12" fill="#fff"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
+                                <span class="rv-ai-orb"></span>
+                            </span>
+                            <span>AI Recenzia</span>
+                        </div>
+                        <div class="rv-ai-loading">Generujem AI recenziu...</div>
+                    </div>
+                {/if}
+                {#if aiReviewData}
+                    <div class="rv-ai-card">
+                        <div class="rv-ai-header">
+                            <span class="rv-ai-icon-wrap">
+                                <svg viewBox="0 0 16 16" width="12" height="12" fill="#fff"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
+                                <span class="rv-ai-orb"></span>
+                            </span>
+                            <span>AI Recenzia</span>
+                            <div class="rv-ai-stars">
+                                {#each Array(5) as _, s}
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="{s < Math.round(aiReviewData.rating || 0) ? '#a78bfa' : '#e5e7eb'}" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                {/each}
+                                <span class="rv-ai-rating-num">{Number(aiReviewData.rating).toFixed(1)}</span>
+                            </div>
+                        </div>
+                        {#if aiReviewData.title}<h4 class="rv-ai-title">{aiReviewData.title}</h4>{/if}
+                        {#if aiReviewData.summary}<p class="rv-ai-summary">{aiReviewData.summary}</p>{/if}
+                        <div class="rv-ai-proscons">
+                            {#if aiReviewData.pros?.length > 0}
+                            <div class="rv-ai-col rv-ai-col--pro">
+                                <span class="rv-ai-col__label">👍 Klady</span>
+                                {#each aiReviewData.pros as pro}
+                                    {#if pro.trim()}<div class="rv-ai-col__item rv-ai-col__item--pro">✓ {pro.trim()}</div>{/if}
+                                {/each}
+                            </div>
+                            {/if}
+                            {#if aiReviewData.cons?.length > 0}
+                            <div class="rv-ai-col rv-ai-col--con">
+                                <span class="rv-ai-col__label">👎 Zápory</span>
+                                {#each aiReviewData.cons as con}
+                                    {#if con.trim()}<div class="rv-ai-col__item rv-ai-col__item--con">✗ {con.trim()}</div>{/if}
+                                {/each}
+                            </div>
+                            {/if}
+                        </div>
+                        {#if aiReviewData.verdict}
+                            <div class="rv-ai-verdict">💡 {aiReviewData.verdict}</div>
+                        {/if}
+                    </div>
                 {/if}
 
                 <!-- Reviews list -->
@@ -774,6 +930,53 @@
     flex-shrink: 0;
     letter-spacing: 0.5px;
 }
+
+/* AI Recommended Badge - Orbit Core style */
+.mp-info__ai-badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
+    padding: 4px 12px 4px 6px; border-radius: 12px;
+    border: 1px solid #e9d5ff; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: #fff;
+    flex-shrink: 0; white-space: nowrap;
+}
+.mp-info__ai-icon-wrap { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; position: relative; }
+.mp-info__ai-orb { position: absolute; width: 18px; height: 18px; border: 1.5px dashed rgba(255,255,255,0.4); border-radius: 50%; animation: aiOrbitProd 4s linear infinite; }
+@keyframes aiOrbitProd { to { transform: rotate(360deg); } }
+
+/* AI Toggle icon orbit */
+.mp-ai-toggle__icon { position: relative; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mp-ai-toggle__orb { position: absolute; width: 18px; height: 18px; border: 1.5px dashed rgba(255,255,255,0.3); border-radius: 50%; animation: aiOrbitProd 4s linear infinite; }
+
+/* AI Messages */
+.mp-ai-messages { max-height: 280px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
+.mp-ai-msg { display: flex; align-items: flex-start; gap: 8px; }
+.mp-ai-msg--user { justify-content: flex-end; }
+.mp-ai-msg--user .mp-ai-msg__text { background: rgba(255,255,255,0.15); color: #fff; border-radius: 12px 12px 2px 12px; }
+.mp-ai-msg--ai .mp-ai-msg__text { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); border-radius: 12px 12px 12px 2px; }
+.mp-ai-msg__text { font-size: 13px; line-height: 1.5; padding: 8px 12px; max-width: 85%; }
+.mp-ai-msg__avatar { width: 24px; height: 24px; border-radius: 50%; background: rgba(124,58,237,0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.mp-ai-msg__typing { display: flex; gap: 4px; padding: 10px 14px; }
+.mp-ai-msg__typing span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); animation: aiTyping 1.4s ease-in-out infinite; }
+.mp-ai-msg__typing span:nth-child(2) { animation-delay: 0.2s; }
+.mp-ai-msg__typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes aiTyping { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+
+/* AI Review Card */
+.rv-ai-card { background: linear-gradient(135deg, #faf5ff, #f0f0ff); border: 1px solid #e9d5ff; border-radius: 12px; padding: 16px; margin: 16px 0; }
+.rv-ai-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #6d28d9; }
+.rv-ai-icon-wrap { width: 24px; height: 24px; background: linear-gradient(135deg, #7c3aed, #3b82f6); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+.rv-ai-orb { position: absolute; width: 20px; height: 20px; border: 1.5px dashed rgba(255,255,255,0.4); border-radius: 50%; animation: aiOrbitProd 4s linear infinite; }
+.rv-ai-stars { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.rv-ai-rating-num { font-size: 14px; font-weight: 700; color: #7c3aed; margin-left: 4px; }
+.rv-ai-title { font-size: 15px; font-weight: 600; color: #1f2937; margin: 0 0 6px; }
+.rv-ai-summary { font-size: 13px; color: #4b5563; line-height: 1.6; margin: 0 0 12px; }
+.rv-ai-proscons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+.rv-ai-col__label { font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 6px; }
+.rv-ai-col__item { font-size: 12px; line-height: 1.5; padding: 2px 0; }
+.rv-ai-col__item--pro { color: #059669; }
+.rv-ai-col__item--con { color: #dc2626; }
+.rv-ai-verdict { font-size: 13px; color: #374151; background: #fff; border-radius: 8px; padding: 10px 12px; border: 0.5px solid #e9d5ff; line-height: 1.5; }
+.rv-ai-loading { font-size: 13px; color: #7c3aed; padding: 12px 0; }
+@media (max-width: 640px) { .rv-ai-proscons { grid-template-columns: 1fr; } }
 
 .mp-info__desc {
     font-size: 14px;
