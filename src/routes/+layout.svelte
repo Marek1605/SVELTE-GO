@@ -22,6 +22,13 @@
     let hiddenCats = new Set();
     let logoUrl = '';
     let logoSize = 40;
+
+    // Read cached styles immediately to prevent FOUC
+    if (typeof window !== 'undefined') {
+        try { const s = localStorage.getItem('mp_catnav_style'); if (s) catNavStyle = s; } catch(e) {}
+        try { const l = localStorage.getItem('mp_logo_url'); if (l) logoUrl = l; } catch(e) {}
+        try { const ls = localStorage.getItem('mp_logo_size'); if (ls) logoSize = parseInt(ls) || 40; } catch(e) {}
+    }
     let showCart = false;
     let showAccount = false;
     let showWishlist = true;
@@ -89,23 +96,24 @@
         update();
         window.addEventListener('scroll', onScroll, { passive: true });
 
-        try { const s = localStorage.getItem('mp_catnav_style'); if (s) catNavStyle = s; } catch(e) {}
-
-        // Load hidden categories
         try {
             const hidden = localStorage.getItem('mp_hidden_cats');
             if (hidden) hiddenCats = new Set(JSON.parse(hidden));
         } catch(e) {}
 
-        // Style loaded from localStorage
-
-        // Load site settings
+        // Load site settings (updates localStorage cache for next load)
         fetch((typeof window !== 'undefined' ? window.location.origin : '') + '/api/v1/site/settings')
             .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(d => {
                 const s = d?.data || d;
-                if (s?.logo_url) logoUrl = s.logo_url;
-                if (s?.logo_size) logoSize = parseInt(s.logo_size) || 40;
+                if (s?.logo_url) {
+                    logoUrl = s.logo_url + (s.logo_url.includes('?') ? '&' : '?') + 't=' + Date.now();
+                    try { localStorage.setItem('mp_logo_url', s.logo_url); } catch(e) {}
+                }
+                if (s?.logo_size) {
+                    logoSize = parseInt(s.logo_size) || 40;
+                    try { localStorage.setItem('mp_logo_size', String(logoSize)); } catch(e) {}
+                }
                 // showCart disabled by design
                 // showAccount disabled by design
                 showWishlist = s?.show_wishlist !== 'false';
