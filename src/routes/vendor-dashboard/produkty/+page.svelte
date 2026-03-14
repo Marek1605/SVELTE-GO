@@ -467,7 +467,7 @@
                         <th>EAN</th>
                         <th>CENA</th>
                         <th>STAV</th>
-                        <th>PREDAJCOV</th>
+                        <th>POČET PREDAJCOV</th>
                         <th>KATEGÓRIA</th>
                         <th>AKCIE</th>
                     </tr>
@@ -481,7 +481,7 @@
                             <td class="price">
                                 {formatPrice(p.price)}
                                 {#if p.min_price || p.max_price}
-                                    <div class="price-range">{p.min_price ? formatPrice(p.min_price) : '—'} – {p.max_price ? formatPrice(p.max_price) : '—'}</div>
+                                    <div class="price-range">(min. {p.min_price ? formatPrice(p.min_price) : '—'}, max. {p.max_price ? formatPrice(p.max_price) : '—'})</div>
                                 {/if}
                             </td>
                             <td>{#if p.stock_status === 'instock'}<span class="stock in">✓ Skladom</span>{:else}<span class="stock out">✗ Vypredané</span>{/if}</td>
@@ -807,7 +807,7 @@
     .thumb { width: 34px; height: 34px; object-fit: cover; border-radius: 4px; }
     .name { max-width: 180px; } .name strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     code { background: #f1f5f9; padding: 3px 6px; border-radius: 4px; font-size: 11px; }
-    .price { font-weight: 600; color: #059669; }
+    .price { font-weight: 600; color: #1f2937; }
     .center { text-align: center; }
     .stock { font-size: 12px; font-weight: 500; } .stock.in { color: #10b981; } .stock.out { color: #ef4444; }
     .cat { background: #eff6ff; color: #3b82f6; padding: 3px 8px; border-radius: 12px; font-size: 11px; }
@@ -815,14 +815,14 @@
     
     .actions { display: flex; flex-direction: column; gap: 4px; }
     .actions { display: flex; gap: 3px; align-items: center; }
-    .actions button, .actions .action-link { padding: 4px 8px; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; font-size: 11px; cursor: pointer; white-space: nowrap; text-decoration: none; color: inherit; display: inline-block; transition: all 0.15s; }
-    .actions button:hover, .actions .action-link:hover { background: #f1f5f9; border-color: #3b82f6; }
+    .actions button, .actions .action-link { padding: 3px 6px; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; font-size: 10px; cursor: pointer; white-space: nowrap; text-decoration: none; color: inherit; display: inline-block; transition: all 0.15s; }
+    .actions button:hover, .actions .action-link:hover { background: #eff6ff; border-color: #3b82f6; }
     .actions .action-link { color: #3b82f6; }
     .actions button.red { color: #94a3b8; border-color: #f1f5f9; }
     .actions button.red:hover { background: #fef2f2; border-color: #ef4444; color: #dc2626; }
     .actions .action-link.unmatched { color: #94a3b8; border-style: dashed; }
     .actions .action-link.unmatched:hover { color: #3b82f6; border-color: #3b82f6; border-style: solid; }
-    .price-range { font-size: 10px; color: #94a3b8; margin-top: 2px; font-weight: 400; }
+    .price-range { font-size: 10px; color: #9ca3af; margin-top: 1px; font-weight: 400; white-space: nowrap; }
     
     .pagination { display: flex; gap: 4px; justify-content: center; align-items: center; padding: 16px; flex-wrap: wrap; }
     .pagination button { padding: 8px 12px; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; cursor: pointer; }
