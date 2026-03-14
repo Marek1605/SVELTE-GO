@@ -295,17 +295,31 @@
                         </button>
                     {/each}
                 </div>
+                {#if !useCustom && selectedPackage}
+                    <div class="ppc-custom-projected" style="margin-top:8px">
+                        Po dobití: <strong>{formatNumber(currentCredit + selectedPackage.amount + Math.round(selectedPackage.amount * selectedPackage.bonusPct / 100), 2)} €</strong>
+                    </div>
+                {/if}
                 
                 <div class="ppc-custom-amount">
                     <h4>Alebo zadajte vlastnú čiastku</h4>
                     <div class="ppc-custom-row">
-                        <input type="number" class="ppc-custom-input" placeholder="Vlastná čiastka v €" bind:value={customAmount} on:focus={() => { useCustom = true; selectedPackage = null; }} min="5" step="1">
+                        <input type="number" class="ppc-custom-input" placeholder="€" bind:value={customAmount} on:focus={() => { useCustom = true; selectedPackage = null; }} min="5" step="1">
                         {#if useCustom && Number(customAmount) >= 5}
                             <span class="ppc-custom-info">
-                                {#if customBonus > 0}+{customBonus}% bonus = <strong>{Number(customAmount) + customBonusAmount} € kredit</strong>{:else}<strong>{customAmount} € kredit</strong>{/if}
+                                {#if customBonus > 0}
+                                    {customAmount} € + {customBonus}% bonus = <strong>{Number(customAmount) + customBonusAmount} € kredit</strong>
+                                {:else}
+                                    <strong>{customAmount} € kredit</strong>
+                                {/if}
                             </span>
                         {/if}
                     </div>
+                    {#if useCustom && Number(customAmount) >= 5}
+                        <div class="ppc-custom-projected">
+                            Po dobití: <strong>{formatNumber(currentCredit + Number(customAmount) + customBonusAmount, 2)} €</strong>
+                        </div>
+                    {/if}
                     <p class="ppc-custom-note">Min. 5 €. Bonus: 25€+ = 5%, 50€+ = 10%, 100€+ = 15%, 200€+ = 20%</p>
                 </div>
                 
@@ -647,10 +661,12 @@
     .ppc-custom-amount { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f0f0f0; }
     .ppc-custom-amount h4 { font-size: 14px; margin-bottom: 10px; color: #374151; }
     .ppc-custom-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
-    .ppc-custom-input { width: 160px; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 15px; font-weight: 600; color: #111; outline: none; transition: border-color 0.2s; }
-    .ppc-custom-input:focus { border-color: #c4956a; }
+    .ppc-custom-input { width: 90px; padding: 8px 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 15px; font-weight: 600; color: #111; outline: none; transition: border-color 0.2s; }
+    .ppc-custom-input:focus { border-color: #c4956a; box-shadow: 0 0 0 3px rgba(196,149,106,0.15); }
     .ppc-custom-info { font-size: 13px; color: #059669; }
     .ppc-custom-info strong { font-weight: 700; }
+    .ppc-custom-projected { font-size: 12px; color: #6b7280; margin-bottom: 4px; padding: 4px 0; }
+    .ppc-custom-projected strong { color: #1f2937; }
     .ppc-custom-note { font-size: 11px; color: #94a3b8; margin: 0; }
     
     .ppc-bank-info { margin-top: 24px; padding: 20px; background: #f0f9ff; border-radius: 10px; border: 1px solid #bae6fd; }
