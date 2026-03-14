@@ -55,11 +55,11 @@ export async function handle({ event, resolve }) {
 
             const response = await fetch(targetUrl, fetchOpts);
 
-            // Build response headers
+            // Build response headers - DO NOT forward content-length (proxy may re-encode)
             const respHeaders = new Headers();
             const forwardHeaders = [
                 'content-type', 'cache-control', 'etag', 'last-modified',
-                'x-cache', 'x-response-time', 'content-length'
+                'x-cache', 'x-response-time'
             ];
             for (const h of forwardHeaders) {
                 const val = response.headers.get(h);
@@ -69,7 +69,10 @@ export async function handle({ event, resolve }) {
             // Add CORS for browser requests
             respHeaders.set('Access-Control-Allow-Origin', '*');
 
-            return new Response(response.body, {
+            // Read full body to prevent truncation issues with streaming
+            const body = await response.arrayBuffer();
+
+            return new Response(body, {
                 status: response.status,
                 headers: respHeaders,
             });
