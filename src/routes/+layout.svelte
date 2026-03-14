@@ -157,7 +157,8 @@
             </button>
             <a href="/" class="mp-header__logo">
                 {#if logoUrl}
-                    <img src={logoUrl} alt="MegaBuy" class="mp-header__logo-img" style="height:{logoSize}px" />
+                    <img src={logoUrl} alt="MegaBuy" class="mp-header__logo-img" style="height:{logoSize}px"
+                         on:error={() => { logoUrl = ''; try { localStorage.removeItem('mp_logo_url'); } catch(e) {} }} />
                 {:else}
                     <span class="mp-header__logo-text">MegaBuy</span>
                 {/if}

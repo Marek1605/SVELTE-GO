@@ -130,8 +130,13 @@
         
         <div class="bp-actions">
             <button class="bp-btn test" on:click={testConnection}>🔌 Otestovať pripojenie</button>
+            {#if settings.sf_connected}
+                <span class="bp-test-result success">✅ SuperFaktúra pripojená</span>
+            {:else if settings.sf_email && settings.sf_apikey}
+                <span class="bp-test-result" style="color:#f59e0b">⚠️ Neoverené — kliknite Otestovať</span>
+            {/if}
             {#if testResult}
-                <span class="bp-test-result {testResult.type}">{testResult.text}</span>
+                <span class="bp-test-result {testResult.type}">{testResult.type === 'success' ? '✅' : '❌'} {testResult.text}</span>
             {/if}
         </div>
     </div>

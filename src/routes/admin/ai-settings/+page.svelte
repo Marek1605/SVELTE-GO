@@ -36,6 +36,47 @@
     let saveMappingMsg = '';
 
     let resetLoading = false, resetMsg = '', resetClearCache = false;
+
+    // BACKUP / RESTORE
+    let backups = [], backupLoading = false, backupMsg = '', backupName = '';
+    let restoreLoading = false, restoreMsg = '', restoreFile = '', restoreCats = true, restoreMappings = true, restoreClear = false;
+
+    async function createBackup() {
+        backupLoading = true; backupMsg = '';
+        const name = backupName || ('backup-' + new Date().toISOString().slice(0,19).replace(/[T:]/g,'-'));
+        const r = await apiFetch('/admin/ai/backup-categories', { method:'POST', body: JSON.stringify({ name, backup_type:'full' }) });
+        if (r?.success) { backupMsg = '✅ ' + r.message; await loadBackups(); backupName = ''; }
+        else backupMsg = '❌ ' + (r?.error || 'Chyba');
+        backupLoading = false;
+        setTimeout(() => backupMsg = '', 15000);
+    }
+    async function loadBackups() {
+        const r = await apiFetch('/admin/ai/backups');
+        if (r?.success) backups = r.data || [];
+    }
+    async function restoreBackup() {
+        if (!restoreFile) return;
+        if (!confirm(`Obnoviť zo zálohy "${restoreFile}"?\n${restoreCats ? '• Obnoviť kategórie\n' : ''}${restoreMappings ? '• Obnoviť mapovania\n' : ''}${restoreClear ? '⚠️ Vymazať existujúce pred obnovou\n' : ''}`)) return;
+        restoreLoading = true; restoreMsg = '';
+        const r = await apiFetch('/admin/ai/restore-categories', { method:'POST', body: JSON.stringify({ file_name: restoreFile, restore_categories: restoreCats, restore_mappings: restoreMappings, clear_existing: restoreClear }) });
+        if (r?.success) { restoreMsg = '✅ ' + r.message; if (r.logs?.length) restoreMsg += '\n' + r.logs.join('\n'); }
+        else restoreMsg = '❌ ' + (r?.error || 'Chyba');
+        restoreLoading = false;
+        setTimeout(() => restoreMsg = '', 20000);
+    }
+    async function deleteBackup(fn) {
+        if (!confirm('Vymazať zálohu "' + fn + '"?')) return;
+        await adminRawFetch(`${API_BASE}/admin/ai/backup?file=${encodeURIComponent(fn)}`, { method:'DELETE' });
+        await loadBackups();
+    }
+    async function downloadBackup(fn) {
+        try {
+            const r = await adminRawFetch(`${API_BASE}/admin/ai/download-backup?file=${encodeURIComponent(fn)}`);
+            if (!r.ok) { alert('Chyba'); return; }
+            const b = await r.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fn; a.click();
+        } catch(e) { alert(e.message); }
+    }
+    function fmtSize(b) { if (b > 1048576) return (b/1048576).toFixed(1)+' MB'; if (b > 1024) return (b/1024).toFixed(0)+' KB'; return b+' B'; }
     $: importCount = (() => { try { const p = JSON.parse(importText); return Array.isArray(p) ? p.length : (p?.mappings?.length || 0); } catch { return 0; } })();
 
     function handleFileUpload(e) {
@@ -389,7 +430,7 @@
             <button class="tab" class:active={activeTab === 'report'} on:click={switchToReport}>📊 Report</button>
             <button class="tab" class:active={activeTab === 'audit'} on:click={switchToAudit}>🔍 Audit stromu</button>
             <button class="tab" class:active={activeTab === 'cleanup'} on:click={() => activeTab = 'cleanup'}>🗑️ Vyčistenie</button>
-            <button class="tab" class:active={activeTab === 'mapping'} on:click={() => activeTab = 'mapping'}>📤 Mapovanie</button>
+            <button class="tab" class:active={activeTab === 'mapping'} on:click={() => { activeTab = 'mapping'; if (backups.length === 0) loadBackups(); }}>📤 Mapovanie</button>
         </div>
     </div>
 
@@ -861,6 +902,79 @@
                 <button class="btn" style="background:#10b981;color:white" on:click={saveMappingFromExport} disabled={saveMappingLoading}>{saveMappingLoading?'Ukladam...':'💾 Ulozit'}</button>
             </div>
         </div></div>
+        {/if}
+
+<hr style="margin:24px 0;border-color:#e5e5e5">
+        <h3 style="margin:0 0 12px">🗄️ Zálohovanie na serveri</h3>
+        <p class="desc">Záloha kategórií a mapovaní do <code>/root/zalohy/kategorie/</code> na serveri. Plná záloha vrátane stromovej štruktúry a feed cache.</p>
+        
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
+            <div style="flex:1;min-width:200px">
+                <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Názov zálohy (voliteľné)</label>
+                <input type="text" bind:value={backupName} placeholder="napr. pred-importom-heureka" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px">
+            </div>
+            <button class="btn blue" on:click={createBackup} disabled={backupLoading}>
+                {backupLoading ? '⏳ Zálohujem...' : '💾 Vytvoriť zálohu'}
+            </button>
+            <button class="btn outline" on:click={loadBackups}>🔄 Obnoviť zoznam</button>
+        </div>
+        {#if backupMsg}<div class="cleanup-result" style="margin-bottom:12px">{backupMsg}</div>{/if}
+
+        {#if backups.length > 0}
+        <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:16px">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+                <thead><tr style="background:#f8fafc">
+                    <th style="padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;color:#64748b">Súbor</th>
+                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:#64748b">Kat.</th>
+                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:#64748b">Map.</th>
+                    <th style="padding:10px 8px;text-align:right;font-size:11px;font-weight:600;color:#64748b">Veľkosť</th>
+                    <th style="padding:10px 8px;text-align:right;font-size:11px;font-weight:600;color:#64748b">Dátum</th>
+                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:#64748b">Akcie</th>
+                </tr></thead>
+                <tbody>
+                {#each backups as b}
+                <tr style="border-top:1px solid #f1f5f9">
+                    <td style="padding:8px 12px"><strong>{b.name || b.file_name}</strong>{#if b.backup_type}<span style="margin-left:6px;font-size:10px;padding:2px 6px;background:#eff6ff;color:#1d4ed8;border-radius:4px">{b.backup_type}</span>{/if}</td>
+                    <td style="padding:8px;text-align:center;color:#059669;font-weight:600">{b.categories || 0}</td>
+                    <td style="padding:8px;text-align:center;color:#2563eb;font-weight:600">{b.mappings || 0}</td>
+                    <td style="padding:8px;text-align:right;color:#64748b;font-size:12px">{fmtSize(b.file_size)}</td>
+                    <td style="padding:8px;text-align:right;color:#94a3b8;font-size:11px;white-space:nowrap">{new Date(b.mod_time).toLocaleDateString('sk-SK')} {new Date(b.mod_time).toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'})}</td>
+                    <td style="padding:8px;text-align:center;white-space:nowrap">
+                        <button class="btn-sm blue" on:click={() => { restoreFile = b.file_name; }}>♻️</button>
+                        <button class="btn-sm outline" on:click={() => downloadBackup(b.file_name)}>⬇</button>
+                        <button class="btn-sm red" on:click={() => deleteBackup(b.file_name)}>🗑</button>
+                    </td>
+                </tr>
+                {/each}
+                </tbody>
+            </table>
+        </div>
+        {:else}
+        <p style="color:#94a3b8;font-size:13px;font-style:italic;margin-bottom:16px">Žiadne zálohy na serveri.</p>
+        {/if}
+
+        {#if restoreFile}
+        <div style="padding:16px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;margin-bottom:16px">
+            <h4 style="margin:0 0 8px;font-size:14px">♻️ Obnova zo zálohy: <code>{restoreFile}</code></h4>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+                <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" bind:checked={restoreCats}> Obnoviť kategórie
+                </label>
+                <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" bind:checked={restoreMappings}> Obnoviť mapovania
+                </label>
+                <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer;color:#dc2626">
+                    <input type="checkbox" bind:checked={restoreClear}> ⚠️ Vymazať existujúce pred obnovou
+                </label>
+            </div>
+            <div style="display:flex;gap:8px">
+                <button class="btn orange" on:click={restoreBackup} disabled={restoreLoading || (!restoreCats && !restoreMappings)}>
+                    {restoreLoading ? '⏳ Obnovujem...' : '♻️ Obnoviť'}
+                </button>
+                <button class="btn outline" on:click={() => restoreFile = ''}>✕ Zrušiť</button>
+            </div>
+            {#if restoreMsg}<pre class="cleanup-result" style="margin-top:10px;white-space:pre-wrap;font-family:inherit">{restoreMsg}</pre>{/if}
+        </div>
         {/if}
 
 <hr style="margin:24px 0;border-color:#e5e5e5">
