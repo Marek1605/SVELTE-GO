@@ -207,6 +207,18 @@
             
             <!-- Gallery -->
             <div class="mp-gallery">
+                {#if productRank > 0 && productRank <= 10}
+                <div class="mp-gallery__badges">
+                    <span class="mp-gallery__rank-num {productRank <= 3 ? 'rank-gold' : 'rank-blue'}">{productRank}</span>
+                    {#if productRank === 1}
+                    <span class="mp-gallery__rank-label mp-gallery__rank-label--gold">Najlepšia voľba</span>
+                    {:else if productRank <= 3}
+                    <span class="mp-gallery__rank-label mp-gallery__rank-label--blue">Obľúbený produkt</span>
+                    {:else}
+                    <span class="mp-gallery__rank-label mp-gallery__rank-label--warm">Top {productRank} v kategórii</span>
+                    {/if}
+                </div>
+                {/if}
                 <div class="mp-gallery__thumbs">
                     {#each images.slice(0, 5) as img, i}
                         <button 
@@ -229,21 +241,7 @@
             
             <!-- Product Info -->
             <div class="mp-info">
-                <div class="mp-info__title-row">
-                    <h1 class="mp-info__title">{product.title}</h1>
-                    {#if productRank > 0 && productRank <= 10}
-                    <div class="mp-info__badges">
-                        <span class="mp-info__rank-num {productRank <= 3 ? 'rank-gold' : productRank <= 10 ? 'rank-blue' : ''}">{productRank}</span>
-                        {#if productRank === 1}
-                        <span class="mp-info__rank-label mp-info__rank-label--gold">Najlepšia voľba</span>
-                        {:else if productRank <= 3}
-                        <span class="mp-info__rank-label mp-info__rank-label--blue">Obľúbený produkt</span>
-                        {:else}
-                        <span class="mp-info__rank-label mp-info__rank-label--warm">Top {productRank} v kategórii</span>
-                        {/if}
-                    </div>
-                    {/if}
-                </div>
+                <h1 class="mp-info__title">{product.title}</h1>
                 
                 {#if product.description}
                     <p class="mp-info__desc">
@@ -838,7 +836,18 @@
     grid-area: gallery;
     display: flex;
     gap: 12px;
+    position: relative;
 }
+
+/* Gallery rank badges - top left over image */
+.mp-gallery__badges { position: absolute; top: 0; left: 64px; z-index: 3; display: flex; align-items: center; gap: 6px; }
+.mp-gallery__rank-num { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 8px; font-weight: 800; font-size: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.mp-gallery__rank-num.rank-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; }
+.mp-gallery__rank-num.rank-blue { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
+.mp-gallery__rank-label { font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 8px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.mp-gallery__rank-label--gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.mp-gallery__rank-label--blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+.mp-gallery__rank-label--warm { background: #fef3c7; color: #92400e; }
 
 .mp-info {
     grid-area: info;
@@ -896,17 +905,14 @@
     min-width: 0;
 }
 
-.mp-info__title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .mp-info__title {
     font-size: 22px;
     font-weight: 600;
     color: #1f2937;
     line-height: 1.4;
-    margin-bottom: 0;
-    flex: 1;
-    min-width: 200px;
+    margin-bottom: 16px;
 }
-.mp-info__badges { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.mp-info__badges { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .mp-info__rank-num { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 8px; font-weight: 800; font-size: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 .mp-info__rank-num.rank-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; }
 .mp-info__rank-num.rank-blue { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
