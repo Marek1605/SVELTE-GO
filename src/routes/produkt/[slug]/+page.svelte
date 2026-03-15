@@ -268,8 +268,8 @@
                 <div class="mp-ai-box">
                     <button class="mp-ai-toggle" class:open={aiOpen} on:click={() => aiOpen = !aiOpen}>
                         <span class="mp-ai-toggle__icon">
-                            <svg viewBox="0 0 16 16" width="14" height="14" fill="#7c3aed"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
-                            <span class="mp-ai-toggle__orb"></span>
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="url(#aiGrad)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/><defs><linearGradient id="aiGrad" x1="2" y1="2" x2="22" y2="22"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs></svg>
+                            <span class="mp-ai-toggle__pulse"></span>
                         </span>
                         <div class="mp-ai-toggle__text"><strong>AI Asistent</strong><span>Opýtajte sa na produkt</span></div>
                         <svg class="mp-ai-toggle__arrow" class:open={aiOpen} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -277,10 +277,14 @@
                     {#if aiOpen}
                     <div class="mp-ai-panel">
                         <div class="mp-ai-actions">
-                            <button class="mp-ai-action" on:click={() => aiChat('Povedz mi viac o tomto produkte', 'describe')}>📝 Viac o produkte</button>
-                            <button class="mp-ai-action" on:click={() => aiChat('Pre koho je tento produkt vhodný?', 'chat')}>🎯 Pre koho je?</button>
-                            <button class="mp-ai-action" on:click={() => aiChat('Aké sú alternatívy k tomuto produktu?', 'chat')}>🔄 Alternatívy</button>
-                            <button class="mp-ai-action" on:click={() => aiChat('Oplatí sa kúpiť tento produkt?', 'chat')}>💡 Oplatí sa?</button>
+                            <button class="mp-ai-action" on:click={() => aiChat('Povedz mi viac o tomto produkte', 'describe')}>
+                                <span class="mp-ai-action__emoji">📝</span>Viac o produkte</button>
+                            <button class="mp-ai-action" on:click={() => aiChat('Pre koho je tento produkt vhodný?', 'chat')}>
+                                <span class="mp-ai-action__emoji">🎯</span>Pre koho je?</button>
+                            <button class="mp-ai-action" on:click={() => aiChat('Aké sú alternatívy k tomuto produktu?', 'chat')}>
+                                <span class="mp-ai-action__emoji">🔄</span>Alternatívy</button>
+                            <button class="mp-ai-action" on:click={() => aiChat('Oplatí sa kúpiť tento produkt?', 'chat')}>
+                                <span class="mp-ai-action__emoji">💡</span>Oplatí sa?</button>
                         </div>
                         {#if aiMessages.length > 0}
                         <div class="mp-ai-messages">
@@ -427,8 +431,8 @@
             <div class="mp-ai-box mp-ai-box--mobile">
                 <button class="mp-ai-toggle" class:open={aiOpen} on:click={() => aiOpen = !aiOpen}>
                     <span class="mp-ai-toggle__icon">
-                        <svg viewBox="0 0 16 16" width="14" height="14" fill="#7c3aed"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.3L8 13.3l-4.9 2.7.9-5.3-4-3.9 5.5-.8z"/></svg>
-                        <span class="mp-ai-toggle__orb"></span>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="url(#aiGrad2)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/><defs><linearGradient id="aiGrad2" x1="2" y1="2" x2="22" y2="22"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs></svg>
+                        <span class="mp-ai-toggle__pulse"></span>
                     </span>
                     <div class="mp-ai-toggle__text"><strong>AI Asistent</strong><span>Opýtajte sa na produkt</span></div>
                     <svg class="mp-ai-toggle__arrow" class:open={aiOpen} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -952,19 +956,18 @@
 @keyframes aiOrbitProd { to { transform: rotate(360deg); } }
 
 /* AI Toggle icon orbit */
-.mp-ai-toggle__icon { position: relative; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.mp-ai-toggle__orb { position: absolute; width: 18px; height: 18px; border: 1.5px dashed rgba(255,255,255,0.3); border-radius: 50%; animation: aiOrbitProd 4s linear infinite; }
+.mp-ai-toggle__icon { position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(139,92,246,0.15); border-radius: 8px; }
 
 /* AI Messages */
 .mp-ai-messages { max-height: 280px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
 .mp-ai-msg { display: flex; align-items: flex-start; gap: 8px; }
 .mp-ai-msg--user { justify-content: flex-end; }
-.mp-ai-msg--user .mp-ai-msg__text { background: rgba(255,255,255,0.15); color: #fff; border-radius: 12px 12px 2px 12px; }
-.mp-ai-msg--ai .mp-ai-msg__text { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); border-radius: 12px 12px 12px 2px; }
+.mp-ai-msg--user .mp-ai-msg__text { background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(99,102,241,0.25)); color: #fff; border-radius: 12px 12px 2px 12px; }
+.mp-ai-msg--ai .mp-ai-msg__text { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); border-radius: 12px 12px 12px 2px; border: 1px solid rgba(139,92,246,0.1); }
 .mp-ai-msg__text { font-size: 13px; line-height: 1.5; padding: 8px 12px; max-width: 85%; }
-.mp-ai-msg__avatar { width: 24px; height: 24px; border-radius: 50%; background: rgba(124,58,237,0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.mp-ai-msg__avatar { width: 24px; height: 24px; border-radius: 8px; background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(99,102,241,0.2)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
 .mp-ai-msg__typing { display: flex; gap: 4px; padding: 10px 14px; }
-.mp-ai-msg__typing span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); animation: aiTyping 1.4s ease-in-out infinite; }
+.mp-ai-msg__typing span { width: 6px; height: 6px; border-radius: 50%; background: rgba(167,139,250,0.6); animation: aiTyping 1.4s ease-in-out infinite; }
 .mp-ai-msg__typing span:nth-child(2) { animation-delay: 0.2s; }
 .mp-ai-msg__typing span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes aiTyping { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
@@ -1022,26 +1025,54 @@
 .mp-ai-box { margin-top: 8px; max-width: 50%; }
 .mp-ai-box--mobile { display: none; }
 .mp-ai-toggle {
-    width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 16px;
-    background: linear-gradient(135deg, #8b7355, #6d5a43); color: #fff;
-    border: none; border-radius: 14px; cursor: pointer; transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(109,90,67,0.25);
+    width: 100%; display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+    background: linear-gradient(135deg, #1e1b4b, #312e81);
+    color: #fff; border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 16px; cursor: pointer; transition: all 0.25s;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.2);
+    backdrop-filter: blur(8px);
 }
-.mp-ai-toggle:hover { box-shadow: 0 4px 14px rgba(109,90,67,0.35); background: linear-gradient(135deg, #7d6749, #5f4e3a); }
-.mp-ai-toggle.open { border-radius: 14px 14px 0 0; background: linear-gradient(135deg, #6d5a43, #574838); }
-.mp-ai-toggle__icon { font-size: 18px; }
+.mp-ai-toggle:hover { box-shadow: 0 6px 24px rgba(99,102,241,0.35); background: linear-gradient(135deg, #252262, #3730a3); border-color: rgba(139,92,246,0.5); }
+.mp-ai-toggle.open { border-radius: 16px 16px 0 0; background: linear-gradient(135deg, #1e1b4b, #312e81); }
+.mp-ai-toggle__icon { position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(139,92,246,0.15); border-radius: 8px; }
+.mp-ai-toggle__pulse { position: absolute; inset: -3px; border: 1.5px solid rgba(167,139,250,0.4); border-radius: 10px; animation: aiPulse 2.5s ease-in-out infinite; }
+@keyframes aiPulse { 0%,100%{opacity:0.4;transform:scale(1)} 50%{opacity:0.8;transform:scale(1.08)} }
 .mp-ai-toggle__text { flex: 1; text-align: left; }
-.mp-ai-toggle__text strong { display: block; font-size: 13px; }
-.mp-ai-toggle__text span { font-size: 11px; opacity: 0.7; }
-.mp-ai-toggle__arrow { transition: transform 0.2s; }
+.mp-ai-toggle__text strong { display: block; font-size: 13px; font-weight: 700; letter-spacing: 0.2px; }
+.mp-ai-toggle__text span { font-size: 11px; opacity: 0.55; }
+.mp-ai-toggle__arrow { transition: transform 0.2s; opacity: 0.6; }
 .mp-ai-toggle__arrow.open { transform: rotate(180deg); }
-.mp-ai-panel { background: #4a3d30; border-radius: 0 0 14px 14px; padding: 14px; }
+.mp-ai-panel {
+    background: linear-gradient(180deg, #1e1b4b, #0f172a);
+    border: 1px solid rgba(139,92,246,0.2); border-top: none;
+    border-radius: 0 0 16px 16px; padding: 14px;
+}
 .mp-ai-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-.mp-ai-action { display: flex; align-items: center; gap: 6px; padding: 10px 12px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
-.mp-ai-action:hover { background: rgba(255,255,255,0.13); }
+.mp-ai-action {
+    display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+    background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.15);
+    border-radius: 10px; color: #e0e7ff; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+}
+.mp-ai-action:hover { background: rgba(139,92,246,0.18); border-color: rgba(139,92,246,0.3); }
+.mp-ai-action__emoji { font-size: 14px; }
 .mp-ai-input { display: flex; gap: 6px; }
-.mp-ai-input input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: #fff; font-size: 13px; outline: none; }
-.mp-ai-send { padding: 10px 16px; background: #c4956a; border: none; border-radius: 10px; color: #fff; font-weight: 700; cursor: pointer; }
+.mp-ai-input input {
+    flex: 1; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid rgba(139,92,246,0.2); background: rgba(255,255,255,0.05);
+    color: #fff; font-size: 13px; outline: none;
+}
+.mp-ai-input input:focus { border-color: rgba(139,92,246,0.5); background: rgba(255,255,255,0.08); }
+.mp-ai-input input::placeholder { color: rgba(255,255,255,0.3); }
+.mp-ai-send {
+    padding: 10px 18px; border: none; border-radius: 10px; color: #fff;
+    font-weight: 700; cursor: pointer; font-size: 15px;
+    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    box-shadow: 0 2px 8px rgba(124,58,237,0.3);
+    transition: all 0.15s;
+}
+.mp-ai-send:hover { box-shadow: 0 4px 12px rgba(124,58,237,0.4); }
+.mp-ai-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* =============================================
    BUY BOX - EXACT MEGAPRICE.SK STYLE
