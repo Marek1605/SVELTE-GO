@@ -91,6 +91,7 @@
         ]},
         { key: 'system', label: 'Systém', items: [
             { href: '/admin/settings', label: 'Nastavenia', icon: '⚙️' },
+            { href: '/admin/billing', label: 'Fakturácia & CPC', icon: '💰' },
             { href: '/admin/pages', label: 'Stránky', icon: '📄' },
             { href: '/admin/dizajn-ponuk', label: 'Dizajn ponúk', icon: '🎨' },
             { href: '/admin/badge-settings', label: 'Badge štýly', icon: '🏅' },
