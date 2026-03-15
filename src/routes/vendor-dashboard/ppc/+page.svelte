@@ -433,8 +433,31 @@
                     Využitím platby prostredníctvom bankového prevodu sa vám dobitý kredit načíta na váš MegaBuy účet až po uhradení automaticky vygenerovanej zálohovej faktúry, ktorú dostanete na e-mail uvedený vo fakturačných údajoch. PPC systém môžete naplno využívať až po pripísaní čiastky na náš bankový účet, čo môže trvať až 3 pracovné dni. <strong>Navýšenie kreditu pred pripísaním platby na náš bankový účet nie je možné.</strong>
                 </div>
                 
-                <h3>Vyberte si balík kreditu</h3>
-                <div class="ppc-packages">
+                <h3>Zadajte sumu</h3>
+                <div class="ppc-custom-amount" style="margin-top:0;padding-top:0;border-top:none">
+                    <div class="ppc-custom-row">
+                        <input type="number" class="ppc-custom-input" style="width:120px;font-size:18px;padding:10px 14px" placeholder="€" bind:value={customAmount} on:focus={() => { useCustom = true; selectedPackage = null; }} min="5" step="1">
+                        <span style="font-size:15px;color:#374151;font-weight:500">€</span>
+                        {#if useCustom && Number(customAmount) >= 5}
+                            <span class="ppc-custom-info">
+                                {#if customBonus > 0}
+                                    {customAmount} € + {customBonus}% bonus = <strong>{Number(customAmount) + customBonusAmount} € kredit</strong>
+                                {:else}
+                                    <strong>{customAmount} € kredit</strong>
+                                {/if}
+                            </span>
+                        {/if}
+                    </div>
+                    {#if useCustom && Number(customAmount) >= 5}
+                        <div class="ppc-custom-projected">
+                            Po dobití: <strong>{formatNumber(currentCredit + Number(customAmount) + customBonusAmount, 2)} €</strong>
+                        </div>
+                    {/if}
+                    <p class="ppc-custom-note" style="margin-top:6px">Minimálna suma: 5 €. Od 25 € bonus až do 20 %.</p>
+                </div>
+
+                <h4 style="font-size:13px;color:#6b7280;margin:20px 0 10px">Alebo vyberte balík</h4>
+                <div class="ppc-packages ppc-packages-sm">
                     {#each packages as pkg}
                         <button 
                             class="ppc-package" 
@@ -458,27 +481,6 @@
                         Po dobití: <strong>{formatNumber(currentCredit + selectedPackage.amount + Math.round(selectedPackage.amount * selectedPackage.bonusPct / 100), 2)} €</strong>
                     </div>
                 {/if}
-                
-                <div class="ppc-custom-amount">
-                    <h4>Alebo zadajte vlastnú čiastku</h4>
-                    <div class="ppc-custom-row">
-                        <input type="number" class="ppc-custom-input" placeholder="€" bind:value={customAmount} on:focus={() => { useCustom = true; selectedPackage = null; }} min="5" step="1">
-                        {#if useCustom && Number(customAmount) >= 5}
-                            <span class="ppc-custom-info">
-                                {#if customBonus > 0}
-                                    {customAmount} € + {customBonus}% bonus = <strong>{Number(customAmount) + customBonusAmount} € kredit</strong>
-                                {:else}
-                                    <strong>{customAmount} € kredit</strong>
-                                {/if}
-                            </span>
-                        {/if}
-                    </div>
-                    {#if useCustom && Number(customAmount) >= 5}
-                        <div class="ppc-custom-projected">
-                            Po dobití: <strong>{formatNumber(currentCredit + Number(customAmount) + customBonusAmount, 2)} €</strong>
-                        </div>
-                    {/if}
-                </div>
                 
                 <div class="ppc-payment-method">
                     <h4>Spôsob platby</h4>
@@ -840,6 +842,14 @@
     .ppc-package-amount { font-size: 28px; font-weight: 700; color: #1f2937; }
     .ppc-package-bonus { font-size: 14px; color: #10b981; font-weight: 600; margin: 4px 0; }
     .ppc-package-total { font-size: 12px; color: #6b7280; margin-top: 8px; }
+
+    /* Smaller packages variant */
+    .ppc-packages-sm { grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px; }
+    .ppc-packages-sm .ppc-package { padding: 10px 8px; border-radius: 8px; }
+    .ppc-packages-sm .ppc-package-amount { font-size: 18px; }
+    .ppc-packages-sm .ppc-package-bonus { font-size: 11px; margin: 2px 0; }
+    .ppc-packages-sm .ppc-package-total { font-size: 10px; margin-top: 4px; }
+    .ppc-packages-sm .ppc-package-badge { font-size: 8px; padding: 2px 6px; top: -8px; }
     
     /* Payment */
     .ppc-payment-method { margin: 24px 0; }
