@@ -975,7 +975,7 @@
 .mp-ai-toggle__icon { position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(139,92,246,0.15); border-radius: 8px; }
 
 /* AI Messages */
-.mp-ai-messages { max-height: 280px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
+.mp-ai-messages { flex: 1; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; padding: 4px 0; min-height: 0; max-height: 220px; }
 .mp-ai-msg { display: flex; align-items: flex-start; gap: 8px; }
 .mp-ai-msg--user { justify-content: flex-end; }
 .mp-ai-msg--user .mp-ai-msg__text { background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(99,102,241,0.25)); color: #fff; border-radius: 12px 12px 2px 12px; }
@@ -1049,7 +1049,7 @@
     backdrop-filter: blur(8px);
 }
 .mp-ai-toggle:hover { box-shadow: 0 6px 24px rgba(99,102,241,0.35); background: linear-gradient(135deg, #252262, #3730a3); border-color: rgba(139,92,246,0.5); }
-.mp-ai-toggle.open { border-radius: 16px 16px 0 0; background: linear-gradient(135deg, #1e1b4b, #312e81); }
+.mp-ai-toggle.open { border-radius: 16px; background: linear-gradient(135deg, #1e1b4b, #312e81); }
 .mp-ai-toggle__icon { position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(139,92,246,0.15); border-radius: 8px; }
 .mp-ai-toggle__pulse { position: absolute; inset: -3px; border: 1.5px solid rgba(167,139,250,0.4); border-radius: 10px; animation: aiPulse 2.5s ease-in-out infinite; }
 @keyframes aiPulse { 0%,100%{opacity:0.4;transform:scale(1)} 50%{opacity:0.8;transform:scale(1.08)} }
@@ -1058,21 +1058,29 @@
 .mp-ai-toggle__text span { font-size: 11px; opacity: 0.55; }
 .mp-ai-toggle__arrow { transition: transform 0.2s; opacity: 0.6; }
 .mp-ai-toggle__arrow.open { transform: rotate(180deg); }
+
+/* AI Panel — OVERLAY, does NOT push content */
+.mp-ai-box { position: relative; z-index: 20; }
 .mp-ai-panel {
+    position: absolute; top: 100%; left: 0; right: -380px;
     background: linear-gradient(180deg, #1e1b4b, #0f172a);
-    border: 1px solid rgba(139,92,246,0.2); border-top: none;
-    border-radius: 0 0 16px 16px; padding: 14px;
+    border: 1px solid rgba(139,92,246,0.25);
+    border-radius: 16px; padding: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    max-height: 380px; display: flex; flex-direction: column;
+    margin-top: 6px; z-index: 30;
 }
-.mp-ai-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.mp-ai-actions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; flex-shrink: 0; }
 .mp-ai-action {
-    display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 6px; padding: 10px 12px;
     background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.15);
     border-radius: 10px; color: #e0e7ff; font-size: 12px; font-weight: 600;
-    cursor: pointer; transition: all 0.15s;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
 .mp-ai-action:hover { background: rgba(139,92,246,0.18); border-color: rgba(139,92,246,0.3); }
 .mp-ai-action__emoji { font-size: 14px; }
-.mp-ai-input { display: flex; gap: 6px; }
+.mp-ai-messages { flex: 1; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; padding: 4px 0; min-height: 0; }
+.mp-ai-input { display: flex; gap: 6px; flex-shrink: 0; }
 .mp-ai-input input {
     flex: 1; padding: 10px 14px; border-radius: 10px;
     border: 1px solid rgba(139,92,246,0.2); background: rgba(255,255,255,0.05);
@@ -1736,7 +1744,8 @@
     .mp-info__actions { display: none; }
     .mp-info__desc { display: none; }
     .mp-ai-box { display: none; }
-    .mp-ai-box--mobile { display: block; margin: 12px 10px 0; }
+    .mp-ai-box--mobile { display: block; margin: 12px 10px 0; position: relative; z-index: 20; }
+    .mp-ai-box--mobile .mp-ai-panel { position: absolute; left: 0; right: 0; top: 100%; margin-top: 6px; max-height: 350px; }
     /* === BUYBOX MOBILE — similar to offer rows === */
     .mp-buybox { position: static; border-radius: 14px; border: none; padding: 16px; margin: 0 10px; margin-top: 18px;
         box-shadow: 0 2px 6px rgba(196,149,106,0.15), 0 8px 24px rgba(196,149,106,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
