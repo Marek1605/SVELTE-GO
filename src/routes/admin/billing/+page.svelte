@@ -15,7 +15,10 @@
         bank_name: 'Tatra banka', bank_iban: '', bank_swift: 'TATRSKBX', bank_account_name: 'Megabuy s.r.o.',
         auto_invoice: true, send_invoice_email: true,
         invoice_language: 'slo', invoice_email_from: 'fakturacia@megabuy.sk',
-        sf_connected: false
+        sf_connected: false,
+        smtp_host: '', smtp_port: '587', smtp_user: '', smtp_password: '', smtp_from: '',
+        smtp_configured: false,
+        send_topup_created_email: true, send_topup_paid_email: true
     };
     
     let topups = [];
@@ -52,6 +55,20 @@
             const res = await adminFetch('/admin/billing-settings/test', { method: 'POST' });
             testResult = res.success ? { type: 'success', text: res.message } : { type: 'error', text: res.error };
         } catch (e) { testResult = { type: 'error', text: 'Chyba pripojenia' }; }
+    }
+    
+    let smtpTestEmail = '';
+    let smtpTestResult = null;
+    let smtpTesting = false;
+    
+    async function testSMTP() {
+        if (!smtpTestEmail) { smtpTestResult = { type: 'error', text: 'Zadajte e-mail' }; return; }
+        smtpTesting = true; smtpTestResult = null;
+        try {
+            const res = await adminFetch('/admin/billing-settings/test-smtp', { method: 'POST', body: JSON.stringify({ email: smtpTestEmail }) });
+            smtpTestResult = res.success ? { type: 'success', text: res.message } : { type: 'error', text: res.error };
+        } catch (e) { smtpTestResult = { type: 'error', text: 'Chyba pripojenia' }; }
+        smtpTesting = false;
     }
     
     async function loadTopups() {
@@ -188,6 +205,56 @@
                 <label>&nbsp;</label>
                 <label class="bp-check"><input type="checkbox" bind:checked={settings.send_invoice_email}> Odoslať faktúru e-mailom vendorovi</label>
             </div>
+        </div>
+    </div>
+    
+    <div class="bp-section">
+        <h2>📨 SMTP E-mail</h2>
+        <p class="bp-desc">Nastavte SMTP server pre odosielanie notifikačných e-mailov vendorom (platobné údaje, potvrdenie kreditu).</p>
+        
+        <div class="bp-grid">
+            <div class="bp-field">
+                <label>SMTP Host</label>
+                <input type="text" bind:value={settings.smtp_host} placeholder="smtp.gmail.com">
+            </div>
+            <div class="bp-field">
+                <label>SMTP Port</label>
+                <input type="text" bind:value={settings.smtp_port} placeholder="587">
+            </div>
+            <div class="bp-field">
+                <label>SMTP Používateľ</label>
+                <input type="text" bind:value={settings.smtp_user} placeholder="vas@email.sk">
+            </div>
+            <div class="bp-field">
+                <label>SMTP Heslo</label>
+                <input type="password" bind:value={settings.smtp_password} placeholder="••••••••">
+            </div>
+            <div class="bp-field" style="grid-column: span 2;">
+                <label>Odosielateľ (From)</label>
+                <input type="email" bind:value={settings.smtp_from} placeholder="notifikacie@megabuy.sk">
+            </div>
+        </div>
+        
+        <div class="bp-smtp-toggles">
+            <label class="bp-check"><input type="checkbox" bind:checked={settings.send_topup_created_email}> Posielať e-mail pri vytvorení topupu (platobné údaje)</label>
+            <label class="bp-check"><input type="checkbox" bind:checked={settings.send_topup_paid_email}> Posielať e-mail pri zaplatení (potvrdenie kreditu)</label>
+        </div>
+        
+        <div class="bp-smtp-test">
+            <div class="bp-smtp-test-row">
+                <input type="email" bind:value={smtpTestEmail} placeholder="test@email.sk" class="bp-smtp-test-input">
+                <button class="bp-btn test" on:click={testSMTP} disabled={smtpTesting}>
+                    {smtpTesting ? '⏳ Odosielam...' : '📧 Odoslať testovací e-mail'}
+                </button>
+            </div>
+            {#if settings.smtp_configured}
+                <span class="bp-test-result success">✅ SMTP nakonfigurovaný</span>
+            {:else if settings.smtp_host}
+                <span class="bp-test-result" style="color:#f59e0b">⚠️ Neuložené — najprv uložte nastavenia</span>
+            {/if}
+            {#if smtpTestResult}
+                <span class="bp-test-result {smtpTestResult.type}">{smtpTestResult.type === 'success' ? '✅' : '❌'} {smtpTestResult.text}</span>
+            {/if}
         </div>
     </div>
     
@@ -354,5 +421,14 @@
     @media (max-width: 768px) {
         .bp-grid { grid-template-columns: 1fr; }
         .bp-stats { grid-template-columns: 1fr; }
+        .bp-smtp-test-row { flex-direction: column; }
     }
+    
+    /* SMTP section */
+    .bp-smtp-toggles { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+    .bp-smtp-test { margin-top: 16px; padding-top: 16px; border-top: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 8px; }
+    .bp-smtp-test-row { display: flex; gap: 8px; align-items: center; }
+    .bp-smtp-test-input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; flex: 1; max-width: 260px; }
+    .bp-smtp-test-input:focus { outline: none; border-color: #c4956a; box-shadow: 0 0 0 2px rgba(196,149,106,0.15); }
 </style>
+
