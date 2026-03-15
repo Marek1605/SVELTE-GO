@@ -912,7 +912,7 @@
 /* Product card */
 .pc { background: #fff; border-radius: 12px; border: 1px solid #eef0f4; overflow: hidden; transition: all 0.2s; display: flex; flex-direction: column; }
 .pc:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: #d5dae2; transform: translateY(-2px); }
-.pc__img { display: block; aspect-ratio: 1; background: #fafbfc; padding: 12px; }
+.pc__img { display: block; aspect-ratio: 1; background: #fff; padding: 12px; }
 .pc__img img { width: 100%; height: 100%; object-fit: contain; }
 .pc__placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .pc__body { padding: 12px 14px 14px; display: flex; flex-direction: column; flex: 1; }
