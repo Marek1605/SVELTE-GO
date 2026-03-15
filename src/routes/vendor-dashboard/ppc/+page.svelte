@@ -258,6 +258,10 @@
                     ...data.payment
                 };
                 showPaymentPage = true;
+                loadTopups(); // refresh list
+                if (data.sf_warning) {
+                    console.warn('SF warning:', data.sf_warning);
+                }
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri odosielaní žiadosti' };
             }
@@ -383,7 +387,7 @@
             {#if showPaymentPage && paymentData}
             <!-- PAYMENT PAGE -->
             <div class="ppc-payment-page">
-                <button class="ppc-back-btn" on:click={() => { showPaymentPage = false; paymentData = null; }}>← Späť na výber</button>
+                <button class="ppc-back-btn" on:click={() => { showPaymentPage = false; paymentData = null; loadTopups(); }}>← Späť na výber</button>
                 
                 <div class="ppc-payment-summary">
                     <div class="ppc-payment-icon">🏦</div>
@@ -438,18 +442,18 @@
 
                     {#if paymentData.sf_proforma_no}
                     <div class="ppc-proforma-info" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-                        <span>Zálohová faktúra <strong>{paymentData.sf_proforma_no}</strong> bola odoslaná na váš e-mail.</span>
+                        <div>
+                            <span style="font-weight:600">✅ Zálohová faktúra <strong>{paymentData.sf_proforma_no}</strong> bola vytvorená</span>
+                            <p style="margin:4px 0 0;font-size:12px;color:#6b7280">Bola odoslaná na e-mail uvedený vo fakturačných údajoch.</p>
+                        </div>
                         {#if paymentData.topup_id}
-                        <a href="{API_BASE}/vendor/invoice-pdf/{paymentData.topup_id}?type=proforma" 
-                           target="_blank" 
-                           style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;background:#3b82f6;color:white;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none"
-                           on:click|preventDefault={async () => {
-                               const token = localStorage.getItem('vendor_token');
-                               const r = await fetch(`${API_BASE}/vendor/invoice-pdf/${paymentData.topup_id}?type=proforma`, { headers: { 'Authorization': `Bearer ${token}` } });
-                               if (r.ok) { const b = await r.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `zalohova-faktura-${paymentData.sf_proforma_no}.pdf`; a.click(); }
-                               else alert('Chyba pri sťahovaní PDF');
-                           }}>📄 Stiahnuť PDF</a>
+                        <button style="display:inline-flex;align-items:center;gap:4px;padding:8px 16px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer"
+                           on:click={() => downloadPDF(paymentData.topup_id, 'proforma', 'ZF-' + paymentData.sf_proforma_no)}>📄 Stiahnuť PDF</button>
                         {/if}
+                    </div>
+                    {:else}
+                    <div style="padding:12px 16px;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;font-size:13px;color:#92400e;margin-bottom:12px">
+                        ⚠️ Zálohová faktúra nebola automaticky vytvorená (SuperFaktúra nie je nakonfigurovaná). Po úhrade vás bude kontaktovať administrátor.
                     </div>
                     {/if}
 
