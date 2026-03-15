@@ -172,7 +172,7 @@
             return;
         }
         
-        if (!confirm('Po uložení budú fakturačné údaje UZAMKNUTÉ. Zmenu bude možné vykonať len cez e-mail fakturacia@megabuy.sk. Pokračovať?')) {
+        if (!confirm('Po uložení nebude možné údaje meniť priamo. Zmenu bude možné vykonať cez e-mail fakturacia@megabuy.sk. Pokračovať?')) {
             return;
         }
         
@@ -197,9 +197,9 @@
                 billingCompleted = true;
                 if (data.credit_granted) {
                     creditBonusShown = true;
-                    message = { type: 'success', text: `Fakturačné údaje uložené a uzamknuté. 🎁 Bonus ${data.credit_amount} € bol pripísaný na váš kredit!` };
+                    message = { type: 'success', text: `Fakturačné údaje uložené. 🎁 Bonus ${data.credit_amount} € bol pripísaný na váš kredit!` };
                 } else {
-                    message = { type: 'success', text: 'Fakturačné údaje boli uložené a uzamknuté' };
+                    message = { type: 'success', text: 'Fakturačné údaje boli uložené' };
                 }
                 vendorStore.update(v => ({ ...v, billing_completed: true }));
             } else {
@@ -418,7 +418,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h2>Fakturačné údaje</h2>
-                            <p>Údaje pre faktúry a daňové doklady. Po uložení sú údaje uzamknuté.</p>
+                            <p>Údaje pre faktúry a daňové doklady</p>
                         </div>
                         
                         {#if billingLocked}
@@ -429,7 +429,7 @@
                                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                     </svg>
-                                    Fakturačné údaje sú uzamknuté
+                                    Fakturačné údaje sú uložené
                                 </div>
                                 
                                 <div class="billing-readonly-grid">
@@ -590,12 +590,12 @@
                                         <line x1="12" y1="9" x2="12" y2="13"></line>
                                         <line x1="12" y1="17" x2="12.01" y2="17"></line>
                                     </svg>
-                                    <span>Po uložení budú údaje <strong>uzamknuté</strong>. Zmenu bude možné vykonať len cez e-mail na <a href="mailto:fakturacia@megabuy.sk">fakturacia@megabuy.sk</a></span>
+                                    <span>Po uložení bude zmena možná len cez e-mail na <a href="mailto:fakturacia@megabuy.sk">fakturacia@megabuy.sk</a></span>
                                 </div>
                                 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary" disabled={loading}>
-                                        {#if loading}Ukladám...{:else}🔒 Uložiť a uzamknúť fakturačné údaje{/if}
+                                        {#if loading}Ukladám...{:else}💾 Uložiť fakturačné údaje{/if}
                                     </button>
                                 </div>
                             </form>
