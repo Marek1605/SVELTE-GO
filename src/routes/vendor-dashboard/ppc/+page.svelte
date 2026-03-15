@@ -13,6 +13,7 @@
     let loading = false;
     let transactions = [];
     let topups = [];
+    let selectedTopup = null;
     let selectedPackage = null;
     let paymentMethod = 'bank_transfer';
     let message = null;
@@ -199,6 +200,16 @@
             if (r.ok) { const b = await r.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `${label}.pdf`; a.click(); URL.revokeObjectURL(a.href); }
             else { const e = await r.json().catch(() => ({})); alert(e.error || 'Chyba pri sťahovaní PDF'); }
         } catch(e) { alert('Chyba pripojenia'); }
+    }
+
+    async function loadTopupDetail(topupId) {
+        const token = localStorage.getItem('vendor_token');
+        try {
+            const res = await fetch(`${API_BASE}/vendor/credit/topup/${topupId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) selectedTopup = data.data;
+            else alert(data.error || 'Chyba');
+        } catch(e) { console.error(e); }
     }
     
     async function requestTopup() {
@@ -700,11 +711,14 @@
                                     <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase">VS</th>
                                     <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase">Stav</th>
                                     <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase">Faktúry</th>
+                                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {#each topups as t}
-                                <tr style="border-top:1px solid #f1f5f9">
+                                <tr style="border-top:1px solid #f1f5f9;cursor:pointer;transition:background .15s" 
+                                    class:selected-row={selectedTopup?.id === t.id}
+                                    on:click={() => loadTopupDetail(t.id)}>
                                     <td style="padding:10px 12px;font-size:12px;color:#6b7280;white-space:nowrap">{formatDate(t.created_at)}</td>
                                     <td style="padding:10px 12px;text-align:right;font-weight:700;color:#1f2937">{formatNumber(t.amount, 2)} €</td>
                                     <td style="padding:10px 12px;text-align:right;font-weight:600;color:#059669">
@@ -721,28 +735,103 @@
                                             <span style="padding:3px 10px;border-radius:10px;font-size:10px;font-weight:600;background:#f1f5f9;color:#6b7280">{t.status}</span>
                                         {/if}
                                     </td>
-                                    <td style="padding:10px 12px;text-align:center;white-space:nowrap">
+                                    <td style="padding:10px 12px;text-align:center;white-space:nowrap" on:click|stopPropagation>
                                         {#if t.sf_proforma_no}
                                             <button style="font-size:11px;color:#3b82f6;background:#eff6ff;border:1px solid #bfdbfe;padding:3px 8px;border-radius:5px;cursor:pointer;margin-right:4px"
                                                 on:click={() => downloadPDF(t.id, 'proforma', 'ZF-' + t.sf_proforma_no)}>
-                                                📄 ZF {t.sf_proforma_no}
+                                                📄 ZF
                                             </button>
                                         {/if}
                                         {#if t.sf_invoice_no}
                                             <button style="font-size:11px;color:#059669;background:#ecfdf5;border:1px solid #a7f3d0;padding:3px 8px;border-radius:5px;cursor:pointer"
                                                 on:click={() => downloadPDF(t.id, 'invoice', 'FA-' + t.sf_invoice_no)}>
-                                                📄 FA {t.sf_invoice_no}
+                                                📄 FA
                                             </button>
                                         {/if}
                                         {#if !t.sf_proforma_no && !t.sf_invoice_no}
                                             <span style="color:#94a3b8;font-size:11px">—</span>
                                         {/if}
                                     </td>
+                                    <td style="padding:10px 8px;text-align:center;color:#94a3b8;font-size:14px">›</td>
                                 </tr>
                                 {/each}
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- TOPUP DETAIL PANEL -->
+                    {#if selectedTopup}
+                    <div style="margin-top:16px;background:#fff;border:2px solid {selectedTopup.status === 'paid' ? '#10b981' : '#f59e0b'};border-radius:12px;padding:20px;position:relative">
+                        <button style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer" on:click={() => selectedTopup = null}>✕</button>
+                        
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+                            <span style="font-size:28px">{selectedTopup.status === 'paid' ? '✅' : '🏦'}</span>
+                            <div>
+                                <h4 style="margin:0;font-size:16px;color:#1f2937">
+                                    {selectedTopup.status === 'paid' ? 'Zaplatené' : 'Čaká na platbu'} — {formatNumber(selectedTopup.amount, 2)} €
+                                </h4>
+                                <p style="margin:2px 0 0;font-size:12px;color:#6b7280">
+                                    {formatDate(selectedTopup.created_at)}
+                                    {#if selectedTopup.paid_at} · Zaplatené: {formatDate(selectedTopup.paid_at)}{/if}
+                                    {#if selectedTopup.bonus_pct > 0} · Bonus +{selectedTopup.bonus_pct}% = {formatNumber(selectedTopup.total_credit, 2)} € kredit{/if}
+                                </p>
+                            </div>
+                        </div>
+
+                        {#if selectedTopup.status === 'pending' && selectedTopup.bank_iban}
+                        <!-- PAYMENT DETAILS -->
+                        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:16px">
+                            <div style="display:flex;padding:10px 16px;border-bottom:1px solid #f1f5f9;align-items:center">
+                                <span style="font-size:12px;color:#6b7280;width:130px;flex-shrink:0">Názov účtu</span>
+                                <span style="font-size:13px;font-weight:600;color:#1f2937">{selectedTopup.bank_account_name || 'Megabuy s.r.o.'}</span>
+                            </div>
+                            <div style="display:flex;padding:10px 16px;border-bottom:1px solid #f1f5f9;align-items:center">
+                                <span style="font-size:12px;color:#6b7280;width:130px;flex-shrink:0">IBAN</span>
+                                <span style="font-size:13px;font-weight:600;color:#1f2937;font-family:monospace;letter-spacing:1px">{selectedTopup.bank_iban}</span>
+                                <button style="margin-left:8px;background:none;border:1px solid #e2e8f0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:11px" on:click={() => navigator.clipboard.writeText(selectedTopup.bank_iban)}>📋</button>
+                            </div>
+                            <div style="display:flex;padding:10px 16px;border-bottom:1px solid #f1f5f9;align-items:center">
+                                <span style="font-size:12px;color:#6b7280;width:130px;flex-shrink:0">SWIFT/BIC</span>
+                                <span style="font-size:13px;font-weight:600;color:#1f2937">{selectedTopup.bank_swift || 'TATRSKBX'}</span>
+                            </div>
+                            <div style="display:flex;padding:10px 16px;border-bottom:1px solid #f1f5f9;align-items:center;background:#fffbeb">
+                                <span style="font-size:12px;color:#6b7280;width:130px;flex-shrink:0">Variabilný symbol</span>
+                                <span style="font-size:15px;font-weight:700;color:#b45309;font-family:monospace">{selectedTopup.variable_symbol}</span>
+                                <button style="margin-left:8px;background:none;border:1px solid #e2e8f0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:11px" on:click={() => navigator.clipboard.writeText(selectedTopup.variable_symbol)}>📋</button>
+                            </div>
+                            <div style="display:flex;padding:10px 16px;align-items:center">
+                                <span style="font-size:12px;color:#6b7280;width:130px;flex-shrink:0">Suma</span>
+                                <span style="font-size:14px;font-weight:700;color:#1f2937">{formatNumber(selectedTopup.amount, 2)} €</span>
+                            </div>
+                        </div>
+
+                        <!-- QR CODE -->
+                        <div style="text-align:center;padding:16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:16px">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=SPD*1.0*ACC:{selectedTopup.bank_iban?.replace(/\s/g,'')}*AM:{selectedTopup.amount}*CC:EUR*X-VS:{selectedTopup.variable_symbol}*MSG:MegaBuy+kredit" alt="QR platba" style="width:180px;height:180px;border-radius:8px" />
+                            <p style="font-size:11px;color:#6b7280;margin:10px 0 0">Naskenujte QR kód v bankovej aplikácii</p>
+                        </div>
+                        {/if}
+
+                        <!-- INVOICES -->
+                        <div style="display:flex;gap:10px;flex-wrap:wrap">
+                            {#if selectedTopup.sf_proforma_no}
+                                <button style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:#1d4ed8"
+                                    on:click={() => downloadPDF(selectedTopup.id, 'proforma', 'ZF-' + selectedTopup.sf_proforma_no)}>
+                                    📄 Stiahnuť zálohovú faktúru ({selectedTopup.sf_proforma_no})
+                                </button>
+                            {/if}
+                            {#if selectedTopup.sf_invoice_no}
+                                <button style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:#065f46"
+                                    on:click={() => downloadPDF(selectedTopup.id, 'invoice', 'FA-' + selectedTopup.sf_invoice_no)}>
+                                    📄 Stiahnuť faktúru ({selectedTopup.sf_invoice_no})
+                                </button>
+                            {/if}
+                            {#if !selectedTopup.sf_proforma_no && !selectedTopup.sf_invoice_no}
+                                <p style="font-size:12px;color:#94a3b8;margin:0">SuperFaktúra nie je nakonfigurovaná — faktúry nie sú dostupné.</p>
+                            {/if}
+                        </div>
+                    </div>
+                    {/if}
                 </div>
                 {/if}
 
@@ -1023,6 +1112,9 @@
     /* Transactions */
     .ppc-empty { text-align: center; padding: 60px 20px; color: #6b7280; }
     .ppc-empty-icon { font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.5; }
+    
+    tr.selected-row { background: #eff6ff !important; }
+    tr:hover:not(.selected-row) { background: #f8fafc; }
     
     .ppc-transactions-table { overflow-x: auto; }
     .ppc-transactions-table table { width: 100%; border-collapse: collapse; }
