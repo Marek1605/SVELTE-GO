@@ -117,19 +117,10 @@ function createAuthStore() {
     }
 
     async function register(data: {
-        first_name: string;
-        last_name: string;
         email: string;
         password: string;
-        password_confirm: string;
-        shop_name: string;
-        shop_url: string;
-        terms: boolean;
     }): Promise<{ success: boolean; error?: string }> {
         const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
-        
-        // Map frontend fields to backend expected fields
-        const fullName = `${data.first_name} ${data.last_name}`.trim();
         
         try {
             const res = await fetch(`${API_BASE}/auth/register`, {
@@ -137,12 +128,7 @@ function createAuthStore() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: data.email,
-                    password: data.password,
-                    name: fullName,                    // Pre stĺpec "name" v DB
-                    company_name: data.shop_name,     // Použijeme shop_name ako company_name
-                    contact_person: fullName,         // Kontaktná osoba
-                    shop_name: data.shop_name,
-                    shop_url: data.shop_url
+                    password: data.password
                 })
             });
             

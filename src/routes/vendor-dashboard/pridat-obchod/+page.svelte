@@ -135,6 +135,11 @@
     }
     
     async function createShop() {
+        if (!shopName.trim()) {
+            error = 'Zadajte názov obchodu';
+            return;
+        }
+        
         loading = true;
         error = '';
         
@@ -149,18 +154,7 @@
                 body: JSON.stringify({
                     shop_name: shopName,
                     shop_url: shopUrl,
-                    copy_from_vendor: copyFromVendor,
-                    billing_company: billing.company,
-                    billing_ico: billing.ico,
-                    billing_dic: billing.dic,
-                    billing_ic_dph: billing.ic_dph,
-                    billing_address: billing.address,
-                    billing_city: billing.city,
-                    billing_zip: billing.zip,
-                    billing_country: billing.country,
-                    billing_contact_person: billing.contact_person,
-                    billing_phone: billing.phone,
-                    billing_email: billing.email
+                    copy_from_vendor: true
                 })
             });
             
@@ -178,7 +172,17 @@
 </script>
 
 <div class="asp-page">
-    {#if success}
+    {#if !vendor?.billing_completed}
+        <!-- Billing not completed - redirect -->
+        <div class="asp-card" style="text-align:center;padding:3rem 2rem">
+            <div style="font-size:64px;margin-bottom:1rem">📋</div>
+            <h1 style="font-size:1.5rem;color:#1e293b;margin:0 0 0.75rem">Najskôr vyplňte fakturačné údaje</h1>
+            <p style="color:#64748b;margin:0 0 1.5rem;max-width:400px;margin-left:auto;margin-right:auto">Pre pridanie obchodu je potrebné mať vyplnené a overené fakturačné údaje. Po vyplnení získate aj <strong style="color:#f97316">100 € bonus kredit</strong>!</p>
+            <a href="/vendor-dashboard/moj-ucet" style="display:inline-flex;align-items:center;gap:0.5rem;padding:12px 28px;background:#f97316;color:white;border-radius:10px;font-weight:600;text-decoration:none;font-size:15px">
+                Vyplniť fakturačné údaje →
+            </a>
+        </div>
+    {:else if success}
         <!-- Success screen -->
         <div class="asp-card asp-success-card">
             <div class="asp-success-icon">
@@ -204,20 +208,7 @@
                     <span class="material-icons-round">add_business</span>
                     Pridať nový obchod
                 </h1>
-                <p>Vytvorte nový obchod pre správu produktov. Po vytvorení bude obchod čakať na schválenie.</p>
-            </div>
-            
-            <!-- Steps indicator -->
-            <div class="asp-steps">
-                <div class="asp-step" class:active={step === 1} class:done={step > 1}>
-                    <div class="asp-step-num">{step > 1 ? '✓' : '1'}</div>
-                    <span>Základné údaje</span>
-                </div>
-                <div class="asp-step-line" class:active={step > 1}></div>
-                <div class="asp-step" class:active={step === 2}>
-                    <div class="asp-step-num">2</div>
-                    <span>Fakturačné údaje</span>
-                </div>
+                <p>Vytvorte nový obchod pre správu produktov. Fakturačné údaje sa prevezmú z vášho profilu.</p>
             </div>
             
             {#if error}
@@ -227,163 +218,51 @@
                 </div>
             {/if}
             
-            <!-- Step 1: Basic Info -->
-            {#if step === 1}
-                <div class="asp-form">
-                    <div class="asp-field">
-                        <label>Názov obchodu <span class="req">*</span></label>
-                        <input type="text" bind:value={shopName} placeholder="Napr. MôjEshop.sk" />
-                        <span class="asp-hint">Názov vášho e-shopu, ako sa bude zobrazovať zákazníkom</span>
+            <div class="asp-form">
+                <div class="asp-field">
+                    <label>Názov obchodu <span class="req">*</span></label>
+                    <input type="text" bind:value={shopName} placeholder="Napr. MôjEshop.sk" />
+                    <span class="asp-hint">Názov vášho e-shopu, ako sa bude zobrazovať zákazníkom</span>
+                </div>
+                
+                <div class="asp-field">
+                    <label>URL obchodu</label>
+                    <input type="url" bind:value={shopUrl} placeholder="https://www.mojeshop.sk" />
+                    <span class="asp-hint">Webová adresa vášho e-shopu (nepovinné)</span>
+                </div>
+
+                <!-- Billing info read-only -->
+                <div style="padding:14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin-top:8px">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                        <span style="font-size:16px">🧾</span>
+                        <strong style="font-size:14px;color:#166534">Fakturačné údaje z profilu</strong>
+                        <span style="font-size:10px;padding:2px 6px;background:#dcfce7;color:#166534;border-radius:4px">🔒 overené</span>
                     </div>
-                    
-                    <div class="asp-field">
-                        <label>URL obchodu</label>
-                        <input type="url" bind:value={shopUrl} placeholder="https://www.mojeshop.sk" />
-                        <span class="asp-hint">Webová adresa vášho e-shopu (nepovinné)</span>
+                    <div style="font-size:13px;color:#64748b;line-height:1.6">
+                        {vendor?.company_name || vendor?.billing_name || '—'}
+                        {#if vendor?.ico} · IČO: {vendor.ico}{/if}
                     </div>
-                    
-                    <div class="asp-actions">
-                        <a href="/vendor-dashboard" class="asp-btn asp-btn-ghost">
-                            <span class="material-icons-round">arrow_back</span>
-                            Späť
-                        </a>
-                        <button class="asp-btn asp-btn-primary" on:click={nextStep}>
-                            Pokračovať
-                            <span class="material-icons-round">arrow_forward</span>
-                        </button>
+                    <div style="margin-top:6px;font-size:11px;color:#94a3b8">
+                        Zmenu fakturačných údajov vykonajte cez <a href="/vendor-dashboard/moj-ucet" style="color:#3b82f6">Môj účet</a>
                     </div>
                 </div>
-            {/if}
+                
+                <div class="asp-actions">
+                    <a href="/vendor-dashboard" class="asp-btn asp-btn-ghost">
+                        <span class="material-icons-round">arrow_back</span>
+                        Späť
+                    </a>
+                    <button class="asp-btn asp-btn-primary" on:click={createShop} disabled={loading || !shopName.trim()}>
+                        {#if loading}
+                            Vytváram...
+                        {:else}
+                            <span class="material-icons-round">add_business</span>
+                            Vytvoriť obchod
+                        {/if}
+                    </button>
+                </div>
+            </div>
             
-            <!-- Step 2: Billing -->
-            {#if step === 2}
-                <div class="asp-form">
-                    <!-- Copy toggle -->
-                    <div class="asp-toggle-row">
-                        <label class="asp-toggle">
-                            <input type="checkbox" checked={copyFromVendor} on:change={toggleCopyFromVendor} />
-                            <span class="asp-toggle-slider"></span>
-                        </label>
-                        <span class="asp-toggle-label">Použiť fakturačné údaje z hlavného účtu</span>
-                    </div>
-                    
-                    <!-- ICO Lookup -->
-                    {#if !copyFromVendor}
-                        <div class="asp-ico-section">
-                            <div class="asp-ico-header">
-                                <span class="material-icons-round">search</span>
-                                Vyhľadať podľa IČO
-                            </div>
-                            <div class="asp-ico-row">
-                                <div class="asp-ico-country">
-                                    <select bind:value={billingCountry}>
-                                        <option value="SK">🇸🇰 SK</option>
-                                        <option value="CZ">🇨🇿 CZ</option>
-                                    </select>
-                                </div>
-                                <input type="text" bind:value={icoInput} placeholder="Zadajte IČO" class="asp-ico-input"
-                                    on:keydown={(e) => e.key === 'Enter' && lookupICO()} />
-                                <button class="asp-btn asp-btn-secondary" on:click={lookupICO} disabled={icoLoading}>
-                                    {#if icoLoading}
-                                        <span class="asp-spinner"></span>
-                                    {:else}
-                                        <span class="material-icons-round">search</span>
-                                    {/if}
-                                    Hľadať
-                                </button>
-                            </div>
-                            {#if icoFound}
-                                <div class="asp-ico-found">
-                                    <span class="material-icons-round">check_circle</span>
-                                    Údaje boli nájdené a predvyplnené. Skontrolujte ich a prípadne upravte.
-                                </div>
-                            {/if}
-                            {#if icoError}
-                                <div class="asp-ico-error">{icoError}</div>
-                            {/if}
-                        </div>
-                    {/if}
-                    
-                    <!-- Billing form fields -->
-                    <div class="asp-field-grid">
-                        <div class="asp-field full">
-                            <label>Názov spoločnosti</label>
-                            <input type="text" bind:value={billing.company} placeholder="s.r.o. / SZČO" disabled={copyFromVendor} />
-                        </div>
-                        
-                        <div class="asp-field">
-                            <label>IČO</label>
-                            <input type="text" bind:value={billing.ico} placeholder="12345678" disabled={copyFromVendor} />
-                        </div>
-                        <div class="asp-field">
-                            <label>DIČ</label>
-                            <input type="text" bind:value={billing.dic} placeholder="2012345678" disabled={copyFromVendor} />
-                        </div>
-                        <div class="asp-field">
-                            <label>IČ DPH</label>
-                            <input type="text" bind:value={billing.ic_dph} placeholder="SK2012345678" disabled={copyFromVendor} />
-                        </div>
-                        <div class="asp-field">
-                            <label>Krajina</label>
-                            <select bind:value={billing.country} disabled={copyFromVendor}>
-                                <option value="SK">Slovensko</option>
-                                <option value="CZ">Česko</option>
-                            </select>
-                        </div>
-                        
-                        <div class="asp-field full">
-                            <label>Ulica a číslo</label>
-                            <input type="text" bind:value={billing.address} placeholder="Hlavná 1" disabled={copyFromVendor} />
-                        </div>
-                        <div class="asp-field">
-                            <label>Mesto</label>
-                            <input type="text" bind:value={billing.city} placeholder="Bratislava" disabled={copyFromVendor} />
-                        </div>
-                        <div class="asp-field">
-                            <label>PSČ</label>
-                            <input type="text" bind:value={billing.zip} placeholder="01001" disabled={copyFromVendor} />
-                        </div>
-                    </div>
-                    
-                    <div class="asp-divider"></div>
-                    
-                    <div class="asp-field-grid">
-                        <div class="asp-field">
-                            <label>Kontaktná osoba</label>
-                            <input type="text" bind:value={billing.contact_person} placeholder="Meno Priezvisko" disabled={copyFromVendor} />
-                        </div>
-                        <div class="asp-field">
-                            <label>Telefón</label>
-                            <input type="tel" bind:value={billing.phone} placeholder="+421 9XX XXX XXX" disabled={copyFromVendor} />
-                        </div>
-                        <div class="asp-field full">
-                            <label>Fakturačný email</label>
-                            <input type="email" bind:value={billing.email} placeholder="fakturacia@firma.sk" disabled={copyFromVendor} />
-                        </div>
-                    </div>
-                    
-                    <div class="asp-info">
-                        <span class="material-icons-round">info</span>
-                        Po vytvorení obchodu bude potrebné schválenie administrátorom. Kredit je zdieľaný pre všetky vaše obchody.
-                    </div>
-                    
-                    <div class="asp-actions">
-                        <button class="asp-btn asp-btn-ghost" on:click={prevStep}>
-                            <span class="material-icons-round">arrow_back</span>
-                            Späť
-                        </button>
-                        <button class="asp-btn asp-btn-primary" on:click={createShop} disabled={loading}>
-                            {#if loading}
-                                <span class="asp-spinner"></span>
-                                Vytváram...
-                            {:else}
-                                <span class="material-icons-round">add_business</span>
-                                Vytvoriť obchod
-                            {/if}
-                        </button>
-                    </div>
-                </div>
-            {/if}
         </div>
     {/if}
 </div>

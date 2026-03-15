@@ -18,14 +18,23 @@
     };
     
     let billingData = {
+        billing_name: '',
         ico: '',
         dic: '',
         ic_dph: '',
-        billing_address: '',
-        billing_city: '',
-        billing_zip: '',
-        billing_country: 'SK'
+        street: '',
+        city: '',
+        zip: '',
+        country: 'SK',
+        billing_email: '',
+        billing_phone: '',
+        vat_payer: false,
+        vat_payer_type: 'standard'
     };
+    let billingLocked = false;
+    let billingCompleted = false;
+    let icoLookupLoading = false;
+    let creditBonusShown = false;
     
     let passwordData = {
         current_password: '',
@@ -49,18 +58,69 @@
                 phone: vendor.phone || '',
                 email: vendor.email || ''
             };
-            billingData = {
-                ico: vendor.ico || '',
-                dic: vendor.dic || '',
-                ic_dph: vendor.ic_dph || '',
-                billing_address: vendor.billing_address || '',
-                billing_city: vendor.billing_city || '',
-                billing_zip: vendor.billing_zip || '',
-                billing_country: vendor.billing_country || 'SK'
-            };
             apiKey = vendor.api_key || '';
         }
+        loadBillingData();
     });
+    
+    async function loadBillingData() {
+        const token = localStorage.getItem('vendor_token');
+        try {
+            const res = await fetch(`${API_BASE}/vendor/billing-data`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                billingData = {
+                    billing_name: data.data.billing_name || '',
+                    ico: data.data.ico || '',
+                    dic: data.data.dic || '',
+                    ic_dph: data.data.ic_dph || '',
+                    street: data.data.street || '',
+                    city: data.data.city || '',
+                    zip: data.data.zip || '',
+                    country: data.data.country || 'SK',
+                    billing_email: data.data.billing_email || '',
+                    billing_phone: data.data.billing_phone || '',
+                    vat_payer: data.data.vat_payer || false,
+                    vat_payer_type: data.data.vat_payer_type || 'standard'
+                };
+                billingLocked = data.data.billing_locked || false;
+                billingCompleted = data.data.billing_completed || false;
+            }
+        } catch (e) { console.error('Failed to load billing', e); }
+    }
+    
+    async function lookupICO() {
+        if (!billingData.ico || billingData.ico.length < 6) {
+            message = { type: 'error', text: 'Zadajte platné IČO (min. 6 znakov)' };
+            return;
+        }
+        icoLookupLoading = true;
+        const token = localStorage.getItem('vendor_token');
+        try {
+            const res = await fetch(`${API_BASE}/vendor/ico-lookup?ico=${billingData.ico}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success && data.data?.found) {
+                const d = data.data;
+                billingData.billing_name = d.company_name || billingData.billing_name;
+                billingData.street = d.street || billingData.street;
+                billingData.city = d.city || billingData.city;
+                billingData.zip = d.postal_code || billingData.zip;
+                billingData.dic = d.dic || billingData.dic;
+                billingData.ic_dph = d.ic_dph || billingData.ic_dph;
+                if (d.ic_dph) billingData.vat_payer = true;
+                message = { type: 'success', text: `Údaje predvyplnené z registra: ${d.company_name}` };
+            } else {
+                message = { type: 'error', text: 'IČO nenájdené v registri. Vyplňte údaje manuálne.' };
+            }
+        } catch (e) {
+            message = { type: 'error', text: 'Chyba pri vyhľadávaní IČO' };
+        }
+        icoLookupLoading = false;
+    }
     
     $: if (vendor) {
         formData = {
@@ -102,14 +162,28 @@
     }
     
     async function saveBilling() {
+        if (billingLocked) {
+            message = { type: 'error', text: 'Fakturačné údaje sú uzamknuté. Pre zmenu kontaktujte fakturacia@megabuy.sk' };
+            return;
+        }
+        
+        if (!billingData.billing_name || !billingData.ico || !billingData.street || !billingData.city || !billingData.zip) {
+            message = { type: 'error', text: 'Vyplňte všetky povinné polia (obchodné meno, IČO, adresa)' };
+            return;
+        }
+        
+        if (!confirm('Po uložení budú fakturačné údaje UZAMKNUTÉ. Zmenu bude možné vykonať len cez e-mail fakturacia@megabuy.sk. Pokračovať?')) {
+            return;
+        }
+        
         loading = true;
         message = null;
         
         const token = localStorage.getItem('vendor_token');
         
         try {
-            const res = await fetch(`${API_BASE}/vendor/billing`, {
-                method: 'PUT',
+            const res = await fetch(`${API_BASE}/vendor/billing-data`, {
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -119,8 +193,15 @@
             const data = await res.json();
             
             if (data.success) {
-                message = { type: 'success', text: 'Fakturačné údaje boli uložené' };
-                vendorStore.update(v => ({ ...v, ...billingData }));
+                billingLocked = true;
+                billingCompleted = true;
+                if (data.credit_granted) {
+                    creditBonusShown = true;
+                    message = { type: 'success', text: `Fakturačné údaje uložené a uzamknuté. 🎁 Bonus ${data.credit_amount} € bol pripísaný na váš kredit!` };
+                } else {
+                    message = { type: 'success', text: 'Fakturačné údaje boli uložené a uzamknuté' };
+                }
+                vendorStore.update(v => ({ ...v, billing_completed: true }));
             } else {
                 message = { type: 'error', text: data.error || 'Chyba pri ukladaní' };
             }
@@ -337,58 +418,188 @@
                     <div class="card">
                         <div class="card-header">
                             <h2>Fakturačné údaje</h2>
-                            <p>Údaje pre faktúry a daňové doklady</p>
+                            <p>Údaje pre faktúry a daňové doklady. Po uložení sú údaje uzamknuté.</p>
                         </div>
                         
-                        <form on:submit|preventDefault={saveBilling} class="form">
-                            <div class="form-row three">
-                                <div class="form-group">
-                                    <label for="ico">IČO</label>
-                                    <input type="text" id="ico" bind:value={billingData.ico} placeholder="12345678">
+                        {#if billingLocked}
+                            <!-- READ-ONLY Heureka-style view -->
+                            <div class="billing-locked-view">
+                                <div class="locked-badge">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    Fakturačné údaje sú uzamknuté
                                 </div>
                                 
-                                <div class="form-group">
-                                    <label for="dic">DIČ</label>
-                                    <input type="text" id="dic" bind:value={billingData.dic} placeholder="2012345678">
+                                <div class="billing-readonly-grid">
+                                    <div class="billing-field">
+                                        <span class="field-label">Obchodné meno</span>
+                                        <span class="field-value">{billingData.billing_name || '—'}</span>
+                                    </div>
+                                    <div class="billing-field">
+                                        <span class="field-label">IČO</span>
+                                        <span class="field-value">{billingData.ico || '—'}</span>
+                                    </div>
+                                    <div class="billing-field">
+                                        <span class="field-label">DIČ</span>
+                                        <span class="field-value">{billingData.dic || '—'}</span>
+                                    </div>
+                                    <div class="billing-field">
+                                        <span class="field-label">IČ DPH</span>
+                                        <span class="field-value">{billingData.ic_dph || '—'}</span>
+                                    </div>
+                                    <div class="billing-field">
+                                        <span class="field-label">Platca DPH</span>
+                                        <span class="field-value">{billingData.vat_payer ? (billingData.vat_payer_type === 'paragraph_7' ? 'Áno (§7 — registrácia podľa DPH)' : 'Áno (klasický platca)') : 'Nie'}</span>
+                                    </div>
+                                    <div class="billing-field full-width">
+                                        <span class="field-label">Adresa</span>
+                                        <span class="field-value">{billingData.street}, {billingData.zip} {billingData.city}, {billingData.country === 'SK' ? 'Slovensko' : billingData.country === 'CZ' ? 'Česko' : billingData.country}</span>
+                                    </div>
+                                    <div class="billing-field">
+                                        <span class="field-label">Fakturačný e-mail</span>
+                                        <span class="field-value">{billingData.billing_email || '—'}</span>
+                                    </div>
+                                    <div class="billing-field">
+                                        <span class="field-label">Telefón</span>
+                                        <span class="field-value">{billingData.billing_phone || '—'}</span>
+                                    </div>
                                 </div>
                                 
-                                <div class="form-group">
-                                    <label for="ic_dph">IČ DPH</label>
-                                    <input type="text" id="ic_dph" bind:value={billingData.ic_dph} placeholder="SK2012345678">
+                                <div class="change-request-box">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
+                                    <div>
+                                        <strong>Potrebujete zmeniť fakturačné údaje?</strong>
+                                        <p>Napíšte nám na <a href="mailto:fakturacia@megabuy.sk">fakturacia@megabuy.sk</a> s popisom požadovanej zmeny.</p>
+                                    </div>
                                 </div>
                             </div>
+                        {:else}
+                            <!-- EDITABLE form with ICO auto-fill -->
+                            {#if !billingCompleted}
+                                <div class="billing-bonus-banner">
+                                    <span class="bonus-emoji">🎁</span>
+                                    <div>
+                                        <strong>Vyplňte fakturačné údaje a získajte 100 € kredit!</strong>
+                                        <p>Po prvom uložení fakturačných údajov vám automaticky pripíšeme 100 € bonus na PPC kredit.</p>
+                                    </div>
+                                </div>
+                            {/if}
                             
-                            <div class="form-group">
-                                <label for="billing_address">Fakturačná adresa</label>
-                                <input type="text" id="billing_address" bind:value={billingData.billing_address} placeholder="Ulica a číslo">
-                            </div>
-                            
-                            <div class="form-row three">
-                                <div class="form-group">
-                                    <label for="billing_city">Mesto</label>
-                                    <input type="text" id="billing_city" bind:value={billingData.billing_city} placeholder="Bratislava">
+                            <form on:submit|preventDefault={saveBilling} class="form">
+                                <!-- ICO lookup -->
+                                <div class="ico-lookup-row">
+                                    <div class="form-group" style="flex:1">
+                                        <label for="ico">IČO *</label>
+                                        <input type="text" id="ico" bind:value={billingData.ico} placeholder="12345678" required>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary ico-btn" on:click={lookupICO} disabled={icoLookupLoading || !billingData.ico}>
+                                        {#if icoLookupLoading}
+                                            <span class="spinner-sm"></span>
+                                        {:else}
+                                            🔍
+                                        {/if}
+                                        Vyhľadať v registri
+                                    </button>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="billing_zip">PSČ</label>
-                                    <input type="text" id="billing_zip" bind:value={billingData.billing_zip} placeholder="81101">
+                                    <label for="billing_name">Obchodné meno / Názov firmy *</label>
+                                    <input type="text" id="billing_name" bind:value={billingData.billing_name} placeholder="Firma s.r.o." required>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="dic">DIČ</label>
+                                        <input type="text" id="dic" bind:value={billingData.dic} placeholder="2012345678">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ic_dph">IČ DPH</label>
+                                        <input type="text" id="ic_dph" bind:value={billingData.ic_dph} placeholder="SK2012345678">
+                                    </div>
+                                </div>
+                                
+                                <!-- VAT Payer toggle -->
+                                <div class="vat-section">
+                                    <label class="vat-toggle-label">
+                                        <span>Ste platca DPH?</span>
+                                        <label class="toggle">
+                                            <input type="checkbox" bind:checked={billingData.vat_payer}>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </label>
+                                    
+                                    {#if billingData.vat_payer}
+                                        <div class="vat-type-options">
+                                            <label class="radio-label">
+                                                <input type="radio" bind:group={billingData.vat_payer_type} value="standard">
+                                                <span>Klasický platca DPH</span>
+                                            </label>
+                                            <label class="radio-label">
+                                                <input type="radio" bind:group={billingData.vat_payer_type} value="paragraph_7">
+                                                <span>Registrácia podľa §7 (len DPH z dovozu služieb)</span>
+                                            </label>
+                                        </div>
+                                    {/if}
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="billing_country">Krajina</label>
-                                    <select id="billing_country" bind:value={billingData.billing_country}>
-                                        <option value="SK">Slovensko</option>
-                                        <option value="CZ">Česko</option>
-                                    </select>
+                                    <label for="street">Ulica a číslo *</label>
+                                    <input type="text" id="street" bind:value={billingData.street} placeholder="Hlavná 1" required>
                                 </div>
-                            </div>
-                            
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary" disabled={loading}>
-                                    {#if loading}Ukladám...{:else}Uložiť fakturačné údaje{/if}
-                                </button>
-                            </div>
-                        </form>
+                                
+                                <div class="form-row three">
+                                    <div class="form-group">
+                                        <label for="city">Mesto *</label>
+                                        <input type="text" id="city" bind:value={billingData.city} placeholder="Bratislava" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="zip">PSČ *</label>
+                                        <input type="text" id="zip" bind:value={billingData.zip} placeholder="81101" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="country">Krajina</label>
+                                        <select id="country" bind:value={billingData.country}>
+                                            <option value="SK">Slovensko</option>
+                                            <option value="CZ">Česko</option>
+                                            <option value="HU">Maďarsko</option>
+                                            <option value="PL">Poľsko</option>
+                                            <option value="AT">Rakúsko</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="billing_email">Fakturačný e-mail</label>
+                                        <input type="email" id="billing_email" bind:value={billingData.billing_email} placeholder="fakturacia@firma.sk">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="billing_phone">Telefón</label>
+                                        <input type="text" id="billing_phone" bind:value={billingData.billing_phone} placeholder="+421 900 000 000">
+                                    </div>
+                                </div>
+                                
+                                <div class="lock-warning">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                    </svg>
+                                    <span>Po uložení budú údaje <strong>uzamknuté</strong>. Zmenu bude možné vykonať len cez e-mail na <a href="mailto:fakturacia@megabuy.sk">fakturacia@megabuy.sk</a></span>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary" disabled={loading}>
+                                        {#if loading}Ukladám...{:else}🔒 Uložiť a uzamknúť fakturačné údaje{/if}
+                                    </button>
+                                </div>
+                            </form>
+                        {/if}
                     </div>
                 
                 {:else if activeTab === 'password'}
@@ -1068,5 +1279,197 @@
     
     .btn-upgrade:hover {
         background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+    }
+    
+    /* Billing locked view */
+    .billing-locked-view {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    
+    .locked-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        width: fit-content;
+    }
+    
+    .billing-readonly-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .billing-field {
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        border: 1px solid #f0f0f0;
+    }
+    
+    .billing-field.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .field-label {
+        display: block;
+        font-size: 0.75rem;
+        color: #888;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .field-value {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+    }
+    
+    .change-request-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: #f0f4ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+        margin-top: 0.5rem;
+    }
+    
+    .change-request-box strong {
+        display: block;
+        color: #1e40af;
+        margin-bottom: 0.25rem;
+    }
+    
+    .change-request-box p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #3b82f6;
+    }
+    
+    .change-request-box a {
+        color: #1d4ed8;
+        font-weight: 600;
+    }
+    
+    /* Billing form */
+    .billing-bonus-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #fbbf24;
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+    }
+    
+    .bonus-emoji {
+        font-size: 1.75rem;
+        flex-shrink: 0;
+    }
+    
+    .billing-bonus-banner strong {
+        display: block;
+        color: #92400e;
+        margin-bottom: 0.25rem;
+    }
+    
+    .billing-bonus-banner p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #78350f;
+    }
+    
+    .ico-lookup-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.75rem;
+    }
+    
+    .ico-btn {
+        white-space: nowrap;
+        height: 42px;
+        font-size: 0.85rem !important;
+        padding: 0 1rem !important;
+    }
+    
+    .spinner-sm {
+        width: 14px;
+        height: 14px;
+        border: 2px solid #ccc;
+        border-top-color: #1976d2;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        display: inline-block;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .vat-section {
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .vat-toggle-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 600;
+        color: #374151;
+        cursor: pointer;
+    }
+    
+    .vat-type-options {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .radio-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #555;
+        cursor: pointer;
+    }
+    
+    .radio-label input[type="radio"] {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .lock-warning {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #92400e;
+    }
+    
+    .lock-warning a {
+        color: #d97706;
+        font-weight: 600;
     }
 </style>

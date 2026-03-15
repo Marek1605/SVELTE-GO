@@ -71,10 +71,21 @@
         return filtered;
     }
     
-    function editVendor(vendor) {
+    async function editVendor(vendor) {
         currentVendor = { ...vendor };
         currentShop = vendor.shop ? { ...vendor.shop } : null;
         showEditModal = true;
+        
+        // Fetch full vendor details with billing info
+        try {
+            const res = await adminRawFetch(`${API_BASE}/admin/vendors/${vendor.id}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    currentVendor = { ...currentVendor, ...data.data };
+                }
+            }
+        } catch (e) { console.error('Failed to load vendor detail', e); }
     }
     
     async function saveVendor() {
@@ -402,6 +413,11 @@
                                     {#if vendor.contact_person}
                                         <small class="contact">{vendor.contact_person}</small>
                                     {/if}
+                                    {#if vendor.billing_completed}
+                                        <span style="font-size:10px;padding:1px 5px;background:#d1fae5;color:#065f46;border-radius:3px;display:inline-block;margin-top:2px">🧾 IČO: {vendor.ico || '—'}</span>
+                                    {:else}
+                                        <span style="font-size:10px;padding:1px 5px;background:#fef3c7;color:#92400e;border-radius:3px;display:inline-block;margin-top:2px">⚠ bez fakturácie</span>
+                                    {/if}
                                 </div>
                             </td>
                             <td>
@@ -516,6 +532,46 @@
                         <div class="form-group full-width">
                             <label>Poznámky (interné)</label>
                             <textarea bind:value={currentVendor.notes} rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Billing Verification Section -->
+                <div class="form-section">
+                    <h3>🧾 Fakturačné údaje (verifikácia)</h3>
+                    {#if currentVendor.billing_completed}
+                        <div style="padding:12px;background:#e8f5e9;border-radius:8px;margin-bottom:12px;font-size:13px;color:#2e7d32;font-weight:600">
+                            ✅ Fakturačné údaje vyplnené a uzamknuté
+                        </div>
+                    {:else}
+                        <div style="padding:12px;background:#fff3cd;border-radius:8px;margin-bottom:12px;font-size:13px;color:#856404;font-weight:600">
+                            ⚠️ Fakturačné údaje ešte nie sú vyplnené
+                        </div>
+                    {/if}
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Obchodné meno</label>
+                            <input type="text" value={currentVendor.billing_name || '—'} disabled style="background:#f5f5f5">
+                        </div>
+                        <div class="form-group">
+                            <label>IČO</label>
+                            <input type="text" value={currentVendor.ico || '—'} disabled style="background:#f5f5f5">
+                        </div>
+                        <div class="form-group">
+                            <label>DIČ</label>
+                            <input type="text" value={currentVendor.dic || '—'} disabled style="background:#f5f5f5">
+                        </div>
+                        <div class="form-group">
+                            <label>IČ DPH</label>
+                            <input type="text" value={currentVendor.ic_dph || '—'} disabled style="background:#f5f5f5">
+                        </div>
+                        <div class="form-group">
+                            <label>Adresa</label>
+                            <input type="text" value={`${currentVendor.street || ''} ${currentVendor.zip || ''} ${currentVendor.city || ''}`} disabled style="background:#f5f5f5">
+                        </div>
+                        <div class="form-group">
+                            <label>Platca DPH</label>
+                            <input type="text" value={currentVendor.vat_payer ? (currentVendor.vat_payer_type === 'paragraph_7' ? 'Áno (§7)' : 'Áno') : 'Nie'} disabled style="background:#f5f5f5">
                         </div>
                     </div>
                 </div>

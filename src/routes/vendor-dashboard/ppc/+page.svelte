@@ -66,7 +66,7 @@
     
     onMount(async () => {
         if (!browser) return;
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentSettings(), loadMyShops(), loadTopups()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentSettings(), loadMyShops(), loadTopups(), loadVendorBilling()]);
         if (myShops.length > 0 && !selectedShopId) selectedShopId = myShops[0].id;
     });
     
@@ -81,52 +81,18 @@
     }
     
     $: selectedShopBilling = myShops.find(s => s.id === selectedShopId);
-    $: effectiveBilling = (() => {
-        const s = selectedShopBilling;
-        if (s && (s.billing_name || s.billing_ico)) {
-            return { name: s.billing_name, ico: s.billing_ico, dic: s.billing_dic, ic_dph: s.billing_ic_dph, address: s.billing_address, city: s.billing_city, zip: s.billing_zip, email: s.billing_email, source: 'shop' };
-        }
-        return { name: vendor?.company_name || '', ico: vendor?.ico || '', dic: vendor?.dic || '', ic_dph: vendor?.ic_dph || '', address: vendor?.address || '', city: vendor?.city || '', zip: vendor?.zip || '', email: vendor?.email || '', source: 'vendor' };
-    })();
-
-    let editBilling = false;
-    let billingForm = { billing_name:'', billing_ico:'', billing_dic:'', billing_ic_dph:'', billing_address:'', billing_city:'', billing_zip:'', billing_email:'' };
-    let billingSaving = false, billingMsg = null;
-
-    function startEditBilling() {
-        const s = selectedShopBilling || {};
-        billingForm = {
-            billing_name: s.billing_name || vendor?.company_name || '',
-            billing_ico: s.billing_ico || vendor?.ico || '',
-            billing_dic: s.billing_dic || vendor?.dic || '',
-            billing_ic_dph: s.billing_ic_dph || vendor?.ic_dph || '',
-            billing_address: s.billing_address || vendor?.address || '',
-            billing_city: s.billing_city || vendor?.city || '',
-            billing_zip: s.billing_zip || vendor?.zip || '',
-            billing_email: s.billing_email || vendor?.email || ''
-        };
-        editBilling = true;
-    }
-
-    async function saveBilling() {
-        if (!selectedShopId) return;
-        billingSaving = true; billingMsg = null;
+    
+    // Centralized billing from vendor profile
+    let vendorBilling = { billing_name: '', ico: '', dic: '', ic_dph: '', street: '', city: '', zip: '', country: 'SK', billing_email: '', vat_payer: false, vat_payer_type: 'standard', billing_completed: false, billing_locked: false };
+    
+    async function loadVendorBilling() {
         const token = localStorage.getItem('vendor_token');
+        if (!token) return;
         try {
-            const res = await fetch(`${API_BASE}/vendor/shop-billing`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ shop_id: selectedShopId, ...billingForm })
-            });
+            const res = await fetch(`${API_BASE}/vendor/billing-data`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
-            if (data.success) {
-                billingMsg = { type: 'success', text: 'Fakturačné údaje uložené ✓' };
-                editBilling = false;
-                await loadMyShops();
-            } else { billingMsg = { type: 'error', text: data.error || 'Chyba' }; }
-        } catch(e) { billingMsg = { type: 'error', text: 'Chyba pripojenia' }; }
-        billingSaving = false;
-        setTimeout(() => billingMsg = null, 5000);
+            if (data.success) vendorBilling = data.data;
+        } catch (e) { console.error(e); }
     }
     
     async function loadPaymentSettings() {
@@ -546,73 +512,40 @@
                     </div>
                 </div>
 
-                {#if myShops.length > 0}
+                {#if !vendorBilling.billing_completed}
                 <div class="ppc-billing-section">
                     <h4>Fakturačné údaje</h4>
-                    {#if myShops.length > 1}
-                    <select class="ppc-billing-select" bind:value={selectedShopId} style="margin-bottom:10px">
-                        {#each myShops as s}
-                            <option value={s.id}>
-                                {s.shop_name}{s.billing_name ? ` — ${s.billing_name}` : ''}{s.billing_ico ? ` (IČO: ${s.billing_ico})` : ''}
-                            </option>
-                        {/each}
-                    </select>
-                    {/if}
-
-                    {#if !editBilling}
+                    <div style="padding:16px;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;text-align:center">
+                        <p style="margin:0 0 10px;color:#92400e;font-weight:600">Pre dobíjanie kreditu musíte najskôr vyplniť fakturačné údaje</p>
+                        <a href="/vendor-dashboard/moj-ucet" style="display:inline-block;padding:10px 24px;background:#f97316;color:white;border-radius:8px;font-weight:600;text-decoration:none;font-size:14px">Vyplniť fakturačné údaje →</a>
+                    </div>
+                </div>
+                {:else}
+                <div class="ppc-billing-section">
+                    <h4>Fakturačné údaje</h4>
                     <div style="padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:13px">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
                             <span style="font-weight:600;color:#374151">
-                                {effectiveBilling.name || 'Bez názvu'}
-                                {#if effectiveBilling.source === 'vendor'}
-                                    <span style="font-size:10px;padding:2px 6px;background:#fef3c7;color:#92400e;border-radius:4px;margin-left:6px">z profilu</span>
-                                {:else}
-                                    <span style="font-size:10px;padding:2px 6px;background:#d1fae5;color:#065f46;border-radius:4px;margin-left:6px">obchod</span>
-                                {/if}
+                                {vendorBilling.billing_name || 'Bez názvu'}
+                                <span style="font-size:10px;padding:2px 6px;background:#e8f5e9;color:#2e7d32;border-radius:4px;margin-left:6px">🔒 overené</span>
                             </span>
-                            <button style="font-size:11px;color:#3b82f6;background:none;border:none;cursor:pointer;font-weight:600" on:click={startEditBilling}>✏️ Upraviť</button>
                         </div>
                         <div style="color:#64748b;line-height:1.7">
-                            {#if effectiveBilling.ico}IČO: {effectiveBilling.ico}{/if}
-                            {#if effectiveBilling.dic} · DIČ: {effectiveBilling.dic}{/if}
-                            {#if effectiveBilling.ic_dph} · IČ DPH: {effectiveBilling.ic_dph}{/if}
-                            {#if effectiveBilling.address}<br>{effectiveBilling.address}, {effectiveBilling.zip} {effectiveBilling.city}{/if}
-                            {#if effectiveBilling.email}<br>📧 {effectiveBilling.email}{/if}
+                            {#if vendorBilling.ico}IČO: {vendorBilling.ico}{/if}
+                            {#if vendorBilling.dic} · DIČ: {vendorBilling.dic}{/if}
+                            {#if vendorBilling.ic_dph} · IČ DPH: {vendorBilling.ic_dph}{/if}
+                            {#if vendorBilling.vat_payer}<br>Platca DPH: {vendorBilling.vat_payer_type === 'paragraph_7' ? '§7' : 'Áno'}{/if}
+                            {#if vendorBilling.street}<br>{vendorBilling.street}, {vendorBilling.zip} {vendorBilling.city}{/if}
+                            {#if vendorBilling.billing_email}<br>📧 {vendorBilling.billing_email}{/if}
+                        </div>
+                        <div style="margin-top:8px;font-size:11px;color:#94a3b8">
+                            Pre zmenu kontaktujte <a href="mailto:fakturacia@megabuy.sk" style="color:#3b82f6">fakturacia@megabuy.sk</a>
                         </div>
                     </div>
-                    {:else}
-                    <div style="padding:14px;background:#eff6ff;border:1px solid #93c5fd;border-radius:10px">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-                            <div><label style="font-size:11px;font-weight:600;display:block;margin-bottom:2px">Obchodné meno *</label>
-                                <input type="text" bind:value={billingForm.billing_name} style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box"></div>
-                            <div><label style="font-size:11px;font-weight:600;display:block;margin-bottom:2px">IČO *</label>
-                                <input type="text" bind:value={billingForm.billing_ico} style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box"></div>
-                            <div><label style="font-size:11px;font-weight:600;display:block;margin-bottom:2px">DIČ</label>
-                                <input type="text" bind:value={billingForm.billing_dic} style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box"></div>
-                            <div><label style="font-size:11px;font-weight:600;display:block;margin-bottom:2px">IČ DPH</label>
-                                <input type="text" bind:value={billingForm.billing_ic_dph} style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box"></div>
-                            <div><label style="font-size:11px;font-weight:600;display:block;margin-bottom:2px">Ulica a číslo</label>
-                                <input type="text" bind:value={billingForm.billing_address} style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box"></div>
-                            <div style="display:grid;grid-template-columns:100px 1fr;gap:6px">
-                                <div><label style="font-size:11px;font-weight:600;display:block;margin-bottom:2px">PSČ</label>
-                                    <input type="text" bind:value={billingForm.billing_zip} style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box"></div>
-                                <div><label style="font-size:11px;font-weight:600;display:block;margin-bottom:2px">Mesto</label>
-                                    <input type="text" bind:value={billingForm.billing_city} style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box"></div>
-                            </div>
-                            <div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600;display:block;margin-bottom:2px">Fakturačný e-mail</label>
-                                <input type="email" bind:value={billingForm.billing_email} style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box"></div>
-                        </div>
-                        <div style="display:flex;gap:8px;align-items:center">
-                            <button class="ppc-submit-btn" style="max-width:180px;padding:8px 16px;font-size:13px" on:click={saveBilling} disabled={billingSaving}>{billingSaving ? 'Ukladám...' : '💾 Uložiť'}</button>
-                            <button style="font-size:12px;background:none;border:1px solid #d1d5db;padding:7px 14px;border-radius:6px;cursor:pointer" on:click={() => editBilling = false}>Zrušiť</button>
-                            {#if billingMsg}<span style="font-size:12px;font-weight:500;color:{billingMsg.type === 'success' ? '#16a34a' : '#dc2626'}">{billingMsg.text}</span>{/if}
-                        </div>
-                    </div>
-                    {/if}
                 </div>
                 {/if}
                 
-                <button class="ppc-submit-btn" on:click={requestTopup} disabled={loading || (!selectedPackage && !useCustom) || (useCustom && Number(customAmount) < 5)}>
+                <button class="ppc-submit-btn" on:click={requestTopup} disabled={loading || !vendorBilling.billing_completed || (!selectedPackage && !useCustom) || (useCustom && Number(customAmount) < 5)}>
                     {loading ? 'Spracovávam...' : `Prejsť na platbu ${selectedAmount > 0 ? selectedAmount + ' €' : ''}`}
                 </button>
             </div>

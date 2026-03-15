@@ -368,24 +368,6 @@
             </svg>
             Vrátenie tovaru
         </button>
-        <button class:active={activeTab === 'billing'} on:click={() => activeTab = 'billing'}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-            Fakturácia
-        </button>
-        <button class:active={activeTab === 'billing'} on:click={() => activeTab = 'billing'}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-            Fakturačné údaje
-        </button>
     </div>
     
     <!-- Tab Content -->
@@ -704,82 +686,21 @@
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
                         </svg>
-                        Fakturačné údaje obchodu
+                        Fakturačné údaje
                     </h2>
-                    <p class="card-desc">Tieto údaje sa použijú na vystavenie faktúr pri dobíjaní PPC kreditu. Ak ich nevyplníte, použijú sa údaje z vášho profilu.</p>
+                    <p class="card-desc">Fakturačné údaje boli presunuté do sekcie Môj účet.</p>
                 </div>
-                
-                {#if billingMsg}
-                <div class="message {billingMsg.type}" style="margin-bottom:16px">
-                    {billingMsg.text}
+                <div class="info-box" style="margin-top:16px">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <div>
+                        <strong>Fakturačné údaje nájdete v sekcii Môj účet</strong>
+                        <p>Kliknite na <a href="/vendor-dashboard/moj-ucet">Môj účet → Fakturačné údaje</a> pre správu vašich fakturačných údajov.</p>
+                    </div>
                 </div>
-                {/if}
-                
-                <form on:submit|preventDefault={saveBilling}>
-                    <div class="form-grid two-cols">
-                        <div class="form-group">
-                            <label for="billing_name">Obchodné meno / Názov firmy *</label>
-                            <input type="text" id="billing_name" bind:value={billingData.billing_name} placeholder="napr. Firma s.r.o.">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_ico">IČO *</label>
-                            <input type="text" id="billing_ico" bind:value={billingData.billing_ico} placeholder="12345678">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_dic">DIČ</label>
-                            <input type="text" id="billing_dic" bind:value={billingData.billing_dic} placeholder="1234567890">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_ic_dph">IČ DPH</label>
-                            <input type="text" id="billing_ic_dph" bind:value={billingData.billing_ic_dph} placeholder="SK1234567890">
-                        </div>
-                        <div class="form-group" style="grid-column:1/-1">
-                            <label for="billing_address">Ulica a číslo</label>
-                            <input type="text" id="billing_address" bind:value={billingData.billing_address} placeholder="Hlavná 1">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_zip">PSČ</label>
-                            <input type="text" id="billing_zip" bind:value={billingData.billing_zip} placeholder="01001">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_city">Mesto</label>
-                            <input type="text" id="billing_city" bind:value={billingData.billing_city} placeholder="Bratislava">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_email">Fakturačný e-mail</label>
-                            <input type="email" id="billing_email" bind:value={billingData.billing_email} placeholder="fakturacia@firma.sk">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_phone">Telefón</label>
-                            <input type="text" id="billing_phone" bind:value={billingData.billing_phone} placeholder="+421 900 123 456">
-                        </div>
-                    </div>
-                    
-                    <div class="info-box" style="margin-top:16px">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="16" x2="12" y2="12"></line>
-                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                        </svg>
-                        <div>
-                            <strong>Prečo vyplniť fakturačné údaje?</strong>
-                            <p>Pri dobíjaní CPC kreditu sa automaticky vystaví zálohová faktúra s týmito údajmi. Po zaplatení dostanete riadnu faktúru na e-mail. Ak údaje nevyplníte, použijú sa údaje z vášho vendorského profilu.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" disabled={billingSaving}>
-                            {#if billingSaving}
-                                <span class="spinner"></span> Ukladám...
-                            {:else}
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                </svg>
-                                Uložiť fakturačné údaje
-                            {/if}
-                        </button>
-                    </div>
-                </form>
             </div>
         {/if}
     </div>
