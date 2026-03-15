@@ -16,8 +16,16 @@
     let showMappingModal = false;
     let showImportModal = false;
     let showNewShopModal = false;
+    let showRefreshModal = false;
     
     let currentFeed = null;
+    let refreshFeed = null;
+    let refreshConfig = { enabled: false, interval_hours: 2, fields: ['price', 'stock'], match_by: 'ean' };
+    let refreshStats = null;
+    let refreshStatus = '';
+    let refreshLastAt = null;
+    let refreshSaving = false;
+    let refreshRunning = false;
     let previewData = null;
     let previewLoading = false;
     let sourceFields = [];
@@ -102,6 +110,82 @@
     }
     
     function editFeed(feed) { currentFeed = { ...feed }; showEditModal = true; }
+
+    async function openRefreshSettings(feed) {
+        refreshFeed = feed;
+        refreshSaving = false;
+        refreshRunning = false;
+        try {
+            const res = await adminRawFetch(`${API_BASE}/admin/offer-feeds/${feed.id}/refresh-config`);
+            const data = await res.json();
+            if (data.success) {
+                refreshConfig = data.data.config || { enabled: false, interval_hours: 2, fields: ['price', 'stock'], match_by: 'ean' };
+                if (!refreshConfig.fields) refreshConfig.fields = ['price', 'stock'];
+                refreshStats = data.data.stats;
+                refreshStatus = data.data.status || '';
+                refreshLastAt = data.data.last_refresh;
+            }
+        } catch(e) {
+            refreshConfig = { enabled: false, interval_hours: 2, fields: ['price', 'stock'], match_by: 'ean' };
+        }
+        showRefreshModal = true;
+    }
+
+    async function saveRefreshConfig() {
+        if (!refreshFeed) return;
+        refreshSaving = true;
+        try {
+            const res = await adminRawFetch(`${API_BASE}/admin/offer-feeds/${refreshFeed.id}/refresh-config`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(refreshConfig)
+            });
+            const data = await res.json();
+            if (data.success) { refreshSaving = false; }
+            else alert('Chyba: ' + data.error);
+        } catch(e) { alert('Chyba: ' + e.message); }
+        refreshSaving = false;
+    }
+
+    async function manualRefresh() {
+        if (!refreshFeed) return;
+        refreshRunning = true;
+        try {
+            const res = await adminRawFetch(`${API_BASE}/admin/offer-feeds/${refreshFeed.id}/refresh`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fields: refreshConfig.fields })
+            });
+            const data = await res.json();
+            if (data.success) {
+                refreshStatus = 'running';
+                // Poll for completion
+                const poll = setInterval(async () => {
+                    try {
+                        const r2 = await adminRawFetch(`${API_BASE}/admin/offer-feeds/${refreshFeed.id}/refresh-config`);
+                        const d2 = await r2.json();
+                        if (d2.success) {
+                            refreshStatus = d2.data.status;
+                            refreshStats = d2.data.stats;
+                            refreshLastAt = d2.data.last_refresh;
+                            if (d2.data.status !== 'running') { clearInterval(poll); refreshRunning = false; loadData(); }
+                        }
+                    } catch(e) { clearInterval(poll); refreshRunning = false; }
+                }, 3000);
+            }
+        } catch(e) { alert('Chyba: ' + e.message); refreshRunning = false; }
+    }
+
+    function toggleRefreshField(field) {
+        if (refreshConfig.fields.includes(field)) {
+            refreshConfig.fields = refreshConfig.fields.filter(f => f !== field);
+        } else {
+            refreshConfig.fields = [...refreshConfig.fields, field];
+        }
+    }
+
+    function formatRefreshTime(t) {
+        if (!t) return 'Nikdy';
+        return new Date(t).toLocaleString('sk-SK');
+    }
     
     async function loadPreview(feed = null) {
         const url = feed?.feed_url || currentFeed?.feed_url || newFeed.feed_url;
@@ -313,6 +397,7 @@
                                     <button class="btn small danger" on:click={() => stopFeedAction(f)} title="Zastaviť">⏹️ Stop</button>
                                 {:else}
                                     <button class="btn small success" on:click={() => startImport(f)} title="Import">▶</button>
+                                    <button class="btn small refresh-btn" on:click={() => openRefreshSettings(f)} title="Auto-refresh nastavenia">🔄</button>
                                     <button class="btn small ean-btn" on:click={() => feedAction(f, 'ean')} title="EAN párovanie">📦</button>
                                     <button class="btn small ai-btn" on:click={() => feedAction(f, 'ai')} title="AI kategorizácia">🤖</button>
                                     <button class="btn small ft-btn" on:click={() => feedAction(f, 'fulltext')} title="Fulltext only">🔍</button>
@@ -503,6 +588,107 @@
 </div>
 {/if}
 
+<!-- REFRESH SETTINGS MODAL -->
+{#if showRefreshModal && refreshFeed}
+<div class="modal-bg" on:click={() => showRefreshModal = false}>
+    <div class="modal modal-refresh" on:click|stopPropagation>
+        <div class="modal-head">
+            <h3>🔄 Auto-refresh: {refreshFeed.name}</h3>
+            <button on:click={() => showRefreshModal = false}>×</button>
+        </div>
+        <div class="modal-body">
+            <!-- Status -->
+            <div class="rf-status">
+                <div class="rf-status-item">
+                    <span class="rf-label">Stav</span>
+                    <span class="rf-value" class:rf-running={refreshStatus === 'running'} class:rf-done={refreshStatus === 'done'}>
+                        {refreshStatus === 'running' ? '⏳ Beží...' : refreshStatus === 'done' ? '✅ Hotovo' : refreshStatus === 'error' ? '❌ Chyba' : '💤 Čaká'}
+                    </span>
+                </div>
+                <div class="rf-status-item">
+                    <span class="rf-label">Posledný refresh</span>
+                    <span class="rf-value">{formatRefreshTime(refreshLastAt)}</span>
+                </div>
+            </div>
+
+            {#if refreshStats && refreshStats.total}
+            <div class="rf-stats">
+                <span>📦 {refreshStats.total} položiek</span>
+                <span>✅ {refreshStats.updated || 0} aktualizovaných</span>
+                <span>🆕 {refreshStats.new || 0} nových</span>
+                <span>🔗 {refreshStats.matched || 0} spárovaných</span>
+                {#if refreshStats.errors > 0}<span class="rf-err">❌ {refreshStats.errors} chýb</span>{/if}
+            </div>
+            {/if}
+
+            <!-- Enable/Disable -->
+            <div class="rf-toggle">
+                <label class="rf-check">
+                    <input type="checkbox" bind:checked={refreshConfig.enabled}>
+                    <strong>Automatický refresh</strong>
+                </label>
+            </div>
+
+            {#if refreshConfig.enabled}
+            <!-- Interval -->
+            <div class="rf-field">
+                <label>Interval aktualizácie</label>
+                <div class="rf-intervals">
+                    {#each [1, 2, 4, 6, 12, 24] as h}
+                    <button class="rf-int-btn" class:active={refreshConfig.interval_hours === h} on:click={() => refreshConfig.interval_hours = h}>
+                        {h === 1 ? '1 hod' : h === 24 ? '1 deň' : h + ' hod'}
+                    </button>
+                    {/each}
+                </div>
+            </div>
+            {/if}
+
+            <!-- Fields to update -->
+            <div class="rf-field">
+                <label>Čo aktualizovať</label>
+                <div class="rf-fields">
+                    {#each [
+                        { id: 'price', label: '💰 Cena', desc: 'Aktuálna cena z feedu' },
+                        { id: 'stock', label: '📦 Sklad', desc: 'Stav skladu (instock/outofstock)' },
+                        { id: 'title', label: '📝 Názov', desc: 'Názov produktu' },
+                        { id: 'description', label: '📄 Popis', desc: 'Popis produktu' },
+                        { id: 'image', label: '🖼️ Obrázok', desc: 'URL obrázka' },
+                        { id: 'url', label: '🔗 URL', desc: 'Affiliate URL odkaz' },
+                    ] as field}
+                    <button class="rf-field-btn" class:active={refreshConfig.fields.includes(field.id)} on:click={() => toggleRefreshField(field.id)}>
+                        <span class="rf-field-icon">{field.label.split(' ')[0]}</span>
+                        <div>
+                            <strong>{field.label.split(' ').slice(1).join(' ')}</strong>
+                            <small>{field.desc}</small>
+                        </div>
+                        <span class="rf-field-check">{refreshConfig.fields.includes(field.id) ? '✓' : ''}</span>
+                    </button>
+                    {/each}
+                </div>
+            </div>
+
+            <!-- Match by -->
+            <div class="rf-field">
+                <label>Párovanie ponúk</label>
+                <div class="rf-intervals">
+                    <button class="rf-int-btn" class:active={refreshConfig.match_by === 'ean'} on:click={() => refreshConfig.match_by = 'ean'}>📦 EAN kód</button>
+                    <button class="rf-int-btn" class:active={refreshConfig.match_by === 'title'} on:click={() => refreshConfig.match_by = 'title'}>📝 Názov</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn" on:click={() => showRefreshModal = false}>Zavrieť</button>
+            <button class="btn primary" on:click={saveRefreshConfig} disabled={refreshSaving}>
+                {refreshSaving ? '⏳...' : '💾 Uložiť'}
+            </button>
+            <button class="btn success" on:click={manualRefresh} disabled={refreshRunning}>
+                {refreshRunning ? '⏳ Beží...' : '🔄 Obnoviť teraz'}
+            </button>
+        </div>
+    </div>
+</div>
+{/if}
+
 <style>
     .page { padding: 24px; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
@@ -614,4 +800,38 @@
     .logs-head { padding: 8px 12px; background: #0f172a; color: #94a3b8; font-size: 12px; }
     .logs-body { padding: 12px; max-height: 150px; overflow-y: auto; font-family: monospace; font-size: 11px; color: #cbd5e1; }
     .logs-body div { margin-bottom: 4px; }
+    /* Refresh Modal */
+    .modal-refresh { max-width: 560px; }
+    .rf-status { display: flex; gap: 16px; margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 10px; }
+    .rf-status-item { flex: 1; }
+    .rf-label { display: block; font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .rf-value { font-size: 14px; font-weight: 600; color: #1f2937; }
+    .rf-value.rf-running { color: #f59e0b; }
+    .rf-value.rf-done { color: #10b981; }
+    .rf-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; font-size: 12px; }
+    .rf-stats span { padding: 4px 10px; background: #f1f5f9; border-radius: 6px; color: #475569; font-weight: 500; }
+    .rf-err { background: #fef2f2 !important; color: #dc2626 !important; }
+    .rf-toggle { margin-bottom: 16px; }
+    .rf-check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .rf-check input { width: 18px; height: 18px; accent-color: #c4956a; }
+    .rf-check strong { font-size: 14px; }
+    .rf-field { margin-bottom: 16px; }
+    .rf-field > label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+    .rf-intervals { display: flex; gap: 6px; flex-wrap: wrap; }
+    .rf-int-btn { padding: 8px 14px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; font-size: 13px; font-weight: 500; color: #6b7280; cursor: pointer; transition: all 0.15s; }
+    .rf-int-btn:hover { border-color: #c4956a; color: #c4956a; }
+    .rf-int-btn.active { background: #c4956a; color: #fff; border-color: #c4956a; }
+    .rf-fields { display: flex; flex-direction: column; gap: 6px; }
+    .rf-field-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; cursor: pointer; text-align: left; transition: all 0.15s; }
+    .rf-field-btn:hover { border-color: #c4956a; background: #fef7f0; }
+    .rf-field-btn.active { border-color: #c4956a; background: #fef7f0; }
+    .rf-field-icon { font-size: 16px; flex-shrink: 0; }
+    .rf-field-btn strong { display: block; font-size: 13px; color: #1f2937; }
+    .rf-field-btn small { font-size: 11px; color: #9ca3af; }
+    .rf-field-check { margin-left: auto; font-size: 16px; font-weight: 700; color: #c4956a; min-width: 20px; text-align: center; }
+    .btn.success { background: #10b981; color: #fff; border-color: #10b981; }
+    .btn.success:hover { background: #059669; }
+    .btn.success:disabled { opacity: 0.5; }
+    .refresh-btn { background: #eff6ff; color: #3b82f6; border-color: #93c5fd; }
+    .refresh-btn:hover { background: #dbeafe; }
 </style>
