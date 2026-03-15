@@ -105,6 +105,17 @@
     }
 
     // AI recommended and rank come from server via data.isAiRecommended and data.productRank
+
+    // Track outbound click (for ranking)
+    function trackOutClick(offerId, shopId) {
+        if (product?.id) {
+            fetch(`/api/v1/track/click/${product.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ offer_id: offerId || '', shop_id: shopId || '' })
+            }).catch(() => {});
+        }
+    }
     
     $: mainImage = images[currentImageIndex] || product?.image_url || '';
     $: lowestPrice = product?.price_min || product?.price || 0;
@@ -148,6 +159,11 @@
         const compare = JSON.parse(localStorage.getItem('mp_compare') || '[]');
         isWishlisted = wishlist.includes(product?.id);
         isCompared = compare.includes(product?.id);
+
+        // Track product view (for ranking)
+        if (product?.id) {
+            fetch(`/api/v1/track/view/${product.id}`, { method: 'POST' }).catch(() => {});
+        }
         
         // Sticky bar — reliable show/hide
         let stickyShown = false;
@@ -381,7 +397,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                     </a>
                     {:else}
-                    <a href="/go/{bestOffer.id}" target="_blank" rel="noopener noreferrer" class="mp-buybox__cta">
+                    <a href="/go/{bestOffer.id}" target="_blank" rel="noopener noreferrer" class="mp-buybox__cta" on:click={() => trackOutClick(bestOffer.id, bestOffer.shop_id)}>
                         Do obchodu
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
                     </a>
@@ -474,7 +490,7 @@
                     <span class="mp-sticky-bar__shipping">{bestOffer.shipping === 0 ? 'Doprava zdarma' : ''}</span>
                 </div>
             </div>
-            <a href="/go/{bestOffer.id}" target="_blank" rel="noopener" class="mp-sticky-bar__cta">Do obchodu <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></a>
+            <a href="/go/{bestOffer.id}" target="_blank" rel="noopener" class="mp-sticky-bar__cta" on:click={() => trackOutClick(bestOffer.id, bestOffer.shop_id)}>Do obchodu <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></a>
         </div>
         {/if}
         
@@ -584,7 +600,7 @@
                                     {#if offer.is_master || offer.display_mode === 'master'}
                                         <a href="/kosik?add={product?.id}" class="mp-offers__cta cart">Do košíka <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></a>
                                     {:else}
-                                        <a href="/go/{offer.id}" class="mp-offers__cta affiliate" target="_blank" rel="noopener">Do obchodu <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></a>
+                                        <a href="/go/{offer.id}" class="mp-offers__cta affiliate" target="_blank" rel="noopener" on:click={() => trackOutClick(offer.id, offer.shop_id)}>Do obchodu <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></a>
                                     {/if}
                                 </div>
                             </div>
