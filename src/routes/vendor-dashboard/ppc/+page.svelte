@@ -445,6 +445,8 @@
                                     <strong>{customAmount} € kredit</strong>
                                 {/if}
                             </span>
+                        {:else if useCustom && customAmount !== '' && Number(customAmount) > 0 && Number(customAmount) < 5}
+                            <span style="font-size:13px;color:#dc2626;font-weight:600">⚠️ Minimálna suma je 5 €</span>
                         {/if}
                     </div>
                     {#if useCustom && Number(customAmount) >= 5}
