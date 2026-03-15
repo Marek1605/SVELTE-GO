@@ -1,5 +1,5 @@
 // Shared admin API helper with Basic Auth
-export const API_BASE = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+export const API_BASE = '/api/v1';
 
 function getAuth() {
     if (typeof window === 'undefined') return {};
