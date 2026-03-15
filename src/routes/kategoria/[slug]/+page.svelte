@@ -481,8 +481,8 @@
                             {#if viewMode === 'list'}
                                 <div class="prods__list">
                                     {#each products as product, i}
-                                        <article class="pl" class:pl--featured={product.rank <= 3}>
-                                            {#if product.rank && product.rank <= 50}
+                                        <article class="pl" class:pl--featured={isLeaf && product.rank <= 3}>
+                                            {#if isLeaf && product.rank && product.rank <= 50}
                                                 <div class="pl__rank {getRankClass(product.rank)}">
                                                     <span class="pl__rank-num">{product.rank}</span>
                                                 </div>
@@ -501,9 +501,9 @@
                                                     {#if product.brand}
                                                         <span class="pl__brand">{product.brand}</span>
                                                     {/if}
-                                                    {#if product.rank === 1}
+                                                    {#if isLeaf && product.rank === 1}
                                                         <span class="pl__badge pl__badge--gold">Najlepšia voľba</span>
-                                                    {:else if product.rank <= 3}
+                                                    {:else if isLeaf && product.rank <= 3}
                                                         <span class="pl__badge pl__badge--hot">Obľúbený produkt</span>
                                                     {/if}
                                                     {#if product.id === aiRecommendedId}
@@ -573,8 +573,8 @@
                             {:else}
                                 <div class="prods__grid">
                                     {#each products as product}
-                                        <article class="pc" class:pc--ranked={product.rank <= 3} class:pc--ai={product.id === aiRecommendedId}>
-                                            {#if product.rank && product.rank <= 50}
+                                        <article class="pc" class:pc--ranked={isLeaf && product.rank <= 3} class:pc--ai={product.id === aiRecommendedId}>
+                                            {#if isLeaf && product.rank && product.rank <= 50}
                                                 <div class="pc__rank {getRankClass(product.rank)}">{product.rank}</div>
                                             {/if}
                                             {#if product.id === aiRecommendedId}
