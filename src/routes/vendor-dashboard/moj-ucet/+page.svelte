@@ -427,148 +427,108 @@
                         </div>
                         
                         {#if billingLocked}
-                            <!-- READ-ONLY Heureka-style view -->
-                            <div class="billing-locked-view">
-                                <div class="locked-badge">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                    </svg>
-                                    Fakturačné údaje sú uložené
+                            <!-- READ-ONLY view -->
+                            <div class="bl-container">
+                                <div class="bl-status">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                    Údaje overené
                                 </div>
                                 
-                                <div class="billing-readonly-grid">
-                                    <div class="billing-field">
-                                        <span class="field-label">Obchodné meno</span>
-                                        <span class="field-value">{billingData.billing_name || '—'}</span>
+                                <div class="bl-grid">
+                                    <div class="bl-item"><span class="bl-label">Obchodné meno</span><span class="bl-value">{billingData.billing_name || '—'}</span></div>
+                                    <div class="bl-item"><span class="bl-label">IČO</span><span class="bl-value mono">{billingData.ico || '—'}</span></div>
+                                    <div class="bl-item"><span class="bl-label">DIČ</span><span class="bl-value mono">{billingData.dic || '—'}</span></div>
+                                    <div class="bl-item"><span class="bl-label">IČ DPH</span><span class="bl-value mono">{billingData.ic_dph || '—'}</span></div>
+                                    <div class="bl-item">
+                                        <span class="bl-label">Platca DPH</span>
+                                        <span class="bl-value">
+                                            {#if billingData.vat_payer}
+                                                <span class="bl-tag bl-tag-green">{billingData.vat_payer_type === 'paragraph_7' ? '§7 — registrácia podľa DPH' : 'Klasický platca DPH'}</span>
+                                            {:else}
+                                                <span class="bl-tag bl-tag-gray">Neplatca DPH</span>
+                                            {/if}
+                                        </span>
                                     </div>
-                                    <div class="billing-field">
-                                        <span class="field-label">IČO</span>
-                                        <span class="field-value">{billingData.ico || '—'}</span>
-                                    </div>
-                                    <div class="billing-field">
-                                        <span class="field-label">DIČ</span>
-                                        <span class="field-value">{billingData.dic || '—'}</span>
-                                    </div>
-                                    <div class="billing-field">
-                                        <span class="field-label">IČ DPH</span>
-                                        <span class="field-value">{billingData.ic_dph || '—'}</span>
-                                    </div>
-                                    <div class="billing-field">
-                                        <span class="field-label">Platca DPH</span>
-                                        <span class="field-value">{billingData.vat_payer ? (billingData.vat_payer_type === 'paragraph_7' ? 'Áno (§7 — registrácia podľa DPH)' : 'Áno (klasický platca)') : 'Nie'}</span>
-                                    </div>
-                                    <div class="billing-field full-width">
-                                        <span class="field-label">Adresa</span>
-                                        <span class="field-value">{billingData.street}, {billingData.zip} {billingData.city}, {billingData.country === 'SK' ? 'Slovensko' : billingData.country === 'CZ' ? 'Česko' : billingData.country}</span>
-                                    </div>
-                                    <div class="billing-field">
-                                        <span class="field-label">Fakturačný e-mail</span>
-                                        <span class="field-value">{billingData.billing_email || '—'}</span>
-                                    </div>
-                                    <div class="billing-field">
-                                        <span class="field-label">Telefón</span>
-                                        <span class="field-value">{billingData.billing_phone || '—'}</span>
-                                    </div>
+                                    <div class="bl-item bl-full"><span class="bl-label">Sídlo</span><span class="bl-value">{billingData.street}, {billingData.zip} {billingData.city}, {billingData.country === 'SK' ? 'Slovensko' : billingData.country === 'CZ' ? 'Česko' : billingData.country}</span></div>
+                                    <div class="bl-item"><span class="bl-label">E-mail</span><span class="bl-value">{billingData.billing_email || '—'}</span></div>
+                                    <div class="bl-item"><span class="bl-label">Telefón</span><span class="bl-value">{billingData.billing_phone || '—'}</span></div>
                                 </div>
                                 
-                                <div class="change-request-box">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                        <polyline points="22,6 12,13 2,6"></polyline>
-                                    </svg>
-                                    <div>
-                                        <strong>Potrebujete zmeniť fakturačné údaje?</strong>
-                                        <p>Napíšte nám na <a href="mailto:fakturacia@megabuy.sk">fakturacia@megabuy.sk</a> s popisom požadovanej zmeny.</p>
-                                    </div>
+                                <div class="bl-change-note">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                    Zmena údajov: <a href="mailto:fakturacia@megabuy.sk">fakturacia@megabuy.sk</a>
                                 </div>
                             </div>
                         {:else}
-                            <!-- EDITABLE form with ICO auto-fill -->
+                            <!-- EDITABLE form -->
                             {#if !billingCompleted}
-                                <div class="billing-bonus-banner">
-                                    <span class="bonus-emoji">🎁</span>
-                                    <div>
-                                        <strong>Vyplňte fakturačné údaje a získajte 100 € kredit!</strong>
-                                        <p>Po prvom uložení fakturačných údajov vám automaticky pripíšeme 100 € bonus na PPC kredit.</p>
+                                <div class="bl-promo">
+                                    <div class="bl-promo-amount">100 €</div>
+                                    <div class="bl-promo-text">
+                                        <strong>Uvítací kredit za vyplnenie fakturačných údajov</strong>
+                                        <span>Kredit bude automaticky pripísaný na váš účet po uložení údajov.</span>
                                     </div>
                                 </div>
                             {/if}
                             
                             <form on:submit|preventDefault={saveBilling} class="form">
                                 <!-- ICO lookup -->
-                                <div class="ico-lookup-row">
+                                <div class="bl-lookup">
                                     <div class="form-group" style="flex:1">
-                                        <label for="ico">IČO *</label>
-                                        <input type="text" id="ico" bind:value={billingData.ico} placeholder="12345678" required>
+                                        <label for="ico">IČO <span style="color:#dc2626">*</span></label>
+                                        <input type="text" id="ico" bind:value={billingData.ico} placeholder="Zadajte vaše IČO" required>
                                     </div>
-                                    <button type="button" class="btn btn-secondary ico-btn" on:click={lookupICO} disabled={icoLookupLoading || !billingData.ico}>
+                                    <button type="button" class="bl-lookup-btn" on:click={lookupICO} disabled={icoLookupLoading || !billingData.ico}>
                                         {#if icoLookupLoading}
                                             <span class="spinner-sm"></span>
                                         {:else}
-                                            🔍
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                                         {/if}
-                                        Vyhľadať v registri
+                                        Vyhľadať
                                     </button>
                                 </div>
                                 
                                 {#if icoLookupResult}
-                                    <div class="ico-result-card">
-                                        <div class="ico-result-header">
-                                            <span class="ico-result-icon">
-                                                {#if icoLookupResult.legal_form === 'szco'}👤
-                                                {:else if icoLookupResult.legal_form === 'sro'}🏢
-                                                {:else if icoLookupResult.legal_form === 'as'}🏛️
-                                                {:else}📋{/if}
-                                            </span>
-                                            <div>
-                                                <strong>{icoLookupResult.company_name}</strong>
-                                                <span class="ico-result-badge {icoLookupResult.legal_form}">
-                                                    {icoLookupResult.legal_form_text || 'Neznámy typ'}
+                                    <div class="bl-result">
+                                        <div class="bl-result-top">
+                                            <div class="bl-result-entity">
+                                                <span class="bl-entity-type {icoLookupResult.legal_form}">
+                                                    {#if icoLookupResult.legal_form === 'szco'}SZČO
+                                                    {:else if icoLookupResult.legal_form === 'sro'}s.r.o.
+                                                    {:else if icoLookupResult.legal_form === 'as'}a.s.
+                                                    {:else}{icoLookupResult.legal_form?.toUpperCase() || '—'}{/if}
                                                 </span>
+                                                <strong>{icoLookupResult.company_name}</strong>
                                             </div>
                                         </div>
-                                        <div class="ico-result-details">
-                                            <div class="ico-detail">
-                                                <span class="ico-detail-label">IČO</span>
-                                                <span>{icoLookupResult.ico}</span>
-                                            </div>
-                                            {#if icoLookupResult.dic}
-                                                <div class="ico-detail">
-                                                    <span class="ico-detail-label">DIČ</span>
-                                                    <span>{icoLookupResult.dic}</span>
-                                                </div>
-                                            {/if}
-                                            <div class="ico-detail">
-                                                <span class="ico-detail-label">Platca DPH</span>
+                                        <div class="bl-result-info">
+                                            <div class="bl-ri"><span>IČO</span><span class="mono">{icoLookupResult.ico}</span></div>
+                                            {#if icoLookupResult.dic}<div class="bl-ri"><span>DIČ</span><span class="mono">{icoLookupResult.dic}</span></div>{/if}
+                                            <div class="bl-ri">
+                                                <span>DPH</span>
                                                 {#if icoLookupResult.vat_payer}
-                                                    <span class="vat-yes">
-                                                        ✅ Áno {#if icoLookupResult.ic_dph}({icoLookupResult.ic_dph}){/if}
-                                                        {#if icoLookupResult.vat_payer_type === 'paragraph_7'}
-                                                            <span class="vat-type-tag">§7</span>
-                                                        {:else}
-                                                            <span class="vat-type-tag standard">klasický</span>
-                                                        {/if}
+                                                    <span class="bl-vat-yes">
+                                                        Platca DPH
+                                                        {#if icoLookupResult.ic_dph}<span class="mono" style="margin-left:4px">({icoLookupResult.ic_dph})</span>{/if}
+                                                        <span class="bl-vat-badge">{icoLookupResult.vat_payer_type === 'paragraph_7' ? '§7' : 'štandard'}</span>
                                                     </span>
                                                 {:else}
-                                                    <span class="vat-no">❌ Nie — neplatca DPH</span>
+                                                    <span class="bl-vat-no">Neplatca DPH</span>
                                                 {/if}
                                             </div>
                                             {#if icoLookupResult.street || icoLookupResult.city}
-                                                <div class="ico-detail">
-                                                    <span class="ico-detail-label">Sídlo</span>
-                                                    <span>{icoLookupResult.street}{#if icoLookupResult.city}, {icoLookupResult.postal_code} {icoLookupResult.city}{/if}</span>
-                                                </div>
+                                                <div class="bl-ri"><span>Sídlo</span><span>{icoLookupResult.street}, {icoLookupResult.postal_code} {icoLookupResult.city}</span></div>
                                             {/if}
                                         </div>
-                                        <div class="ico-result-footer">
-                                            ✓ Údaje boli predvyplnené. Skontrolujte ich a doplňte ak treba.
+                                        <div class="bl-result-footer">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                            Údaje predvyplnené — skontrolujte a doplňte.
                                         </div>
                                     </div>
                                 {/if}
                                 
                                 <div class="form-group">
-                                    <label for="billing_name">Obchodné meno / Názov firmy *</label>
+                                    <label for="billing_name">Obchodné meno / Názov firmy <span style="color:#dc2626">*</span></label>
                                     <input type="text" id="billing_name" bind:value={billingData.billing_name} placeholder="Firma s.r.o." required>
                                 </div>
                                 
@@ -584,41 +544,47 @@
                                 </div>
                                 
                                 <!-- VAT Payer toggle -->
-                                <div class="vat-section">
-                                    <label class="vat-toggle-label">
-                                        <span>Ste platca DPH?</span>
+                                <div class="bl-vat-section">
+                                    <div class="bl-vat-toggle">
+                                        <span>Platca DPH</span>
                                         <label class="toggle">
                                             <input type="checkbox" bind:checked={billingData.vat_payer}>
                                             <span class="toggle-slider"></span>
                                         </label>
-                                    </label>
+                                    </div>
                                     
                                     {#if billingData.vat_payer}
-                                        <div class="vat-type-options">
-                                            <label class="radio-label">
+                                        <div class="bl-vat-options">
+                                            <label class="bl-radio">
                                                 <input type="radio" bind:group={billingData.vat_payer_type} value="standard">
-                                                <span>Klasický platca DPH</span>
+                                                <div class="bl-radio-content">
+                                                    <strong>Klasický platca DPH</strong>
+                                                    <span>Registrácia podľa §4 alebo §5 zákona o DPH</span>
+                                                </div>
                                             </label>
-                                            <label class="radio-label">
+                                            <label class="bl-radio">
                                                 <input type="radio" bind:group={billingData.vat_payer_type} value="paragraph_7">
-                                                <span>Registrácia podľa §7 (len DPH z dovozu služieb)</span>
+                                                <div class="bl-radio-content">
+                                                    <strong>Registrácia podľa §7</strong>
+                                                    <span>Len DPH z dovozu služieb z EÚ</span>
+                                                </div>
                                             </label>
                                         </div>
                                     {/if}
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="street">Ulica a číslo *</label>
+                                    <label for="street">Ulica a číslo <span style="color:#dc2626">*</span></label>
                                     <input type="text" id="street" bind:value={billingData.street} placeholder="Hlavná 1" required>
                                 </div>
                                 
                                 <div class="form-row three">
                                     <div class="form-group">
-                                        <label for="city">Mesto *</label>
+                                        <label for="city">Mesto <span style="color:#dc2626">*</span></label>
                                         <input type="text" id="city" bind:value={billingData.city} placeholder="Bratislava" required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="zip">PSČ *</label>
+                                        <label for="zip">PSČ <span style="color:#dc2626">*</span></label>
                                         <input type="text" id="zip" bind:value={billingData.zip} placeholder="81101" required>
                                     </div>
                                     <div class="form-group">
@@ -644,18 +610,18 @@
                                     </div>
                                 </div>
                                 
-                                <div class="lock-warning">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
-                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                        <line x1="12" y1="9" x2="12" y2="13"></line>
-                                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                                    </svg>
-                                    <span>Po uložení bude zmena možná len cez e-mail na <a href="mailto:fakturacia@megabuy.sk">fakturacia@megabuy.sk</a></span>
+                                <div class="bl-note">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                    Po uložení bude zmena možná cez <a href="mailto:fakturacia@megabuy.sk">fakturacia@megabuy.sk</a>
                                 </div>
                                 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary" disabled={loading}>
-                                        {#if loading}Ukladám...{:else}💾 Uložiť fakturačné údaje{/if}
+                                        {#if loading}
+                                            <span class="spinner-sm"></span> Ukladám...
+                                        {:else}
+                                            Uložiť fakturačné údaje
+                                        {/if}
                                     </button>
                                 </div>
                             </form>
@@ -1341,314 +1307,88 @@
         background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
     }
     
-    /* Billing locked view */
-    .billing-locked-view {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-    }
+    /* ===== Modern Billing Styles ===== */
+    .mono { font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.5px; }
     
-    .locked-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: #e8f5e9;
-        color: #2e7d32;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        width: fit-content;
-    }
+    /* Readonly locked view */
+    .bl-container { display: flex; flex-direction: column; gap: 1rem; }
+    .bl-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ecfdf5; color: #059669; border-radius: 6px; font-size: 0.82rem; font-weight: 600; width: fit-content; }
     
-    .billing-readonly-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
+    .bl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+    .bl-item { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; border-right: 1px solid #f3f4f6; }
+    .bl-item:nth-child(even) { border-right: none; }
+    .bl-full { grid-column: 1/-1; border-right: none; }
+    .bl-label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #9ca3af; margin-bottom: 3px; font-weight: 500; }
+    .bl-value { font-size: 0.92rem; color: #111827; font-weight: 500; }
+    .bl-tag { display: inline-block; padding: 2px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; }
+    .bl-tag-green { background: #d1fae5; color: #065f46; }
+    .bl-tag-gray { background: #f3f4f6; color: #6b7280; }
     
-    .billing-field {
-        padding: 0.75rem;
-        background: #f9fafb;
-        border-radius: 8px;
-        border: 1px solid #f0f0f0;
-    }
+    .bl-change-note { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #6b7280; padding: 10px 0; }
+    .bl-change-note a { color: #2563eb; font-weight: 600; text-decoration: none; }
+    .bl-change-note a:hover { text-decoration: underline; }
     
-    .billing-field.full-width {
-        grid-column: 1 / -1;
-    }
+    /* Promo banner */
+    .bl-promo { display: flex; align-items: center; gap: 1.25rem; padding: 1.25rem; background: #fafafa; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 1.25rem; }
+    .bl-promo-amount { font-size: 1.75rem; font-weight: 800; color: #059669; line-height: 1; white-space: nowrap; }
+    .bl-promo-text strong { display: block; color: #111827; font-size: 0.9rem; margin-bottom: 2px; }
+    .bl-promo-text span { font-size: 0.82rem; color: #6b7280; }
     
-    .field-label {
-        display: block;
-        font-size: 0.75rem;
-        color: #888;
-        margin-bottom: 0.25rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+    /* ICO Lookup */
+    .bl-lookup { display: flex; align-items: flex-end; gap: 10px; }
+    .bl-lookup-btn {
+        display: inline-flex; align-items: center; gap: 6px; height: 42px; padding: 0 16px;
+        background: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; color: #374151;
+        font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.15s;
     }
+    .bl-lookup-btn:hover:not(:disabled) { background: #f3f4f6; border-color: #9ca3af; }
+    .bl-lookup-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     
-    .field-value {
-        font-weight: 600;
-        color: #333;
-        font-size: 0.95rem;
+    /* ICO Result card */
+    .bl-result { border: 1px solid #d1fae5; border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
+    .bl-result-top { padding: 14px 16px; background: #f0fdf4; }
+    .bl-result-entity { display: flex; align-items: center; gap: 10px; }
+    .bl-entity-type {
+        display: inline-flex; align-items: center; justify-content: center; padding: 3px 10px;
+        border-radius: 5px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
     }
+    .bl-entity-type.szco { background: #dbeafe; color: #1e40af; }
+    .bl-entity-type.sro { background: #e0e7ff; color: #3730a3; }
+    .bl-entity-type.as { background: #fae8ff; color: #7e22ce; }
+    .bl-entity-type.druzstvo, .bl-entity-type.ks, .bl-entity-type.vos { background: #fef3c7; color: #92400e; }
+    .bl-result-entity strong { font-size: 0.95rem; color: #111827; }
     
-    .change-request-box {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        padding: 1rem 1.25rem;
-        background: #f0f4ff;
-        border: 1px solid #bfdbfe;
-        border-radius: 10px;
-        margin-top: 0.5rem;
-    }
+    .bl-result-info { padding: 0; }
+    .bl-ri { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid #f0fdf4; font-size: 0.85rem; }
+    .bl-ri:last-child { border-bottom: none; }
+    .bl-ri > span:first-child { color: #6b7280; font-size: 0.8rem; min-width: 50px; }
+    .bl-ri > span:last-child { color: #111827; font-weight: 500; text-align: right; }
     
-    .change-request-box strong {
-        display: block;
-        color: #1e40af;
-        margin-bottom: 0.25rem;
-    }
+    .bl-vat-yes { color: #059669; font-weight: 600; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+    .bl-vat-no { color: #9ca3af; }
+    .bl-vat-badge { font-size: 0.7rem; padding: 1px 7px; border-radius: 100px; background: #ecfdf5; color: #059669; font-weight: 700; }
     
-    .change-request-box p {
-        margin: 0;
-        font-size: 0.85rem;
-        color: #3b82f6;
-    }
+    .bl-result-footer { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: #f9fafb; font-size: 0.8rem; color: #059669; font-weight: 500; border-top: 1px solid #e5e7eb; }
     
-    .change-request-box a {
-        color: #1d4ed8;
-        font-weight: 600;
-    }
+    /* VAT section */
+    .bl-vat-section { padding: 16px; background: #fafafa; border: 1px solid #e5e7eb; border-radius: 10px; }
+    .bl-vat-toggle { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 0.9rem; color: #374151; }
+    .bl-vat-options { margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 8px; }
     
-    /* Billing form */
-    .billing-bonus-banner {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        padding: 1rem 1.25rem;
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-        border: 1px solid #fbbf24;
-        border-radius: 10px;
-        margin-bottom: 1.25rem;
-    }
+    .bl-radio { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+    .bl-radio:hover { border-color: #93c5fd; }
+    .bl-radio input[type="radio"] { margin-top: 3px; accent-color: #2563eb; }
+    .bl-radio-content strong { display: block; font-size: 0.85rem; color: #111827; margin-bottom: 1px; }
+    .bl-radio-content span { font-size: 0.78rem; color: #6b7280; }
     
-    .bonus-emoji {
-        font-size: 1.75rem;
-        flex-shrink: 0;
-    }
-    
-    .billing-bonus-banner strong {
-        display: block;
-        color: #92400e;
-        margin-bottom: 0.25rem;
-    }
-    
-    .billing-bonus-banner p {
-        margin: 0;
-        font-size: 0.85rem;
-        color: #78350f;
-    }
-    
-    .ico-lookup-row {
-        display: flex;
-        align-items: flex-end;
-        gap: 0.75rem;
-    }
-    
-    .ico-btn {
-        white-space: nowrap;
-        height: 42px;
-        font-size: 0.85rem !important;
-        padding: 0 1rem !important;
-    }
+    /* Info note */
+    .bl-note { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #6b7280; padding: 10px 14px; background: #f9fafb; border-radius: 8px; }
+    .bl-note a { color: #2563eb; font-weight: 500; text-decoration: none; }
+    .bl-note a:hover { text-decoration: underline; }
     
     .spinner-sm {
-        width: 14px;
-        height: 14px;
-        border: 2px solid #ccc;
-        border-top-color: #1976d2;
-        border-radius: 50%;
-        animation: spin 0.6s linear infinite;
-        display: inline-block;
+        width: 14px; height: 14px; border: 2px solid #d1d5db; border-top-color: #2563eb;
+        border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block;
     }
-    
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-    
-    .vat-section {
-        padding: 1rem;
-        background: #f9fafb;
-        border-radius: 10px;
-        border: 1px solid #e5e7eb;
-    }
-    
-    .vat-toggle-label {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-weight: 600;
-        color: #374151;
-        cursor: pointer;
-    }
-    
-    .vat-type-options {
-        margin-top: 0.75rem;
-        padding-top: 0.75rem;
-        border-top: 1px solid #e5e7eb;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .radio-label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.9rem;
-        color: #555;
-        cursor: pointer;
-    }
-    
-    .radio-label input[type="radio"] {
-        width: 16px;
-        height: 16px;
-    }
-    
-    .lock-warning {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
-        background: #fffbeb;
-        border: 1px solid #fde68a;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        color: #92400e;
-    }
-    
-    .lock-warning a {
-        color: #d97706;
-        font-weight: 600;
-    }
-    
-    /* ICO lookup result card */
-    .ico-result-card {
-        background: #f0fdf4;
-        border: 1px solid #86efac;
-        border-radius: 10px;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .ico-result-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .ico-result-icon {
-        font-size: 1.5rem;
-        flex-shrink: 0;
-    }
-    
-    .ico-result-header strong {
-        display: block;
-        color: #166534;
-        font-size: 1rem;
-        margin-bottom: 0.25rem;
-    }
-    
-    .ico-result-badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-    
-    .ico-result-badge.szco {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-    
-    .ico-result-badge.sro {
-        background: #e0e7ff;
-        color: #3730a3;
-    }
-    
-    .ico-result-badge.as {
-        background: #fae8ff;
-        color: #7e22ce;
-    }
-    
-    .ico-result-badge.druzstvo, .ico-result-badge.ks, .ico-result-badge.vos {
-        background: #f3e8ff;
-        color: #6b21a8;
-    }
-    
-    .ico-result-details {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-        padding: 0.75rem;
-        background: white;
-        border-radius: 8px;
-        margin-bottom: 0.5rem;
-    }
-    
-    .ico-detail {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.85rem;
-        padding: 0.25rem 0;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    
-    .ico-detail:last-child {
-        border-bottom: none;
-    }
-    
-    .ico-detail-label {
-        color: #888;
-        font-size: 0.8rem;
-        min-width: 80px;
-    }
-    
-    .vat-yes {
-        color: #166534;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        flex-wrap: wrap;
-    }
-    
-    .vat-no {
-        color: #991b1b;
-        font-weight: 600;
-    }
-    
-    .vat-type-tag {
-        font-size: 0.7rem;
-        padding: 1px 6px;
-        border-radius: 3px;
-        background: #fef3c7;
-        color: #92400e;
-        font-weight: 700;
-    }
-    
-    .vat-type-tag.standard {
-        background: #d1fae5;
-        color: #065f46;
-    }
-    
-    .ico-result-footer {
-        font-size: 0.8rem;
-        color: #16a34a;
-        font-weight: 500;
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 </style>
