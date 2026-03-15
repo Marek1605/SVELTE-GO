@@ -5,7 +5,7 @@
     import { browser } from '$app/environment';
     import { writable } from 'svelte/store';
     
-    const API_BASE = import.meta.env.VITE_API_URL || '';
+    const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
     
     const vendorStore = writable(null);
     const shopStore = writable(null);
