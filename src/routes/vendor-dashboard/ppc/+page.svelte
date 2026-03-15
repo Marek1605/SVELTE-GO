@@ -12,6 +12,7 @@
     let activeTab = 'topup';
     let loading = false;
     let transactions = [];
+    let topups = [];
     let selectedPackage = null;
     let paymentMethod = 'bank_transfer';
     let message = null;
@@ -64,7 +65,7 @@
     
     onMount(async () => {
         if (!browser) return;
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentSettings(), loadMyShops()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentSettings(), loadMyShops(), loadTopups()]);
         if (myShops.length > 0 && !selectedShopId) selectedShopId = myShops[0].id;
     });
     
@@ -179,6 +180,25 @@
         } catch (e) {
             console.error('Error loading transactions:', e);
         }
+    }
+
+    async function loadTopups() {
+        const token = localStorage.getItem('vendor_token');
+        if (!token) return;
+        try {
+            const res = await fetch(`${API_BASE}/vendor/credit/topups`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success && data.data) topups = data.data;
+        } catch (e) { console.error('Error loading topups:', e); }
+    }
+
+    async function downloadPDF(topupId, type, label) {
+        const token = localStorage.getItem('vendor_token');
+        try {
+            const r = await fetch(`${API_BASE}/vendor/invoice-pdf/${topupId}?type=${type}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (r.ok) { const b = await r.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `${label}.pdf`; a.click(); URL.revokeObjectURL(a.href); }
+            else { const e = await r.json().catch(() => ({})); alert(e.error || 'Chyba pri sťahovaní PDF'); }
+        } catch(e) { alert('Chyba pripojenia'); }
     }
     
     async function requestTopup() {
@@ -406,16 +426,26 @@
                     {/if}
 
                     {#if paymentData.sf_proforma_no}
-                    <div class="ppc-proforma-info">
-                        Zálohová faktúra <strong>{paymentData.sf_proforma_no}</strong> bola odoslaná na váš e-mail.
+                    <div class="ppc-proforma-info" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                        <span>Zálohová faktúra <strong>{paymentData.sf_proforma_no}</strong> bola odoslaná na váš e-mail.</span>
+                        {#if paymentData.topup_id}
+                        <a href="{API_BASE}/vendor/invoice-pdf/{paymentData.topup_id}?type=proforma" 
+                           target="_blank" 
+                           style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;background:#3b82f6;color:white;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none"
+                           on:click|preventDefault={async () => {
+                               const token = localStorage.getItem('vendor_token');
+                               const r = await fetch(`${API_BASE}/vendor/invoice-pdf/${paymentData.topup_id}?type=proforma`, { headers: { 'Authorization': `Bearer ${token}` } });
+                               if (r.ok) { const b = await r.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `zalohova-faktura-${paymentData.sf_proforma_no}.pdf`; a.click(); }
+                               else alert('Chyba pri sťahovaní PDF');
+                           }}>📄 Stiahnuť PDF</a>
+                        {/if}
                     </div>
                     {/if}
 
                     <div class="ppc-payment-notice">
                         <strong>ℹ️ Dôležité informácie</strong>
-                        <p>Kredit bude pripísaný na váš účet po uhradení zálohovej faktúry a pripísaní platby na náš bankový účet. Spracovanie trvá zvyčajne 1–3 pracovné dni.</p>
-                        <p>Po pripísaní platby vám bude automaticky vystavená riadna faktúra a odoslaná na váš e-mail.</p>
-                        <p>Navýšenie kreditu pred pripísaním platby na náš účet nie je možné.</p>
+                        <p>Kredit bude pripísaný po úhrade zálohovej faktúry (zvyčajne do 2 pracovných dní).</p>
+                        <p>Po pripísaní platby vám automaticky vystavíme riadnu faktúru a pošleme ju na e-mail.</p>
                     </div>
                 </div>
             </div>
@@ -656,7 +686,68 @@
             
         {:else if activeTab === 'history'}
             <div class="ppc-history">
-                <h3>História transakcií</h3>
+                <!-- TOPUPS / INVOICES -->
+                {#if topups.length > 0}
+                <div style="margin-bottom:28px">
+                    <h3 style="margin-bottom:14px">📋 Dobíjania kreditu</h3>
+                    <div style="border:1px solid #e5e7eb;border-radius:10px;overflow-x:auto">
+                        <table style="width:100%;border-collapse:collapse;min-width:700px">
+                            <thead>
+                                <tr style="background:#f8fafc">
+                                    <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase">Dátum</th>
+                                    <th style="padding:10px 12px;text-align:right;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase">Suma</th>
+                                    <th style="padding:10px 12px;text-align:right;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase">Kredit</th>
+                                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase">VS</th>
+                                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase">Stav</th>
+                                    <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase">Faktúry</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {#each topups as t}
+                                <tr style="border-top:1px solid #f1f5f9">
+                                    <td style="padding:10px 12px;font-size:12px;color:#6b7280;white-space:nowrap">{formatDate(t.created_at)}</td>
+                                    <td style="padding:10px 12px;text-align:right;font-weight:700;color:#1f2937">{formatNumber(t.amount, 2)} €</td>
+                                    <td style="padding:10px 12px;text-align:right;font-weight:600;color:#059669">
+                                        {formatNumber(t.total_credit, 2)} €
+                                        {#if t.bonus_pct > 0}<span style="font-size:10px;color:#10b981;margin-left:4px">+{t.bonus_pct}%</span>{/if}
+                                    </td>
+                                    <td style="padding:10px 8px;text-align:center"><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:11px">{t.variable_symbol}</code></td>
+                                    <td style="padding:10px 8px;text-align:center">
+                                        {#if t.status === 'pending'}
+                                            <span style="padding:3px 10px;border-radius:10px;font-size:10px;font-weight:600;background:#fef3c7;color:#92400e">Čaká na platbu</span>
+                                        {:else if t.status === 'paid'}
+                                            <span style="padding:3px 10px;border-radius:10px;font-size:10px;font-weight:600;background:#d1fae5;color:#065f46">Zaplatené</span>
+                                        {:else}
+                                            <span style="padding:3px 10px;border-radius:10px;font-size:10px;font-weight:600;background:#f1f5f9;color:#6b7280">{t.status}</span>
+                                        {/if}
+                                    </td>
+                                    <td style="padding:10px 12px;text-align:center;white-space:nowrap">
+                                        {#if t.sf_proforma_no}
+                                            <button style="font-size:11px;color:#3b82f6;background:#eff6ff;border:1px solid #bfdbfe;padding:3px 8px;border-radius:5px;cursor:pointer;margin-right:4px"
+                                                on:click={() => downloadPDF(t.id, 'proforma', 'ZF-' + t.sf_proforma_no)}>
+                                                📄 ZF {t.sf_proforma_no}
+                                            </button>
+                                        {/if}
+                                        {#if t.sf_invoice_no}
+                                            <button style="font-size:11px;color:#059669;background:#ecfdf5;border:1px solid #a7f3d0;padding:3px 8px;border-radius:5px;cursor:pointer"
+                                                on:click={() => downloadPDF(t.id, 'invoice', 'FA-' + t.sf_invoice_no)}>
+                                                📄 FA {t.sf_invoice_no}
+                                            </button>
+                                        {/if}
+                                        {#if !t.sf_proforma_no && !t.sf_invoice_no}
+                                            <span style="color:#94a3b8;font-size:11px">—</span>
+                                        {/if}
+                                    </td>
+                                </tr>
+                                {/each}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {/if}
+
+                <!-- TRANSACTIONS -->
+                <h3>💳 História transakcií</h3>
                 {#if transactions.length === 0}
                     <div class="ppc-empty">
                         <span class="ppc-empty-icon">📋</span>
