@@ -1,7 +1,7 @@
 <script>
     import { onMount } from 'svelte';
 
-    const API = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+    const API = '';
     
     function getAuth() { return window.__adminAuth || ''; }
 

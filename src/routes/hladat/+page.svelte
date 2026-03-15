@@ -3,7 +3,7 @@
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
     
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+    const API_BASE = import.meta.env.VITE_API_URL || '';
     
     let searchQuery = '';
     let products = [];

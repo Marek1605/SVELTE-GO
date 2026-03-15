@@ -2,7 +2,7 @@
     import { adminFetch, adminRawFetch, API_BASE } from '$lib/adminApi.js';
     import { onMount } from 'svelte';
     
-    const GO_API = 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io';
+    const GO_API = '';
     
     let attributes = [];
     let filterSettings = {

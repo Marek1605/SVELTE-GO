@@ -51,7 +51,7 @@ function createAuthStore() {
     }
 
     async function checkAuth(token: string) {
-        const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+        const API_BASE = import.meta.env.VITE_API_URL || '';
         
         try {
             const res = await fetch(`${API_BASE}/auth/me`, {
@@ -80,7 +80,7 @@ function createAuthStore() {
     }
 
     async function login(email: string, password: string, rememberMe: boolean = false): Promise<{ success: boolean; error?: string }> {
-        const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+        const API_BASE = import.meta.env.VITE_API_URL || '';
         
         try {
             const res = await fetch(`${API_BASE}/auth/login`, {
@@ -126,7 +126,7 @@ function createAuthStore() {
         shop_url: string;
         terms: boolean;
     }): Promise<{ success: boolean; error?: string }> {
-        const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+        const API_BASE = import.meta.env.VITE_API_URL || '';
         
         // Map frontend fields to backend expected fields
         const fullName = `${data.first_name} ${data.last_name}`.trim();
@@ -162,7 +162,7 @@ function createAuthStore() {
         if (browser) {
             const token = localStorage.getItem('vendor_token');
             if (token) {
-                const API_BASE = import.meta.env.VITE_API_URL || 'http://pc4kcc0ko0k0k08gk840cos0.46.224.7.54.sslip.io/api/v1';
+                const API_BASE = import.meta.env.VITE_API_URL || '';
                 fetch(`${API_BASE}/auth/logout`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
