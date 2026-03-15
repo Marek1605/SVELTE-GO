@@ -91,12 +91,15 @@
         } catch (e) { console.error('Failed to load billing', e); }
     }
     
+    let icoLookupResult = null;
+    
     async function lookupICO() {
         if (!billingData.ico || billingData.ico.length < 6) {
             message = { type: 'error', text: 'Zadajte platné IČO (min. 6 znakov)' };
             return;
         }
         icoLookupLoading = true;
+        icoLookupResult = null;
         const token = localStorage.getItem('vendor_token');
         try {
             const res = await fetch(`${API_BASE}/vendor/ico-lookup?ico=${billingData.ico}`, {
@@ -111,7 +114,9 @@
                 billingData.zip = d.postal_code || billingData.zip;
                 billingData.dic = d.dic || billingData.dic;
                 billingData.ic_dph = d.ic_dph || billingData.ic_dph;
-                if (d.ic_dph) billingData.vat_payer = true;
+                billingData.vat_payer = d.vat_payer || false;
+                if (d.vat_payer_type) billingData.vat_payer_type = d.vat_payer_type;
+                icoLookupResult = d;
                 message = { type: 'success', text: `Údaje predvyplnené z registra: ${d.company_name}` };
             } else {
                 message = { type: 'error', text: 'IČO nenájdené v registri. Vyplňte údaje manuálne.' };
@@ -506,6 +511,61 @@
                                         Vyhľadať v registri
                                     </button>
                                 </div>
+                                
+                                {#if icoLookupResult}
+                                    <div class="ico-result-card">
+                                        <div class="ico-result-header">
+                                            <span class="ico-result-icon">
+                                                {#if icoLookupResult.legal_form === 'szco'}👤
+                                                {:else if icoLookupResult.legal_form === 'sro'}🏢
+                                                {:else if icoLookupResult.legal_form === 'as'}🏛️
+                                                {:else}📋{/if}
+                                            </span>
+                                            <div>
+                                                <strong>{icoLookupResult.company_name}</strong>
+                                                <span class="ico-result-badge {icoLookupResult.legal_form}">
+                                                    {icoLookupResult.legal_form_text || 'Neznámy typ'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="ico-result-details">
+                                            <div class="ico-detail">
+                                                <span class="ico-detail-label">IČO</span>
+                                                <span>{icoLookupResult.ico}</span>
+                                            </div>
+                                            {#if icoLookupResult.dic}
+                                                <div class="ico-detail">
+                                                    <span class="ico-detail-label">DIČ</span>
+                                                    <span>{icoLookupResult.dic}</span>
+                                                </div>
+                                            {/if}
+                                            <div class="ico-detail">
+                                                <span class="ico-detail-label">Platca DPH</span>
+                                                {#if icoLookupResult.vat_payer}
+                                                    <span class="vat-yes">
+                                                        ✅ Áno {#if icoLookupResult.ic_dph}({icoLookupResult.ic_dph}){/if}
+                                                        {#if icoLookupResult.vat_payer_type === 'paragraph_7'}
+                                                            <span class="vat-type-tag">§7</span>
+                                                        {:else}
+                                                            <span class="vat-type-tag standard">klasický</span>
+                                                        {/if}
+                                                    </span>
+                                                {:else}
+                                                    <span class="vat-no">❌ Nie — neplatca DPH</span>
+                                                {/if}
+                                            </div>
+                                            {#if icoLookupResult.street || icoLookupResult.city}
+                                                <div class="ico-detail">
+                                                    <span class="ico-detail-label">Sídlo</span>
+                                                    <span>{icoLookupResult.street}{#if icoLookupResult.city}, {icoLookupResult.postal_code} {icoLookupResult.city}{/if}</span>
+                                                </div>
+                                            {/if}
+                                        </div>
+                                        <div class="ico-result-footer">
+                                            ✓ Údaje boli predvyplnené. Skontrolujte ich a doplňte ak treba.
+                                        </div>
+                                    </div>
+                                {/if}
                                 
                                 <div class="form-group">
                                     <label for="billing_name">Obchodné meno / Názov firmy *</label>
@@ -1471,5 +1531,124 @@
     .lock-warning a {
         color: #d97706;
         font-weight: 600;
+    }
+    
+    /* ICO lookup result card */
+    .ico-result-card {
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .ico-result-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .ico-result-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .ico-result-header strong {
+        display: block;
+        color: #166534;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .ico-result-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .ico-result-badge.szco {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .ico-result-badge.sro {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+    
+    .ico-result-badge.as {
+        background: #fae8ff;
+        color: #7e22ce;
+    }
+    
+    .ico-result-badge.druzstvo, .ico-result-badge.ks, .ico-result-badge.vos {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+    
+    .ico-result-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .ico-detail {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .ico-detail:last-child {
+        border-bottom: none;
+    }
+    
+    .ico-detail-label {
+        color: #888;
+        font-size: 0.8rem;
+        min-width: 80px;
+    }
+    
+    .vat-yes {
+        color: #166534;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+    
+    .vat-no {
+        color: #991b1b;
+        font-weight: 600;
+    }
+    
+    .vat-type-tag {
+        font-size: 0.7rem;
+        padding: 1px 6px;
+        border-radius: 3px;
+        background: #fef3c7;
+        color: #92400e;
+        font-weight: 700;
+    }
+    
+    .vat-type-tag.standard {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .ico-result-footer {
+        font-size: 0.8rem;
+        color: #16a34a;
+        font-weight: 500;
     }
 </style>
