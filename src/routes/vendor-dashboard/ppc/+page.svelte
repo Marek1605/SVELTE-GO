@@ -430,14 +430,13 @@
                 </div>
 
                 <div class="ppc-bank-notice">
-                    Využitím platby prostredníctvom bankového prevodu sa vám dobitý kredit načíta na váš MegaBuy účet až po uhradení automaticky vygenerovanej zálohovej faktúry, ktorú dostanete na e-mail uvedený vo fakturačných údajoch. PPC systém môžete naplno využívať až po pripísaní čiastky na náš bankový účet, čo môže trvať až 3 pracovné dni. <strong>Navýšenie kreditu pred pripísaním platby na náš bankový účet nie je možné.</strong>
+                    Kredit bude pripísaný po úhrade zálohovej faktúry a pripísaní platby na náš účet (zvyčajne do 2 pracovných dní). Zálohovú faktúru dostanete na e-mail uvedený vo fakturačných údajoch.
                 </div>
                 
                 <h3>Zadajte sumu</h3>
                 <div class="ppc-custom-amount" style="margin-top:0;padding-top:0;border-top:none">
                     <div class="ppc-custom-row">
                         <input type="number" class="ppc-custom-input" style="width:120px;font-size:18px;padding:10px 14px" placeholder="€" bind:value={customAmount} on:focus={() => { useCustom = true; selectedPackage = null; }} min="5" step="1">
-                        <span style="font-size:15px;color:#374151;font-weight:500">€</span>
                         {#if useCustom && Number(customAmount) >= 5}
                             <span class="ppc-custom-info">
                                 {#if customBonus > 0}
@@ -569,26 +568,6 @@
                 <button class="ppc-submit-btn" on:click={requestTopup} disabled={loading || (!selectedPackage && !useCustom) || (useCustom && Number(customAmount) < 5)}>
                     {loading ? 'Spracovávam...' : `Prejsť na platbu ${selectedAmount > 0 ? selectedAmount + ' €' : ''}`}
                 </button>
-                
-                {#if paymentMethod === 'bank_transfer' && paymentSettings.payment_iban}
-                    <div class="ppc-bank-info">
-                        <h4>Platobné údaje</h4>
-                        <p><strong>IBAN:</strong> {paymentSettings.payment_iban}</p>
-                        {#if paymentSettings.payment_swift}
-                            <p><strong>SWIFT:</strong> {paymentSettings.payment_swift}</p>
-                        {/if}
-                        {#if paymentSettings.payment_bank_name}
-                            <p><strong>Banka:</strong> {paymentSettings.payment_bank_name}</p>
-                        {/if}
-                        <p><strong>Variabilný symbol:</strong> {shop?.id || vendor?.id || '---'}</p>
-                        <p class="ppc-note">Po prijatí platby bude kredit pripísaný do 24 hodín.</p>
-                    </div>
-                {:else if paymentMethod === 'bank_transfer' && !paymentSettings.payment_iban}
-                    <div class="ppc-bank-info">
-                        <h4>Platobné údaje</h4>
-                        <p class="ppc-note">Platobné údaje ešte neboli nastavené administrátorom. Kontaktujte nás.</p>
-                    </div>
-                {/if}
             </div>
             {/if}
             
